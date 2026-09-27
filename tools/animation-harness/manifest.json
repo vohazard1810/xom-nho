@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "status": "BLOCKED_AWAITING_PRODUCTION_FRAMES",
+  "representativeNpc": "be_ti",
+  "canvas": {"aspectRatio":"9:16","baselineY":0.72},
+  "note": "This manifest is intentionally non-PASS. The current harness uses emoji placeholders. No numeric anchor result may be claimed until real exported frame files and per-frame metadata exist.",
+  "npc": {
+    "id":"be_ti",
+    "states":{
+      "walk":{"frames":6},
+      "arrive":{"frames":4},
+      "queue_wait":{"frames":4,"variants":["normal","deprioritized","reserved_for_other","stock_pending"]},
+      "order":{"frames":4,"branches":["special_request"]},
+      "conflict_wait":{"frames":4},
+      "receive":{"frames":4},
+      "refused":{"frames":4},
+      "react":{"frames":4,"variants":["positive","neutral","negative"]},
+      "pay":{"frames":4},
+      "leave":{"frames":6}
+    },
+    "productionFramesInstalled": false
+  },
+  "shopkeeper":{
+    "states":{
+      "idle":{"frames":4},
+      "prepare_food_normal":{"frames":8},
+      "prepare_food_extra_cha":{"frames":9},
+      "prepare_drink":{"frames":8},
+      "handoff":{"frames":4}
+    },
+    "productionFramesInstalled": false
+  },
+  "validation":{
+    "feetAnchorNumeric":"NOT_RUN",
+    "handoffSyncNumeric":"NOT_RUN",
+    "waitReadabilityHumanReview":"NOT_RUN",
+    "gate":"BLOCKED"
+  }
+}
