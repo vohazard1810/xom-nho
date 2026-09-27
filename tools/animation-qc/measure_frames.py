@@ -1,16 +1,22 @@
 #!/usr/bin/env python3
 """Measure objective PNG properties only. Never invent semantic anchors."""
 from __future__ import annotations
-import argparse, json
+import argparse, hashlib, json
 from pathlib import Path
 from PIL import Image
 
 def measure(path: Path):
-    im=Image.open(path).convert("RGBA")
+    with Image.open(path) as source:
+        if source.format != "PNG" or not ("A" in source.getbands() or "transparency" in source.info):
+            raise ValueError(f"{path}: PNG source has no real alpha/transparency (mode={source.mode})")
+        im=source.convert("RGBA")
     alpha=im.getchannel("A")
     bbox=alpha.getbbox()
+    if bbox is None:
+        raise ValueError(f"{path}: completely transparent PNG")
     return {
         "file": path.as_posix(),
+        "sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
         "width": im.width,
         "height": im.height,
         "has_alpha": True,
