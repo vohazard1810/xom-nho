@@ -1,39 +1,40 @@
 {
-  "schemaVersion": 1,
-  "status": "BLOCKED_AWAITING_PRODUCTION_FRAMES",
-  "representativeNpc": "be_ti",
-  "canvas": {"aspectRatio":"9:16","baselineY":0.72},
-  "note": "This manifest is intentionally non-PASS. The current harness uses emoji placeholders. No numeric anchor result may be claimed until real exported frame files and per-frame metadata exist.",
-  "npc": {
-    "id":"be_ti",
-    "states":{
-      "walk":{"frames":6},
-      "arrive":{"frames":4},
-      "queue_wait":{"frames":4,"variants":["normal","deprioritized","reserved_for_other","stock_pending"]},
-      "order":{"frames":4,"branches":["special_request"]},
-      "conflict_wait":{"frames":4},
-      "receive":{"frames":4},
-      "refused":{"frames":4},
-      "react":{"frames":4,"variants":["positive","neutral","negative"]},
-      "pay":{"frames":4},
-      "leave":{"frames":6}
-    },
-    "productionFramesInstalled": false
+  "_readme": [
+    "NGUỒN SỰ THẬT DUY NHẤT cho anchor coordinates.",
+    "Mọi x/y phải đo từ PNG thật. Không hard-code hoặc suy đoán. Chưa đo => null + NOT_MEASURED.",
+    "Canvas gốc 960x1704.",
+    "Mỗi frame là một PNG riêng.",
+    "Gate giữ BLOCKED cho đến khi frame cần thiết được MEASURED và cả 3 validation tests PASS."
+  ],
+  "project": "xom-nho",
+  "asset_version": "v0.2",
+  "gate_status": "BLOCKED_AWAITING_PRODUCTION_FRAMES",
+  "canvas": {"width": 960, "height": 1704},
+  "characters": {
+    "be_ti": {"states": {
+      "WALK": {"frame_count": 6, "loop": true, "frames": []},
+      "ARRIVE": {"frame_count": 4, "loop": false, "frames": []},
+      "QUEUE_WAIT": {"variants": ["normal","deprioritized","reserved_for_other","stock_pending"], "frame_count_per_variant": 4, "loop": true, "frames_by_variant": {"normal":[],"deprioritized":[],"reserved_for_other":[],"stock_pending":[]}},
+      "ORDER": {"frame_count": 4, "loop": false, "frames": []},
+      "SPECIAL_REQUEST": {"frame_count": 4, "loop": false, "frames": []},
+      "CONFLICT_WAIT": {"frame_count": 4, "loop": true, "frames": []},
+      "RECEIVE": {"frame_count": 4, "loop": false, "frames": [], "note": "Contact frame phải có receive_point đo từ PNG thật."},
+      "REFUSED": {"frame_count": 3, "loop": false, "frames": []},
+      "REACT": {"variants": ["positive","neutral","negative"], "frame_count_per_variant": 4, "loop": false, "frames_by_variant": {"positive":[],"neutral":[],"negative":[]}},
+      "PAY": {"frame_count": 4, "loop": false, "frames": []},
+      "LEAVE": {"frame_count": 6, "loop": true, "frames": []}
+    }},
+    "shopkeeper": {"states": {
+      "IDLE": {"frame_count": 4, "loop": true, "frames": []},
+      "PREPARE_FOOD": {"variants": ["banh_mi_normal","banh_mi_extra_cha"], "frames_by_variant": {"banh_mi_normal":[],"banh_mi_extra_cha":[]}},
+      "PREPARE_DRINK": {"variants": ["tra_tac"], "frames_by_variant": {"tra_tac":[]}},
+      "HANDOFF": {"frame_count": 4, "loop": false, "frames": [], "note": "Contact frame phải có hand_right đo từ PNG thật."}
+    }}
   },
-  "shopkeeper":{
-    "states":{
-      "idle":{"frames":4},
-      "prepare_food_normal":{"frames":8},
-      "prepare_food_extra_cha":{"frames":9},
-      "prepare_drink":{"frames":8},
-      "handoff":{"frames":4}
-    },
-    "productionFramesInstalled": false
+  "validation_tests": {
+    "feet_anchor_consistency": {"pass_condition": "max(feet.y)-min(feet.y) <= 3px", "status": "NOT_RUN", "result": null},
+    "handoff_sync": {"pass_condition": "Euclidean distance <= 10px at contact frame", "status": "NOT_RUN", "result": null},
+    "wait_readability_human": {"pass_condition": "Người thật xác nhận riêng cả 4 variant, không label và không tick sẵn.", "status": "NOT_RUN", "checked_by": null, "checked_at": null, "results": {"normal":null,"deprioritized":null,"reserved_for_other":null,"stock_pending":null}}
   },
-  "validation":{
-    "feetAnchorNumeric":"NOT_RUN",
-    "handoffSyncNumeric":"NOT_RUN",
-    "waitReadabilityHumanReview":"NOT_RUN",
-    "gate":"BLOCKED"
-  }
+  "gate_rule": "Chỉ PASS khi cả 3 validation_tests PASS; numeric tests phải có measured evidence; human test phải có checked_by + checked_at."
 }
