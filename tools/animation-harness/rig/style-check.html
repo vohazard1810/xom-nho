@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="vi">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Bé Tí — Style check candidate</title>
+<style>
+body{font:16px system-ui,sans-serif;background:#f8f0df;color:#30261e;margin:18px auto;max-width:760px;padding:0 14px}
+.note{background:#fff2be;padding:10px;border-radius:8px}
+.controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:14px 0}
+button{padding:9px 12px;font:inherit}
+.stage{position:relative;width:min(100%,360px);aspect-ratio:960/1704;margin:auto;background:linear-gradient(#eddfc2 76%,#b9946c 76%);border:2px solid #765d49;overflow:hidden}
+.stage img{position:absolute;width:220px;height:330px;left:50%;bottom:24%;transform:translateX(-50%);object-fit:fill}
+.baseline{position:absolute;bottom:24%;left:0;right:0;border-top:2px dashed #a43a2c}
+.debug{font:13px ui-monospace,monospace;margin-top:8px}
+</style>
+<h1>Bé Tí · so phong cách trong sân game</h1>
+<p class="note">Ứng viên tạo hình, chưa phải animation. Gate vẫn BLOCKED. Cả hai ảnh cùng kích thước hiển thị 220×330; căn chân theo đường gạch đỏ.</p>
+<div class="controls"><button id="switch">Đổi ảnh</button><button id="play">Tự đổi: tắt</button><span id="which"></span></div>
+<div class="stage"><div class="baseline"></div><img id="actor" alt="Bé Tí" /></div>
+<p class="debug">Kiểm tra mặt/tóc, tỷ lệ đầu–thân, màu áo–khăn–ba lô, viền nét và cảm giác nhảy hình khi đổi.</p>
+<script>
+const images=[
+  {label:'Mẫu Bé Tí đã duyệt',src:'../../../assets/characters/named/be_ti/candidates/identity-v1.png'},
+  {label:'Rig texture ứng viên',src:'./be_ti_textured_standing.png'}
+];
+let index=0,timer=null;const actor=document.getElementById('actor'),which=document.getElementById('which'),play=document.getElementById('play');
+function show(){actor.src=images[index].src;which.textContent=images[index].label;index=1-index}
+document.getElementById('switch').onclick=show;
+play.onclick=()=>{if(timer){clearInterval(timer);timer=null;play.textContent='Tự đổi: tắt'}else{timer=setInterval(show,550);play.textContent='Tự đổi: bật'}};
+actor.onerror=()=>{which.textContent='Không tải được '+actor.src};show();
+</script>
+</html>
