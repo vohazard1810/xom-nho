@@ -1,6 +1,6 @@
 # XÓM NHỎ — Character, Animation & Content Asset System
 
-Version: v0.3
+Version: v0.4
 Date: 2026-09-27
 Status: Production architecture before sprite production
 
@@ -493,6 +493,44 @@ PASS requires:
 - REFUSED and negative reaction are readable without becoming exaggerated slapstick.
 
 Only after this harness passes may Cô Chín and Anh Tùng receive production animation sets.
+
+## 17C. Wait-state semantics and numeric QC
+
+QUEUE_WAIT.stock_pending and CONFLICT_WAIT are intentionally different:
+
+- QUEUE_WAIT.stock_pending: this NPC has not entered active service; the queue is stalled or delayed because another active order ahead is unresolved.
+- CONFLICT_WAIT: this NPC is the active order owner and their own order has an unresolved stock/service conflict after ORDER / assembly validation.
+
+Visual requirement:
+- stock_pending reads as passive/observational waiting, attention directed toward the counter/other customer;
+- conflict_wait reads as personal uncertainty/concern about this NPC's own order.
+
+Do not differentiate them only through labels or debug UI.
+
+### Numeric feet-anchor gate
+
+For all stationary Bé Tí states and variants:
+ORDER, SPECIAL_REQUEST presentation, all QUEUE_WAIT variants, CONFLICT_WAIT, RECEIVE, REFUSED, REACT variants and PAY:
+
+- canonical ground baseline Y must be identical in runtime world coordinates;
+- sprite source-frame differences are corrected by per-frame trim/origin metadata, not by moving the world actor;
+- record the effective feet_anchor Y for every frame in the validation report.
+
+WALK/LEAVE may show gait movement inside the sprite, but the world ground contact model remains stable.
+
+### Handoff timing gate
+
+HANDOFF and RECEIVE must be played on the same validation timeline.
+
+For each paired frame record:
+- shopkeeper hand anchor;
+- product anchor;
+- NPC receive anchor;
+- distance/error between intended contact points.
+
+PASS requires contact at the designated transfer frame with no one-frame product teleport before or after transfer.
+
+A static concept sheet is not evidence of numeric PASS. Actual exported frame files + manifest metadata are required before measuring this gate.
 
 ## 18. Freeze gate
 
