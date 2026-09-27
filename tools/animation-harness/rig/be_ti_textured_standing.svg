@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 1024 1536">
+<title>Bé Tí layered textured rig — standing candidate</title>
+<defs><filter id="clean-alpha" x="-3%" y="-3%" width="106%" height="106%"><feComponentTransfer><feFuncA type="linear" slope="1.5" intercept="-0.25"/></feComponentTransfer></filter>
+<clipPath id="clip_leg_right_thigh" clipPathUnits="userSpaceOnUse"><rect x="550" y="1030" width="280" height="180"/></clipPath>
+<clipPath id="clip_leg_right_shin" clipPathUnits="userSpaceOnUse"><rect x="550" y="1200" width="280" height="180"/></clipPath>
+<clipPath id="clip_shoe_right" clipPathUnits="userSpaceOnUse"><rect x="550" y="1380" width="280" height="120"/></clipPath>
+<clipPath id="clip_backpack_rear" clipPathUnits="userSpaceOnUse"><rect x="220" y="550" width="200" height="430"/></clipPath>
+<clipPath id="clip_arm_right_upper" clipPathUnits="userSpaceOnUse"><rect x="695" y="560" width="175" height="265"/></clipPath>
+<clipPath id="clip_arm_right_lower" clipPathUnits="userSpaceOnUse"><rect x="695" y="825" width="175" height="130"/></clipPath>
+<clipPath id="clip_hand_right" clipPathUnits="userSpaceOnUse"><rect x="695" y="955" width="175" height="60"/></clipPath>
+<clipPath id="clip_leg_left_thigh" clipPathUnits="userSpaceOnUse"><rect x="190" y="1030" width="245" height="180"/></clipPath>
+<clipPath id="clip_leg_left_shin" clipPathUnits="userSpaceOnUse"><rect x="190" y="1200" width="245" height="180"/></clipPath>
+<clipPath id="clip_shoe_left" clipPathUnits="userSpaceOnUse"><rect x="190" y="1380" width="245" height="120"/></clipPath>
+<clipPath id="clip_pelvis_shorts" clipPathUnits="userSpaceOnUse"><rect x="300" y="845" width="370" height="160"/></clipPath>
+<clipPath id="clip_torso_shirt_scarf" clipPathUnits="userSpaceOnUse"><rect x="300" y="525" width="370" height="322"/></clipPath>
+<clipPath id="clip_arm_left_upper" clipPathUnits="userSpaceOnUse"><rect x="35" y="560" width="180" height="265"/></clipPath>
+<clipPath id="clip_arm_left_lower" clipPathUnits="userSpaceOnUse"><rect x="35" y="825" width="180" height="130"/></clipPath>
+<clipPath id="clip_hand_left" clipPathUnits="userSpaceOnUse"><rect x="35" y="955" width="180" height="60"/></clipPath>
+<clipPath id="clip_head" clipPathUnits="userSpaceOnUse"><rect x="160" y="18" width="680" height="495"/></clipPath>
+</defs>
+<g id="leg_right_thigh" data-pivot="572,991" transform="translate(-70 -90)"><image xlink:href="be_ti_parts_candidate.png" x="0" y="0" width="1024" height="1536" filter="url(#clean-alpha)" clip-path="url(#clip_leg_right_thigh)"/></g>
+<g id="leg_right_shin" data-pivot="608,1175" transform="translate(-70 -90)"><image xlink:href="be_ti_parts_candidate.png" x="0" y="0" width="1024" height="1536" filter="url(#clean-alpha)" clip-path="url(#clip_leg_right_shin)"/></g>
+<g id="shoe_right" data-pivot="621,1382" transform="translate(-70 -90)"><image xlink:href="be_ti_parts_candidate.png" x="0" y="0" width="1024" height="1536" filter="url(#clean-alpha)" clip-path="url(#clip_shoe_right)"/></g>
+<g id="backpack_rear" data-pivot="518,638" transform="translate(0 0)"><image xlink:href="be_ti_parts_candidate.png" x="0" y="0" width="1024" height="1536" filter="url(#clean-alpha)" clip-path="url(#clip_backpack_rear)"/></g>
+<g id="arm_right_upper" data-pivot="667,653" transform="translate(-140 0)"><image xlink:href="be_ti_parts_candidate.png" x="0" y="0" width="1024" height="1536" filter="url(#clean-alpha)" clip-path="url(#clip_arm_right_upper)"/></g>
+<g id="arm_right_lower" data-pivot="737,831" transform="translate(-140 0)"><image xlink:href="be_ti_parts_candidate.png" x="0" y="0" width="1024" height="1536" filter="url(#clean-alpha)" clip-path="url(#clip_arm_right_lower)"/></g>
+<g id="hand_right" data-pivot="783,976" transform="translate(-140 0)"><image xlink:href="be_ti_parts_candidate.png" x="0" y="0" width="1024" height="1536" filter="url(#clean-alpha)" clip-path="url(#clip_hand_right)"/></g>
+<g id="leg_left_thigh" data-pivot="445,993" transform="translate(150 -90)"><image xlink:href="be_ti_parts_candidate.png" x="0" y="0" width="1024" height="1536" filter="url(#clean-alpha)" clip-path="url(#clip_leg_left_thigh)"/></g>
+<g id="leg_left_shin" data-pivot="446,1182" transform="translate(150 -90)"><image xlink:href="be_ti_parts_candidate.png" x="0" y="0" width="1024" height="1536" filter="url(#clean-alpha)" clip-path="url(#clip_leg_left_shin)"/></g>
+<g id="shoe_left" data-pivot="442,1386" transform="translate(150 -90)"><image xlink:href="be_ti_parts_candidate.png" x="0" y="0" width="1024" height="1536" filter="url(#clean-alpha)" clip-path="url(#clip_shoe_left)"/></g>
+<g id="head" data-pivot="517,565" transform="translate(0 22)"><image xlink:href="be_ti_parts_candidate.png" x="0" y="0" width="1024" height="1536" filter="url(#clean-alpha)" clip-path="url(#clip_head)"/></g>
+<g id="pelvis_shorts" data-pivot="519,968" transform="translate(0 0)"><image xlink:href="be_ti_parts_candidate.png" x="0" y="0" width="1024" height="1536" filter="url(#clean-alpha)" clip-path="url(#clip_pelvis_shorts)"/></g>
+<g id="torso_shirt_scarf" data-pivot="519,726" transform="translate(0 0)"><image xlink:href="be_ti_parts_candidate.png" x="0" y="0" width="1024" height="1536" filter="url(#clean-alpha)" clip-path="url(#clip_torso_shirt_scarf)"/></g>
+<g id="arm_left_upper" data-pivot="386,655" transform="translate(240 0)"><image xlink:href="be_ti_parts_candidate.png" x="0" y="0" width="1024" height="1536" filter="url(#clean-alpha)" clip-path="url(#clip_arm_left_upper)"/></g>
+<g id="arm_left_lower" data-pivot="298,837" transform="translate(240 0)"><image xlink:href="be_ti_parts_candidate.png" x="0" y="0" width="1024" height="1536" filter="url(#clean-alpha)" clip-path="url(#clip_arm_left_lower)"/></g>
+<g id="hand_left" data-pivot="270,975" transform="translate(240 0)"><image xlink:href="be_ti_parts_candidate.png" x="0" y="0" width="1024" height="1536" filter="url(#clean-alpha)" clip-path="url(#clip_hand_left)"/></g>
+
+</svg>
