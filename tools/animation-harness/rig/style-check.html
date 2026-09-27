@@ -24,7 +24,7 @@ const images=[
   {label:'Rig texture ứng viên',src:'./be_ti_textured_standing.png'}
 ];
 let index=0,timer=null;const actor=document.getElementById('actor'),which=document.getElementById('which'),play=document.getElementById('play');
-function show(){actor.src=images[index].src;which.textContent=images[index].label;index=1-index}
+function show(){actor.src=images[index].src;actor.style.bottom=index?'calc(24% - 16px)':'24%';which.textContent=images[index].label;index=1-index}
 document.getElementById('switch').onclick=show;
 play.onclick=()=>{if(timer){clearInterval(timer);timer=null;play.textContent='Tự đổi: tắt'}else{timer=setInterval(show,550);play.textContent='Tự đổi: bật'}};
 actor.onerror=()=>{which.textContent='Không tải được '+actor.src};show();
