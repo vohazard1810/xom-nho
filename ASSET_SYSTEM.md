@@ -1,6 +1,6 @@
 # XÓM NHỎ — Character, Animation & Content Asset System
 
-Version: v0.2
+Version: v0.3
 Date: 2026-09-27
 Status: Production architecture before sprite production
 
@@ -425,6 +425,74 @@ HANDOFF (shopkeeper) and RECEIVE (NPC) synchronize through anchors and an explic
 The product receive_anchor aligns to the NPC receive_anchor; do not eyeball per-recipe placement.
 
 Special-request visual differences (for example extra cha) are PREPARE_FOOD variants before HANDOFF. They do not require a new lifecycle state.
+
+## 17B. Representative-first production gate
+
+Do not generate full animation sets for multiple named NPCs in parallel before one representative lifecycle passes in-engine validation.
+
+Representative NPC: be_ti.
+
+Required validation coverage:
+- WALK
+- ARRIVE
+- QUEUE_WAIT.normal
+- QUEUE_WAIT.deprioritized
+- QUEUE_WAIT.reserved_for_other
+- QUEUE_WAIT.stock_pending
+- ORDER
+- SPECIAL_REQUEST presentation branch
+- CONFLICT_WAIT
+- RECEIVE
+- REFUSED
+- REACT.positive
+- REACT.neutral
+- REACT.negative
+- PAY
+- LEAVE
+- DESPAWN runtime transition
+
+SPAWN/DESPAWN normally require no dedicated frames.
+
+Shopkeeper validation coverage:
+- IDLE
+- PREPARE_FOOD.normal
+- PREPARE_FOOD.extra_cha variant
+- PREPARE_DRINK
+- HANDOFF
+
+The earlier multi-NPC concept sheet is reference-only and is NOT production evidence. It contains known defects:
+- missing CONFLICT_WAIT;
+- only normal QUEUE_WAIT shown;
+- missing SPECIAL_REQUEST/extra-cha preparation variant;
+- missing REFUSED;
+- Anh Tùng preview omitted RECEIVE and duplicated ORDER;
+- Bé Tí duplicated LEAVE without semantic labeling.
+
+Do not repair those previews by producing more full-cast art. Validate be_ti first.
+
+### Engine validation requirements
+
+A static sprite sheet cannot prove anchors.
+
+Create an in-engine/canvas harness that:
+- places every frame on a fixed-size canvas;
+- renders feet_anchor guide;
+- renders hand/receive anchor guides;
+- plays each animation at intended timing;
+- overlays shopkeeper HANDOFF and NPC RECEIVE;
+- can switch wait_reason and reaction variants;
+- exposes current state/frame/anchor coordinates for debug;
+- supports product overlay for one food and one drink.
+
+PASS requires:
+- feet do not visibly drift between frames/states except intended gait motion;
+- character scale does not pop;
+- receive object does not jump at HANDOFF ↔ RECEIVE;
+- queue variants are visually distinguishable without text labels;
+- extra-cha preparation is visibly distinct but remains PREPARE_FOOD;
+- REFUSED and negative reaction are readable without becoming exaggerated slapstick.
+
+Only after this harness passes may Cô Chín and Anh Tùng receive production animation sets.
 
 ## 18. Freeze gate
 
