@@ -1,0 +1,75 @@
+{
+  "status": "BLOCKED_ANCHOR_MISMATCH",
+  "scope": "alternate model candidate; stationary ORDER pose only",
+  "files": {
+    "idle_open.png": {
+      "sha256": "bab5d2ac6c0f40091e257205fdc9493553aee06584a495d6172be0168edfa3d5",
+      "mode": "RGBA",
+      "size": [
+        1128,
+        1394
+      ],
+      "alpha_extrema": [
+        0,
+        255
+      ]
+    },
+    "idle_half_blink.png": {
+      "sha256": "1f54c39a8b256b46744b89afeede58ae57c4e6ff1da1c4504a5a6a93fe2e1926",
+      "mode": "RGBA",
+      "size": [
+        1128,
+        1394
+      ],
+      "alpha_extrema": [
+        0,
+        255
+      ]
+    },
+    "order_raise_hand_candidate.png": {
+      "sha256": "7495438589ef1eb687c38d42128df69856d8731cf7b585ab280691f504fdd1b9",
+      "mode": "RGBA",
+      "size": [
+        1128,
+        1394
+      ],
+      "alpha_extrema": [
+        0,
+        255
+      ]
+    }
+  },
+  "preview": "assets/characters/named/be_ti/candidates/alternate_model_v1/edge_background_review.png",
+  "backgrounds": [
+    "synthetic near-black #10121a",
+    "synthetic sidewalk #aaa39b with tile lines; not actual game background"
+  ],
+  "game_box": [
+    120,
+    124
+  ],
+  "anchor_review": {
+    "semantic_feet_anchor": null,
+    "semantic_hand_anchor": null,
+    "shoe_regions": {
+      "left_shoe_xyxy": {
+        "alpha_changed_pixels": 7231,
+        "rgba_changed_pixels": 19612,
+        "total_pixels": 46000,
+        "baseline_alpha_bottom_y": 1339,
+        "action_alpha_bottom_y": 1341
+      },
+      "right_shoe_xyxy": {
+        "alpha_changed_pixels": 6954,
+        "rgba_changed_pixels": 23771,
+        "total_pixels": 52000,
+        "baseline_alpha_bottom_y": 1329,
+        "action_alpha_bottom_y": 1330
+      }
+    },
+    "assessment": "ORDER image generation changed lower-body pixels and alpha despite lock request; anchor is not stable or verified. Do not integrate."
+  },
+  "alpha_halo_review": "Composite produced for visual inspection; no human verified PASS or source game background evidence.",
+  "production_manifest_updated": false,
+  "locomotion_untouched": true
+}
