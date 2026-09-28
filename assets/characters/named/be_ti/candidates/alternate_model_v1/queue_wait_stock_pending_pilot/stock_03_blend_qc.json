@@ -1,0 +1,19 @@
+{
+  "asset": "assets/characters/named/be_ti/candidates/alternate_model_v1/queue_wait_stock_pending_pilot/stock_03_fixed.png",
+  "sha256": "976cb2c7908da4d6694471b238ddabbce163b9d682730e7728590e9d53725504",
+  "source_sha256": {
+    "idle": "bab5d2ac6c0f40091e257205fdc9493553aee06584a495d6172be0168edfa3d5",
+    "pose": "dfcfc635281f866730bf5c8eaf1da94498f06deca4973c6d6f5a07e70eb01b28"
+  },
+  "blend": "linear premultiplied RGBA; y=1016..1024, weight_idle=(y-1015)/10",
+  "fixed_idle_from_y": 1025,
+  "lower_body_pixel_match": true,
+  "changed_pixels_below_y_1025": 0,
+  "transition_gradient_exceeds_both_by_10_pixels": 0,
+  "y_1019_to_1020_gradient_exceeds_both_by_10_pixels": 0,
+  "y_1019_to_1020_mean_gradient": {
+    "idle": 0.699,
+    "pose": 0.802,
+    "blended": 0.892
+  }
+}

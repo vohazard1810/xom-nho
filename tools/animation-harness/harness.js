@@ -1,9 +1,10 @@
 const $=id=>document.getElementById(id);
-let manifest=null, frame=0, timer=null, handoff=false, orderCandidate=null, queueCandidate=null, deprioritizedCandidate=null, reservedCandidate=null, candidateError=null;
+let manifest=null, frame=0, timer=null, handoff=false, orderCandidate=null, queueCandidate=null, deprioritizedCandidate=null, reservedCandidate=null, stockCandidate=null, candidateError=null;
 const CANDIDATE_METADATA="../../assets/characters/named/be_ti/candidates/alternate_model_v1/order_four_frame_pilot/actor_crop/order_actor_crop_metadata.json";
 const QUEUE_METADATA="../../assets/characters/named/be_ti/candidates/alternate_model_v1/queue_wait_normal_pilot/actor_crop/queue_wait_normal_actor_crop_metadata.json";
 const DEPRIORITIZED_METADATA="../../assets/characters/named/be_ti/candidates/alternate_model_v1/queue_wait_deprioritized_pilot/actor_crop/deprioritized_actor_crop_metadata.json";
 const RESERVED_METADATA="../../assets/characters/named/be_ti/candidates/alternate_model_v1/queue_wait_reserved_for_other_pilot/actor_crop/reserved_actor_crop_metadata.json";
+const STOCK_METADATA="../../assets/characters/named/be_ti/candidates/alternate_model_v1/queue_wait_stock_pending_pilot/actor_crop/stock_actor_crop_metadata.json";
 const PREVIEW_INTERVAL_MS=140; // Existing harness cadence, not approved runtime timing.
 
 async function loadManifest(){
@@ -29,6 +30,10 @@ async function loadManifest(){
     $("reservedCandidate").checked=true;
     await $("reservedCandidate").onchange();
   }
+  if(new URLSearchParams(location.search).get("stockCandidate")==="1"){
+    $("stockCandidate").checked=true;
+    await $("stockCandidate").onchange();
+  }
 }
 function stateKeys(character){
   return Object.keys(manifest.characters[character].states);
@@ -40,6 +45,11 @@ function populate(){
   stateKeys("shopkeeper").forEach(s=>shop.add(new Option(s,s)));
 }
 function selectedFrames(character,state){
+  if(character==="be_ti" && state==="QUEUE_WAIT" && $("waitReason").value==="stock_pending" &&
+    $("stockCandidate").checked && stockCandidate){
+    return stockCandidate.frames.map(f=>({index:f.index,file:f.file,anchors:f.anchors,
+      crop_origin:f.crop_origin,crop_size:f.crop_size,status:f.status}));
+  }
   if(character==="be_ti" && state==="QUEUE_WAIT" && $("waitReason").value==="reserved_for_other" &&
     $("reservedCandidate").checked && reservedCandidate){
     return reservedCandidate.frames.map(f=>({index:f.index,file:f.file,anchors:f.anchors,
@@ -113,7 +123,9 @@ function render(){
   if(p){$("product").hidden=false;$("product").style.left=(p.x/manifest.canvas.width*100)+"%";$("product").style.top=(p.y/manifest.canvas.height*100)+"%"} else $("product").hidden=true;
   $("debug").textContent=JSON.stringify({
     gate_status:manifest.gate_status,
-    candidate_mode:$("reservedCandidate").checked && npcState==="QUEUE_WAIT" && $("waitReason").value==="reserved_for_other" ?
+    candidate_mode:$("stockCandidate").checked && npcState==="QUEUE_WAIT" && $("waitReason").value==="stock_pending" ?
+      (candidateError || stockCandidate?.status || "LOADING") :
+      $("reservedCandidate").checked && npcState==="QUEUE_WAIT" && $("waitReason").value==="reserved_for_other" ?
       (candidateError || reservedCandidate?.status || "LOADING") :
       $("deprioritizedCandidate").checked && npcState==="QUEUE_WAIT" && $("waitReason").value==="deprioritized" ?
       (candidateError || deprioritizedCandidate?.status || "LOADING") :
@@ -122,7 +134,9 @@ function render(){
       $("orderCandidate").checked && npcState==="ORDER" ?
       (candidateError || orderCandidate?.status || "LOADING") : (candidateError || "OFF"),
     playback: {loop:manifest.characters.be_ti.states[npcState].loop,preview_interval_ms:PREVIEW_INTERVAL_MS,
-      queue_frame_durations_ms:npcState==="QUEUE_WAIT" && $("waitReason").value==="reserved_for_other" && $("reservedCandidate").checked ?
+      queue_frame_durations_ms:npcState==="QUEUE_WAIT" && $("waitReason").value==="stock_pending" && $("stockCandidate").checked ?
+        stockCandidate?.preview_frame_durations_ms :
+        npcState==="QUEUE_WAIT" && $("waitReason").value==="reserved_for_other" && $("reservedCandidate").checked ?
         reservedCandidate?.preview_frame_durations_ms :
         npcState==="QUEUE_WAIT" && $("waitReason").value==="deprioritized" && $("deprioritizedCandidate").checked ?
         deprioritizedCandidate?.preview_frame_durations_ms :
@@ -146,7 +160,8 @@ $("play").onclick=()=>{
   const waitVariant=$("waitReason").value;
   const waitCandidate=waitVariant==="normal" && $("queueCandidate").checked ? queueCandidate :
     waitVariant==="deprioritized" && $("deprioritizedCandidate").checked ? deprioritizedCandidate :
-    waitVariant==="reserved_for_other" && $("reservedCandidate").checked ? reservedCandidate : null;
+    waitVariant==="reserved_for_other" && $("reservedCandidate").checked ? reservedCandidate :
+    waitVariant==="stock_pending" && $("stockCandidate").checked ? stockCandidate : null;
   if($("npcState").value==="QUEUE_WAIT" && waitCandidate){
     const durations=waitCandidate.preview_frame_durations_ms;
     const advance=()=>{frame++;render();timer=setTimeout(advance,durations[frame%frames.length])};
@@ -167,6 +182,7 @@ $("orderCandidate").onchange=async()=>{
     $("queueCandidate").checked=false;
     $("deprioritizedCandidate").checked=false;
     $("reservedCandidate").checked=false;
+    $("stockCandidate").checked=false;
     $("npcState").value="ORDER";
     if(!orderCandidate){
       try{
@@ -191,6 +207,7 @@ $("queueCandidate").onchange=async()=>{
     $("orderCandidate").checked=false;
     $("deprioritizedCandidate").checked=false;
     $("reservedCandidate").checked=false;
+    $("stockCandidate").checked=false;
     $("npcState").value="QUEUE_WAIT";
     $("waitReason").value="normal";
     if(!queueCandidate){
@@ -221,6 +238,7 @@ $("deprioritizedCandidate").onchange=async()=>{
     $("orderCandidate").checked=false;
     $("queueCandidate").checked=false;
     $("reservedCandidate").checked=false;
+    $("stockCandidate").checked=false;
     $("npcState").value="QUEUE_WAIT";
     $("waitReason").value="deprioritized";
     if(!deprioritizedCandidate){
@@ -271,6 +289,37 @@ $("reservedCandidate").onchange=async()=>{
         })));
         reservedCandidate=data;candidateError=null;
       }catch(error){candidateError=String(error);$("reservedCandidate").checked=false}
+    }
+  }
+  render();
+};
+$("stockCandidate").onchange=async()=>{
+  stopPlayback();frame=0;
+  if($("stockCandidate").checked){
+    $("orderCandidate").checked=false;
+    $("queueCandidate").checked=false;
+    $("deprioritizedCandidate").checked=false;
+    $("reservedCandidate").checked=false;
+    $("npcState").value="QUEUE_WAIT";
+    $("waitReason").value="stock_pending";
+    if(!stockCandidate){
+      try{
+        const response=await fetch(STOCK_METADATA,{cache:"no-store"});
+        if(!response.ok)throw new Error("HTTP "+response.status);
+        const data=await response.json();
+        const c=data.comparison;
+        if(data.stage_canvas[0]!==manifest.canvas.width || data.stage_canvas[1]!==manifest.canvas.height ||
+          data.state!=="QUEUE_WAIT" || data.variant!=="stock_pending" || data.frames.length!==4 || data.loop!==true ||
+          c.stage_reconstruction_changed_pixels_total!==0 || c.anchor_coordinate_delta_px!==0 ||
+          c.feet_frame_delta_px!==0 || c.changed_lower_body_pixels_total!==0 ||
+          data.preview_frame_durations_ms.length!==4 ||
+          data.preview_frame_durations_ms.some(ms=>!Number.isFinite(ms) || ms<=0))
+          throw new Error("stock candidate metadata contract mismatch");
+        await Promise.all(data.frames.map(f=>new Promise((resolve,reject)=>{
+          const img=new Image();img.onload=resolve;img.onerror=()=>reject(new Error("image load "+f.file));img.src="../../"+f.file;
+        })));
+        stockCandidate=data;candidateError=null;
+      }catch(error){candidateError=String(error);$("stockCandidate").checked=false}
     }
   }
   render();

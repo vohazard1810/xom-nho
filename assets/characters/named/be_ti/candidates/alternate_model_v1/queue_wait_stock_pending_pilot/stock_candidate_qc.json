@@ -1,0 +1,91 @@
+{
+  "status": "CANDIDATE_QUEUE_WAIT_STOCK_PENDING_PIXEL_AND_ANCHOR_QC_COMPLETE",
+  "state": "QUEUE_WAIT",
+  "variant": "stock_pending",
+  "asset_generation": "Imagegen edits from approved QUEUE_WAIT.normal pose, four independent genuine RGBA sources; deterministic lower-body blend and stage/crop export.",
+  "art_direction": "Passive observation of another unresolved active order ahead; hands clasped at waist, calm gaze toward counter. Distinct from CONFLICT_WAIT own-order concern.",
+  "source_reference": "assets/characters/named/be_ti/candidates/alternate_model_v1/queue_wait_normal_pilot/blended/queue_wait_normal_01.png",
+  "source_reference_sha256": "5ce4aabc8afd00e42338958c1bc70ac0fbeca19a884ab281e93cfada1a679ae1",
+  "metadata_sha256": "5955f44f22795a27a144164bded6f181353260f9c69f669a9db66d97337ab210",
+  "review_sheet": "assets/characters/named/be_ti/candidates/alternate_model_v1/queue_wait_stock_pending_pilot/stock_four_frame_review.png",
+  "review_sheet_sha256": "1854d2522ace3c2687d62e13615cfdc7b21dbbfbda924672c25e51fa44bb73fd",
+  "comparison": {
+    "stage_reconstruction_changed_pixels_total": 0,
+    "anchor_coordinate_delta_px": 0,
+    "feet_frame_delta_px": 0,
+    "changed_lower_body_pixels_total": 0
+  },
+  "frame_hashes": [
+    {
+      "index": 1,
+      "sha256": "aada13033a111f9361f84ae8dda454ad655af39ef1564091781ba5e8cb2f540a"
+    },
+    {
+      "index": 2,
+      "sha256": "bef8d8c729b9d077ee4b6a61bdee1a84a6b4659073b2d5853d5601e1f0a3e070"
+    },
+    {
+      "index": 3,
+      "sha256": "77f7da14b84f9d31896352ba48ee52e5db469aa92017898a3024a5c0644838fc"
+    },
+    {
+      "index": 4,
+      "sha256": "dd58da1cff9bc514a83adde5534669e4b37ce7d78d9abbcf4a47c3ca7258c1c1"
+    }
+  ],
+  "commands": [
+    {
+      "command": "python tools/animation-qc/prepare_queue_wait_stock_pending.py",
+      "exit_code": 0,
+      "stdout": "{\"crop\": [572, 947, 709, 1230], \"frames\": 4, \"comparison\": {\"stage_reconstruction_changed_pixels_total\": 0, \"anchor_coordinate_delta_px\": 0, \"feet_frame_delta_px\": 0, \"changed_lower_body_pixels_total\": 0}}\n",
+      "stderr": ""
+    },
+    {
+      "command": "node --check tools/animation-harness/harness.js",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": "node tools/animation-harness/test_stock_candidate.mjs",
+      "exit_code": 0,
+      "stdout": "QUEUE_WAIT.stock_pending: 4 actor crops; fixed feet and head anchors; preview dwell 2200/80/80/100 ms; loops 04→01; pause cancels timer.\n",
+      "stderr": ""
+    },
+    {
+      "command": "node tools/animation-harness/test_reserved_candidate.mjs",
+      "exit_code": 0,
+      "stdout": "QUEUE_WAIT.reserved_for_other: 4 actor crops; fixed feet and head anchors; preview dwell 2200/80/80/100 ms; loops 04→01; pause cancels timer.\n",
+      "stderr": ""
+    },
+    {
+      "command": "node tools/animation-harness/test_queue_candidate.mjs",
+      "exit_code": 0,
+      "stdout": "QUEUE_WAIT.normal: 4 actor crops; fixed feet and head anchors; preview dwell 2200/80/80/100 ms; loops 04→01; pause cancels timer.\n",
+      "stderr": ""
+    },
+    {
+      "command": "node tools/animation-harness/test_deprioritized_candidate.mjs",
+      "exit_code": 0,
+      "stdout": "QUEUE_WAIT.deprioritized: 4 actor crops; fixed feet and head anchors; preview dwell 2200/80/80/100 ms; loops 04→01; pause cancels timer.\n",
+      "stderr": ""
+    },
+    {
+      "command": "node tools/animation-harness/test_order_candidate.mjs",
+      "exit_code": 0,
+      "stdout": "ORDER candidate loaded: 4 actor crops; origin=(577,954); one-shot stops at frame 04; next does not wrap.\n",
+      "stderr": ""
+    }
+  ],
+  "human_art_review": "NOT_EVALUATED",
+  "human_anchor_review": "NOT_EVALUATED",
+  "human_harness_loop_review": "NOT_EVALUATED",
+  "production_manifest_updated": false,
+  "production_gate": "BLOCKED",
+  "physical_phone_playback": "NOT_RUN",
+  "known_risks": [
+    "Cross-frame face/hair silhouette variation may be noticeable in actual loop at runtime size; owner review required.",
+    "Preview cadence does not establish production timing."
+  ],
+  "candidate_group_gate": "CANDIDATE_AWAITING_HUMAN_VISUAL_ANCHOR_HARNESS_REVIEW"
+}

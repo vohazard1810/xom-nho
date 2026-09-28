@@ -30,7 +30,8 @@ body{margin:0;padding:18px}.app{max-width:1180px;margin:auto;display:grid;grid-t
 <label><input id="orderCandidate" type="checkbox"/> ORDER candidate · Actor Crop + offset (4 frame, one-shot)</label>
 <label><input id="queueCandidate" type="checkbox"/> QUEUE_WAIT.normal candidate · Actor Crop + offset (4 frame, loop)</label>
 <label><input id="deprioritizedCandidate" type="checkbox"/> QUEUE_WAIT.deprioritized candidate · Actor Crop (4 frame, harness review PASS)</label>
-<label><input id="reservedCandidate" type="checkbox"/> QUEUE_WAIT.reserved_for_other candidate · Actor Crop (4 frame, review pending)</label>
+<label><input id="reservedCandidate" type="checkbox"/> QUEUE_WAIT.reserved_for_other candidate · Actor Crop (4 frame, owner PASS)</label>
+<label><input id="stockCandidate" type="checkbox"/> QUEUE_WAIT.stock_pending candidate · Actor Crop (4 frame, review pending)</label>
 <label>NPC state<select id="npcState"></select></label>
 <label>wait_reason<select id="waitReason"><option>normal</option><option>deprioritized</option><option>reserved_for_other</option><option>stock_pending</option></select></label>
 <label>reaction<select id="reaction"><option>positive</option><option>neutral</option><option>negative</option></select></label>
@@ -44,6 +45,6 @@ body{margin:0;padding:18px}.app{max-width:1180px;margin:auto;display:grid;grid-t
 <p>ORDER candidate dùng nhịp Play 140 ms có sẵn của harness để xem thử, dừng tại frame 04. Đây không phải timing đã duyệt của game; manifest vẫn bị khóa.</p>
 <p>QUEUE_WAIT.normal candidate lặp theo nhịp giữ/chớp mắt của preview gốc (2200/80/80/100 ms). Đây chỉ là thời gian xem thử trên harness; cần duyệt trực tiếp hình và loop.</p>
 <p>QUEUE_WAIT.deprioritized candidate dùng nhịp 2200/80/80/100 ms để so sánh với normal; project owner đã duyệt visual, anchor và playback trong harness. Timing production chưa được chốt.</p>
-<p>QUEUE_WAIT.reserved_for_other candidate dùng nhịp preview 2200/80/80/100 ms để so sánh. Tạo hình và playback của biến thể này đang chờ duyệt.</p>
+<p>QUEUE_WAIT.stock_pending candidate dùng nhịp preview 2200/80/80/100 ms để so sánh. Tạo hình và playback của biến thể này đang chờ duyệt. reserved_for_other đã được chủ dự án duyệt.</p>
 <p>This harness intentionally starts with placeholders. Production sprite frames plug into the manifest without changing the validator.</p>
 </aside></div><script type="module" src="./harness.js"></script></body></html>

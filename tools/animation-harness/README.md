@@ -94,3 +94,12 @@ Do not produce full Cô Chín / Anh Tùng animation sets until:
 4. food and drink handoffs align;
 5. extra-cha preparation is visually distinct;
 6. REFUSED and negative reaction are readable.
+
+### QUEUE_WAIT.stock_pending candidate
+
+Open `/tools/animation-harness/?stockCandidate=1` for a four-frame loop of Bé Tí calmly observing the counter while another active order ahead remains unresolved. Hands clasp at the waist; no personal concern or active conflict gesture. Source RGBA frames, locked shoe pixels, 960×1704 stage, shared actor crop and feet/head anchors live in `queue_wait_stock_pending_pilot`. Preview dwell 2200/80/80/100 ms is for comparison only. Owner visual/anchor/harness review is `NOT_EVALUATED`; production manifest and game timing remain frozen.
+
+```sh
+python tools/animation-qc/prepare_queue_wait_stock_pending.py
+node tools/animation-harness/test_stock_candidate.mjs
+```
