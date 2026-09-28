@@ -1,0 +1,276 @@
+{
+  "status": "CANDIDATE_CANVAS_FIT_ANCHORS_REVIEW_PENDING",
+  "stage_canvas": [
+    960,
+    1704
+  ],
+  "source_canvas": [
+    1128,
+    1394
+  ],
+  "actor_width": 240,
+  "resized_dimensions": [
+    240,
+    297
+  ],
+  "transform": {
+    "scale_x": 0.2127659574468085,
+    "scale_y": 0.21305595408895264,
+    "offset_x": 521,
+    "offset_y": 942,
+    "source_foot_reference": {
+      "x": 619.5,
+      "y": 1339
+    },
+    "target_ground_y": 1227,
+    "target_actor_x": 653
+  },
+  "anchor_semantics": {
+    "feet": "midpoint X of measured shoe-bottom medians; Y of lower shoe sole",
+    "head": "top of visible hair silhouette, X center of head ROI; bubble reference",
+    "hand_right": "median opaque skin pixel in raised palm ROI; candidate gesture contact",
+    "receive_point": "not applicable to ORDER"
+  },
+  "anchor_review": "PROPOSED_PIXEL_MEASURED_NOT_HUMAN_APPROVED",
+  "production_manifest_updated": false,
+  "warning": "Full-stage PNGs are composition previews, not drop-in actor-box sprites.",
+  "frames": [
+    {
+      "index": 1,
+      "source": "assets/characters/named/be_ti/candidates/alternate_model_v1/order_four_frame_pilot/order_01_mid_raise.png",
+      "source_sha256": "af4f9c1df03d8b45d58eb8e47ba900be3befd2ab785be5cf8ed877bf6451320c",
+      "output": "assets/characters/named/be_ti/candidates/alternate_model_v1/order_four_frame_pilot/canvas_960x1704/order_01_mid_raise.png",
+      "output_sha256": "b26407f0295f380f2fa1a5bf0696253bedd75217c2f9b91bcc18a6aed0c5d283",
+      "shoe_contact_source": {
+        "left": {
+          "x": 507,
+          "y": 1339,
+          "bottom_x_range": [
+            501,
+            513
+          ]
+        },
+        "right": {
+          "x": 732,
+          "y": 1328,
+          "bottom_x_range": [
+            715,
+            750
+          ]
+        }
+      },
+      "source_anchors": {
+        "feet": {
+          "x": 619.5,
+          "y": 1339
+        },
+        "head": {
+          "x": 568,
+          "y": 69,
+          "method": "alpha silhouette head ROI"
+        },
+        "hand_right": {
+          "x": 534,
+          "y": 704,
+          "skin_pixel_count": 5164,
+          "method": "skin median in palm ROI"
+        },
+        "receive_point": null
+      },
+      "stage_anchors": {
+        "feet": {
+          "x": 652.81,
+          "y": 1227.28
+        },
+        "head": {
+          "x": 641.85,
+          "y": 956.7
+        },
+        "hand_right": {
+          "x": 634.62,
+          "y": 1091.99
+        },
+        "receive_point": null
+      },
+      "status": "PIXELS_MEASURED_SEMANTIC_REVIEW_PENDING"
+    },
+    {
+      "index": 2,
+      "source": "assets/characters/named/be_ti/candidates/alternate_model_v1/order_four_frame_pilot/order_02_raise_approved.png",
+      "source_sha256": "dae355f36e67483816a071d9f02db1dc7ea3aeaa2d638433768134dcbd1c1f88",
+      "output": "assets/characters/named/be_ti/candidates/alternate_model_v1/order_four_frame_pilot/canvas_960x1704/order_02_raise_approved.png",
+      "output_sha256": "a7f917923347b0c296dfb39ad7e72a75c9cdc605050139c4386aebf805705e46",
+      "shoe_contact_source": {
+        "left": {
+          "x": 507,
+          "y": 1339,
+          "bottom_x_range": [
+            501,
+            513
+          ]
+        },
+        "right": {
+          "x": 732,
+          "y": 1328,
+          "bottom_x_range": [
+            715,
+            750
+          ]
+        }
+      },
+      "source_anchors": {
+        "feet": {
+          "x": 619.5,
+          "y": 1339
+        },
+        "head": {
+          "x": 567,
+          "y": 70,
+          "method": "alpha silhouette head ROI"
+        },
+        "hand_right": {
+          "x": 438,
+          "y": 611,
+          "skin_pixel_count": 6667,
+          "method": "skin median in palm ROI"
+        },
+        "receive_point": null
+      },
+      "stage_anchors": {
+        "feet": {
+          "x": 652.81,
+          "y": 1227.28
+        },
+        "head": {
+          "x": 641.64,
+          "y": 956.91
+        },
+        "hand_right": {
+          "x": 614.19,
+          "y": 1072.18
+        },
+        "receive_point": null
+      },
+      "status": "PIXELS_MEASURED_SEMANTIC_REVIEW_PENDING"
+    },
+    {
+      "index": 3,
+      "source": "assets/characters/named/be_ti/candidates/alternate_model_v1/order_four_frame_pilot/order_03_speaking.png",
+      "source_sha256": "d0aace4070d56d08588cb5f4d571c5652b53958f7038c62c82972c84e5f8e9c6",
+      "output": "assets/characters/named/be_ti/candidates/alternate_model_v1/order_four_frame_pilot/canvas_960x1704/order_03_speaking.png",
+      "output_sha256": "9785bf9936f4a817210a0651047bca0e99e03f3145a90e2c0fc2933907dd2adc",
+      "shoe_contact_source": {
+        "left": {
+          "x": 507,
+          "y": 1339,
+          "bottom_x_range": [
+            501,
+            513
+          ]
+        },
+        "right": {
+          "x": 732,
+          "y": 1328,
+          "bottom_x_range": [
+            715,
+            750
+          ]
+        }
+      },
+      "source_anchors": {
+        "feet": {
+          "x": 619.5,
+          "y": 1339
+        },
+        "head": {
+          "x": 568,
+          "y": 69,
+          "method": "alpha silhouette head ROI"
+        },
+        "hand_right": {
+          "x": 438,
+          "y": 611,
+          "skin_pixel_count": 6709,
+          "method": "skin median in palm ROI"
+        },
+        "receive_point": null
+      },
+      "stage_anchors": {
+        "feet": {
+          "x": 652.81,
+          "y": 1227.28
+        },
+        "head": {
+          "x": 641.85,
+          "y": 956.7
+        },
+        "hand_right": {
+          "x": 614.19,
+          "y": 1072.18
+        },
+        "receive_point": null
+      },
+      "status": "PIXELS_MEASURED_SEMANTIC_REVIEW_PENDING"
+    },
+    {
+      "index": 4,
+      "source": "assets/characters/named/be_ti/candidates/alternate_model_v1/order_four_frame_pilot/order_04_expectant.png",
+      "source_sha256": "75312dc713e830d878fd8f1c4de6451414f7e0f536ca8c9c2c7dc4264ca4a84b",
+      "output": "assets/characters/named/be_ti/candidates/alternate_model_v1/order_four_frame_pilot/canvas_960x1704/order_04_expectant.png",
+      "output_sha256": "e89633d8918f6b1f1d6fcf1ed505ed8545091a47c3103922b236df118b52bb74",
+      "shoe_contact_source": {
+        "left": {
+          "x": 507,
+          "y": 1339,
+          "bottom_x_range": [
+            501,
+            513
+          ]
+        },
+        "right": {
+          "x": 732,
+          "y": 1328,
+          "bottom_x_range": [
+            715,
+            750
+          ]
+        }
+      },
+      "source_anchors": {
+        "feet": {
+          "x": 619.5,
+          "y": 1339
+        },
+        "head": {
+          "x": 567,
+          "y": 67,
+          "method": "alpha silhouette head ROI"
+        },
+        "hand_right": {
+          "x": 438,
+          "y": 610,
+          "skin_pixel_count": 6786,
+          "method": "skin median in palm ROI"
+        },
+        "receive_point": null
+      },
+      "stage_anchors": {
+        "feet": {
+          "x": 652.81,
+          "y": 1227.28
+        },
+        "head": {
+          "x": 641.64,
+          "y": 956.27
+        },
+        "hand_right": {
+          "x": 614.19,
+          "y": 1071.96
+        },
+        "receive_point": null
+      },
+      "status": "PIXELS_MEASURED_SEMANTIC_REVIEW_PENDING"
+    }
+  ],
+  "feet_stage_consistency_px": 0
+}

@@ -1,0 +1,93 @@
+{
+  "state": "ORDER",
+  "frame_count": 4,
+  "loop": false,
+  "status": "CANDIDATE_NOT_READY_FOR_PRODUCTION_MANIFEST",
+  "reason": "Stage-composited previews need actor-box/origin integration and semantic review",
+  "frames": [
+    {
+      "index": 1,
+      "source_file": "assets/characters/named/be_ti/candidates/alternate_model_v1/order_four_frame_pilot/order_01_mid_raise.png",
+      "stage_preview_file": "assets/characters/named/be_ti/candidates/alternate_model_v1/order_four_frame_pilot/canvas_960x1704/order_01_mid_raise.png",
+      "anchors_proposed": {
+        "feet": {
+          "x": 652.81,
+          "y": 1227.28
+        },
+        "head": {
+          "x": 641.85,
+          "y": 956.7
+        },
+        "hand_right": {
+          "x": 634.62,
+          "y": 1091.99
+        },
+        "receive_point": null
+      },
+      "status": "ANCHORS_REVIEW_PENDING"
+    },
+    {
+      "index": 2,
+      "source_file": "assets/characters/named/be_ti/candidates/alternate_model_v1/order_four_frame_pilot/order_02_raise_approved.png",
+      "stage_preview_file": "assets/characters/named/be_ti/candidates/alternate_model_v1/order_four_frame_pilot/canvas_960x1704/order_02_raise_approved.png",
+      "anchors_proposed": {
+        "feet": {
+          "x": 652.81,
+          "y": 1227.28
+        },
+        "head": {
+          "x": 641.64,
+          "y": 956.91
+        },
+        "hand_right": {
+          "x": 614.19,
+          "y": 1072.18
+        },
+        "receive_point": null
+      },
+      "status": "ANCHORS_REVIEW_PENDING"
+    },
+    {
+      "index": 3,
+      "source_file": "assets/characters/named/be_ti/candidates/alternate_model_v1/order_four_frame_pilot/order_03_speaking.png",
+      "stage_preview_file": "assets/characters/named/be_ti/candidates/alternate_model_v1/order_four_frame_pilot/canvas_960x1704/order_03_speaking.png",
+      "anchors_proposed": {
+        "feet": {
+          "x": 652.81,
+          "y": 1227.28
+        },
+        "head": {
+          "x": 641.85,
+          "y": 956.7
+        },
+        "hand_right": {
+          "x": 614.19,
+          "y": 1072.18
+        },
+        "receive_point": null
+      },
+      "status": "ANCHORS_REVIEW_PENDING"
+    },
+    {
+      "index": 4,
+      "source_file": "assets/characters/named/be_ti/candidates/alternate_model_v1/order_four_frame_pilot/order_04_expectant.png",
+      "stage_preview_file": "assets/characters/named/be_ti/candidates/alternate_model_v1/order_four_frame_pilot/canvas_960x1704/order_04_expectant.png",
+      "anchors_proposed": {
+        "feet": {
+          "x": 652.81,
+          "y": 1227.28
+        },
+        "head": {
+          "x": 641.64,
+          "y": 956.27
+        },
+        "hand_right": {
+          "x": 614.19,
+          "y": 1071.96
+        },
+        "receive_point": null
+      },
+      "status": "ANCHORS_REVIEW_PENDING"
+    }
+  ]
+}

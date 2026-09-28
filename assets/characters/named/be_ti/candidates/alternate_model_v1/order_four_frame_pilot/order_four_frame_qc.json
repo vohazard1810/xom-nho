@@ -98,5 +98,6 @@
     "production_timing": "NOT_SET; proposed 150–200 ms/frame was not implemented or tested."
   },
   "runtime_gate_report": "order_runtime_gate_report.json",
-  "runtime_gate_status": "BLOCKED_BROWSER_AND_PRODUCTION_INTEGRATION"
+  "runtime_gate_status": "HUMAN_WEB_VIEWER_CONTACT_PASS_STAGE_ANCHORS_REVIEW_PENDING",
+  "canvas_anchor_mapping": "canvas_960x1704/order_canvas_mapping.json"
 }

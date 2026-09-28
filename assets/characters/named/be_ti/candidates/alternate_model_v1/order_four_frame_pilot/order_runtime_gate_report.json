@@ -1,5 +1,5 @@
 {
-  "status": "PIXEL_CONTACT_MEASURED_RUNTIME_BROWSER_BLOCKED",
+  "status": "HUMAN_WEB_VIEWER_CONTACT_PASS_CANVAS_EXPORT_REVIEW_PENDING",
   "scope": "Candidate ORDER one-shot, not production manifest or physical device",
   "frames": [
     {
@@ -163,9 +163,16 @@
     "Cloud browser refused http://127.0.0.1:8127 with net::ERR_BLOCKED_BY_CLIENT."
   ],
   "physical_phone_test": "NOT_RUN",
-  "semantic_anchor_review": "NOT_EVALUATED; measured shoe edges are numeric pixel contacts, not human-approved feet_anchor",
-  "production_canvas_mapping": "NOT_EVALUATED; candidate is 1128x1394 and manifest canvas 960x1704",
+  "semantic_anchor_review": "PROPOSED_STAGE_MAPPING_PENDING_REVIEW; see canvas_960x1704/order_canvas_mapping.json",
+  "production_canvas_mapping": "CANDIDATE_EXPORT_PREPARED; see canvas_960x1704/order_canvas_mapping.json",
   "production_manifest_updated": false,
   "animation_logic_or_speed_updated": false,
-  "full_order_state_pass": false
+  "full_order_state_pass": false,
+  "manual_web_viewer_inspection": {
+    "status": "PASS",
+    "reviewer": "project owner (user)",
+    "observed": "Directly opened candidate viewer at CSS 120x124 and clicked across four frames; both soles stayed fixed on the red floor guide and arm raise looked natural.",
+    "evidence": "User direct inspection statement 2026-09-28 Asia/Bangkok; source shoe contact measurements and frame hashes in this report.",
+    "scope": "Web candidate viewer only; not physical phone or production ORDER state."
+  }
 }
