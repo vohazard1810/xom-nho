@@ -1,0 +1,19 @@
+{
+  "asset": "assets/characters/named/be_ti/candidates/alternate_model_v1/queue_wait_reserved_for_other_pilot/reserved_02_fixed.png",
+  "sha256": "28f0e8e8735c1f7fd89923d608eba68a8e503cbda28ae0cbb91a595b36e5fcfa",
+  "source_sha256": {
+    "idle": "bab5d2ac6c0f40091e257205fdc9493553aee06584a495d6172be0168edfa3d5",
+    "pose": "3ad6c55df279cc264c4a297aa7692c01c373fec82e93ddadf4465d46c9bc0e3b"
+  },
+  "blend": "linear premultiplied RGBA; y=1016..1024, weight_idle=(y-1015)/10",
+  "fixed_idle_from_y": 1025,
+  "lower_body_pixel_match": true,
+  "changed_pixels_below_y_1025": 0,
+  "transition_gradient_exceeds_both_by_10_pixels": 0,
+  "y_1019_to_1020_gradient_exceeds_both_by_10_pixels": 0,
+  "y_1019_to_1020_mean_gradient": {
+    "idle": 0.699,
+    "pose": 0.846,
+    "blended": 0.937
+  }
+}

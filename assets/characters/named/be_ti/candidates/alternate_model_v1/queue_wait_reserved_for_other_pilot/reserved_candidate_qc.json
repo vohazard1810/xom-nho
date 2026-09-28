@@ -1,0 +1,86 @@
+{
+  "status": "CANDIDATE_ART_REVIEW",
+  "state": "QUEUE_WAIT",
+  "variant": "reserved_for_other",
+  "asset_generation": "Built-in imagegen edits, four independent source RGBA PNGs; locked lower body and stage/crop exports are deterministic.",
+  "art_direction": "Polite yielding: hand grips backpack strap, attentive neutral-to-soft expression while another customer is served. No locomotion.",
+  "source_reference": "assets/characters/named/be_ti/candidates/alternate_model_v1/queue_wait_normal_pilot/blended/queue_wait_normal_01.png",
+  "source_reference_sha256": "5ce4aabc8afd00e42338958c1bc70ac0fbeca19a884ab281e93cfada1a679ae1",
+  "metadata_sha256": "932677403257fa0c202aa617a3cd4c3e49943401619051a5e5f64f098de07f67",
+  "review_sheet": "assets/characters/named/be_ti/candidates/alternate_model_v1/queue_wait_reserved_for_other_pilot/reserved_four_frame_review.png",
+  "review_sheet_sha256": "316d28fd62e635f8cccca74d05d859c1e0322ad1944585e6d059257a9752dc14",
+  "comparison": {
+    "stage_reconstruction_changed_pixels_total": 0,
+    "anchor_coordinate_delta_px": 0,
+    "feet_frame_delta_px": 0,
+    "changed_lower_body_pixels_total": 0
+  },
+  "frame_hashes": [
+    {
+      "index": 1,
+      "sha256": "d19323e03b2373bffa7d5773e8d4e9ebb048b16e3f89bcc65a35bffb7cfb8d3b"
+    },
+    {
+      "index": 2,
+      "sha256": "0ba9d621d85220d3ce851d085d7ab9fc261fc3549973a4608513566c0b1bad3b"
+    },
+    {
+      "index": 3,
+      "sha256": "4085f67d154f8f9a6d9eacd393ba7dc30034f637996a49c4c3ee05f702f29b96"
+    },
+    {
+      "index": 4,
+      "sha256": "d9dcfceac467bbc8f6031025151c3862c4ec7409d58df9c362f5f59635776d9e"
+    }
+  ],
+  "commands": [
+    {
+      "command": "python tools/animation-qc/prepare_queue_wait_reserved_for_other.py",
+      "exit_code": 0,
+      "stdout": "{\"crop\": [573, 948, 710, 1230], \"frames\": 4, \"comparison\": {\"stage_reconstruction_changed_pixels_total\": 0, \"anchor_coordinate_delta_px\": 0, \"feet_frame_delta_px\": 0, \"changed_lower_body_pixels_total\": 0}}\n",
+      "stderr": ""
+    },
+    {
+      "command": "node --check tools/animation-harness/harness.js",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": "node tools/animation-harness/test_reserved_candidate.mjs",
+      "exit_code": 0,
+      "stdout": "QUEUE_WAIT.reserved_for_other: 4 actor crops; fixed feet and head anchors; preview dwell 2200/80/80/100 ms; loops 04→01; pause cancels timer.\n",
+      "stderr": ""
+    },
+    {
+      "command": "node tools/animation-harness/test_queue_candidate.mjs",
+      "exit_code": 0,
+      "stdout": "QUEUE_WAIT.normal: 4 actor crops; fixed feet and head anchors; preview dwell 2200/80/80/100 ms; loops 04→01; pause cancels timer.\n",
+      "stderr": ""
+    },
+    {
+      "command": "node tools/animation-harness/test_deprioritized_candidate.mjs",
+      "exit_code": 0,
+      "stdout": "QUEUE_WAIT.deprioritized: 4 actor crops; fixed feet and head anchors; preview dwell 2200/80/80/100 ms; loops 04→01; pause cancels timer.\n",
+      "stderr": ""
+    },
+    {
+      "command": "node tools/animation-harness/test_order_candidate.mjs",
+      "exit_code": 0,
+      "stdout": "ORDER candidate loaded: 4 actor crops; origin=(577,954); one-shot stops at frame 04; next does not wrap.\n",
+      "stderr": ""
+    }
+  ],
+  "human_art_review": "NOT_EVALUATED",
+  "human_anchor_review": "NOT_EVALUATED",
+  "human_harness_loop_review": "NOT_EVALUATED",
+  "production_manifest_updated": false,
+  "production_gate": "BLOCKED",
+  "preview_timing_status": "UNAPPROVED_COMPARISON_WITH_NORMAL",
+  "physical_phone_playback": "NOT_RUN",
+  "known_risks": [
+    "The strap-gripping pose could read as preparing to leave, or as QUEUE_WAIT.normal with a raised arm; owner must judge without labels.",
+    "AI-generated upper-body silhouettes may vary between frames despite pixel-locked legs.",
+    "The preview cadence copies QUEUE_WAIT.normal for comparison only."
+  ]
+}

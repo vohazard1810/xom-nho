@@ -51,6 +51,15 @@ python tools/animation-qc/prepare_queue_wait_deprioritized.py
 node tools/animation-harness/test_deprioritized_candidate.mjs
 ```
 
+### QUEUE_WAIT.reserved_for_other candidate
+
+Open `/tools/animation-harness/?reservedCandidate=1` to compare the four-frame loop against the approved `normal` and `deprioritized` candidates. This variant uses an attentive expression and a hand holding the backpack strap to signal politely yielding a turn to another customer. Visual readability, anchor semantics and browser loop remain `NOT_EVALUATED` until the owner inspects them. The preview dwell 2200/80/80/100 ms is inherited for comparison, not game timing. The four 1128×1394 RGBA source poses are blended with the identical `idle_open` lower body and exported as four exact 960×1704 stage/crop pairs.
+
+```bash
+python tools/animation-qc/prepare_queue_wait_reserved_for_other.py
+node tools/animation-harness/test_reserved_candidate.mjs
+```
+
 ## Required coverage
 
 NPC:
