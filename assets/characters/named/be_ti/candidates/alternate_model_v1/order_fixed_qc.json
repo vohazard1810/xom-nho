@@ -13,6 +13,14 @@
     "fixed": 2.766
   },
   "fixed_gradient_exceeds_both_by_10_pixels": 8,
-  "note": "Zero lower-body pixel difference does not establish seamless torso/shorts continuity or human approval. Visual review at game scale still needed.",
-  "production_manifest_updated": false
+  "note": "Historical hard-cut frame was approved visually by project owner; blend output has separate measurement and review record.",
+  "production_manifest_updated": false,
+  "human_art_review": {
+    "status": "PASS",
+    "reviewer": "project owner (user)",
+    "reviewed_file": "order_raise_hand_fixed.png",
+    "reviewed_sha256": "d0ff0a89d3ede43bb9d023ba51e9849d4ca2e6462b3079bec7297dcc5dc94a9b",
+    "review_context": "User inspected order_seam_inspection.png and frame at 120x124; judged seam visually natural and accepted visual/anchor for stationary ORDER raised-hand frame on 2026-09-28 Asia/Bangkok.",
+    "scope": "Visual and anchor approval of reviewed frame; not approval of a different pixel revision or full state animation."
+  }
 }

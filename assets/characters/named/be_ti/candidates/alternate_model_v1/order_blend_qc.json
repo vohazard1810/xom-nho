@@ -1,0 +1,32 @@
+{
+  "asset": "assets/characters/named/be_ti/candidates/alternate_model_v1/order_raise_hand_blended.png",
+  "sha256": "dae355f36e67483816a071d9f02db1dc7ea3aeaa2d638433768134dcbd1c1f88",
+  "source_sha256": {
+    "idle": "bab5d2ac6c0f40091e257205fdc9493553aee06584a495d6172be0168edfa3d5",
+    "pose": "7495438589ef1eb687c38d42128df69856d8731cf7b585ab280691f504fdd1b9"
+  },
+  "blend": "linear premultiplied RGBA; y=1016..1024, weight_idle=(y-1015)/10",
+  "fixed_idle_from_y": 1025,
+  "lower_body_pixel_match": true,
+  "changed_pixels_below_y_1025": 0,
+  "transition_gradient_exceeds_both_by_10_pixels": 0,
+  "y_1019_to_1020_gradient_exceeds_both_by_10_pixels": 0,
+  "y_1019_to_1020_mean_gradient": {
+    "idle": 0.699,
+    "pose": 0.693,
+    "blended": 0.783
+  },
+  "status": "CANDIDATE_BLEND_TECHNICAL_CHECKS_MET",
+  "human_art_review": {
+    "status": "PASS",
+    "reviewer": "project owner (user)",
+    "reviewed_file": "order_raise_hand_fixed.png",
+    "reviewed_sha256": "d0ff0a89d3ede43bb9d023ba51e9849d4ca2e6462b3079bec7297dcc5dc94a9b",
+    "scope": "ORDER raised-hand pose, seam and anchor at 120x124 for prior hard-cut frame.",
+    "new_blended_file_human_review": "NOT_EVALUATED",
+    "note": "Approval is recorded verbatim in scope; regenerated PNG has different hash and has not been directly inspected by the human reviewer."
+  },
+  "runtime_visual_preview": "order_blend_runtime_review.png",
+  "production_manifest_updated": false,
+  "state_animation_pass": false
+}
