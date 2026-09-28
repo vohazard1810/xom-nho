@@ -3,6 +3,9 @@
 This folder is evidence tooling, not artwork.
 
 - `measure_frames.py`: reads real PNG bytes with Pillow and records objective image properties/alpha bounds. It deliberately leaves semantic anchors null.
+- Pixel measurements retain raw `alpha_bbox` and add `alpha_bbox_visible` at
+  alpha >10/255 for scale screening. Very faint stray alpha is warned about if
+  it extends beyond the visible cutout; PNG bytes remain unchanged.
 - `scale_consistency_check.py`: joins manifest frames to pixel measurements by the exact `file` value and verifies SHA-256 against PNG bytes. Missing frames, stale measurements, and absent alpha block the check. It reports bbox drift only; it cannot PASS the overall gate.
 - `validate_manifest.py`: refuses numeric PASS unless required frame entries are status `MEASURED` with numeric anchors. It also refuses the human readability gate unless a real reviewer and timestamp are recorded.
 
@@ -32,9 +35,14 @@ as its identity reference. It is an independent
 single-frame candidate with real alpha (1278x1230; alpha bbox
 `[130,58,1013,1199]`; SHA-256
 `1739db1d56da9955ba0ef0785c3a30a3b048da2ca60fc64dd37ee687b0cfb6e2`).
-The face is closed-mouth neutral. Semantic anchors, world scale, 4-frame loop,
-and in-engine readability remain unmeasured/unreviewed. It is not a PASS and
-does not enter the production manifest yet.
+The face is closed-mouth neutral. Three further independently generated frames
+(`queue-wait-normal-02/03/04-candidate.png`) form a blink pilot. Source hashes,
+raw/visible bounds, scale warnings and open gates are recorded in
+`assets/characters/named/be_ti/candidates/queue-wait-normal-pilot-qc.json`.
+`queue-wait-normal-pilot.mp4` shows the four frames at the 120x124 CSS-pixel
+game box. Frame 3 changes the scarf slightly. Semantic anchors and in-engine
+readability remain unreviewed; all four are `BLOCKED_REVIEW` candidates and
+none enters the production manifest yet.
 
 ## Run
 

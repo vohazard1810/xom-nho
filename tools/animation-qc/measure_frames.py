@@ -5,6 +5,10 @@ import argparse, hashlib, json
 from pathlib import Path
 from PIL import Image
 
+# Ignore near-invisible encoder noise for the scale screen only. Keep the raw
+# alpha bbox and the source PNG unchanged for transparency auditing.
+VISIBLE_ALPHA_MIN = 10
+
 def measure(path: Path):
     with Image.open(path) as source:
         if source.format != "PNG" or not ("A" in source.getbands() or "transparency" in source.info):
@@ -14,6 +18,9 @@ def measure(path: Path):
     bbox=alpha.getbbox()
     if bbox is None:
         raise ValueError(f"{path}: completely transparent PNG")
+    visible_bbox=alpha.point(lambda value: 255 if value>VISIBLE_ALPHA_MIN else 0).getbbox()
+    if visible_bbox is None:
+        raise ValueError(f"{path}: no visible pixels above alpha {VISIBLE_ALPHA_MIN}")
     return {
         "file": path.as_posix(),
         "sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
@@ -21,7 +28,9 @@ def measure(path: Path):
         "height": im.height,
         "has_alpha": True,
         "alpha_bbox": list(bbox) if bbox else None,
-        "opaque_pixel_count": sum(1 for v in alpha.getdata() if v),
+        "alpha_bbox_visible": list(visible_bbox),
+        "visible_alpha_min": VISIBLE_ALPHA_MIN,
+        "opaque_pixel_count": sum(1 for v in alpha.get_flattened_data() if v),
         "semantic_anchors": {
             "head": None, "hand_right": None, "feet": None, "receive_point": None
         },

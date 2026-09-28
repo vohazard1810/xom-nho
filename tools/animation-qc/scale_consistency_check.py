@@ -34,6 +34,7 @@ def check(manifest, measurements, character, manifest_path):
     roots = [Path.cwd(), manifest_path.parent]
     indexed = {}
     blockers = []
+    warnings = []
     for row in measurements:
         path = row.get("file")
         if not isinstance(path, str) or path in indexed:
@@ -74,14 +75,25 @@ def check(manifest, measurements, character, manifest_path):
             if not digest or hashlib.sha256(path.read_bytes()).hexdigest() != digest:
                 blockers.append(f"{label}[{index}]: PNG hash missing or changed: {name}")
                 continue
-            bbox = row.get("alpha_bbox")
+            raw_bbox = row.get("alpha_bbox")
+            bbox = row.get("alpha_bbox_visible", raw_bbox)
+            if "alpha_bbox_visible" in row and row.get("visible_alpha_min") != 10:
+                blockers.append(f"{label}[{index}]: unsupported visible alpha threshold")
+                continue
             if not isinstance(bbox, list) or len(bbox) != 4 or not all(isinstance(v, int) for v in bbox):
                 blockers.append(f"{label}[{index}]: invalid alpha_bbox")
+                continue
+            if "alpha_bbox_visible" in row and (not isinstance(raw_bbox,list) or len(raw_bbox)!=4):
+                blockers.append(f"{label}[{index}]: missing raw alpha_bbox")
                 continue
             width, height = bbox[2] - bbox[0], bbox[3] - bbox[1]
             if width <= 0 or height <= 0:
                 blockers.append(f"{label}[{index}]: empty alpha_bbox")
                 continue
+            if raw_bbox != bbox:
+                extra=max(bbox[0]-raw_bbox[0],raw_bbox[2]-bbox[2],bbox[1]-raw_bbox[1],raw_bbox[3]-bbox[3])
+                if extra > max(width,height)*0.05:
+                    warnings.append(f"{label}[{index}]: near-transparent alpha extends {extra}px beyond visible sprite")
             entries.append({"label": f"{label}[{index}] ({name})", "width": width, "height": height})
         grouped[label] = (state, entries)
     issues = []
@@ -97,7 +109,8 @@ def check(manifest, measurements, character, manifest_path):
     if stationary:
         issues += compare(stationary[1:], stationary[0], "height", HEIGHT_TOLERANCE_PCT, "cross_state_height")
     return {"status": "BLOCKED" if blockers else "ISSUES_FOUND" if issues else "NO_DRIFT_DETECTED",
-            "blockers": blockers, "issues": issues, "measured_frames": sum(len(v[1]) for v in grouped.values()),
+            "blockers": blockers, "issues": issues, "warnings": warnings,
+            "measured_frames": sum(len(v[1]) for v in grouped.values()),
             "note": "BBox is a rough visual screen, not a body proportion or whole-gate PASS."}
 
 

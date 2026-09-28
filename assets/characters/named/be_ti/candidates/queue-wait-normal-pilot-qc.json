@@ -1,0 +1,157 @@
+{
+  "character": "be_ti",
+  "state": "QUEUE_WAIT",
+  "variant": "normal",
+  "status": "BLOCKED_REVIEW",
+  "production_manifest_updated": false,
+  "source": "identity-clean-demo-reference.png",
+  "frame_count": 4,
+  "frames": [
+    {
+      "path": "assets/characters/named/be_ti/candidates/queue-wait-normal-01-clean-candidate.png",
+      "sha256": "1739db1d56da9955ba0ef0785c3a30a3b048da2ca60fc64dd37ee687b0cfb6e2",
+      "size": [
+        1278,
+        1230
+      ],
+      "alpha_bbox_raw": [
+        130,
+        58,
+        1013,
+        1199
+      ],
+      "alpha_bbox_visible": [
+        371,
+        60,
+        909,
+        1192
+      ],
+      "visible_alpha_min": 10,
+      "semantic_anchors": {
+        "head": null,
+        "hand_right": null,
+        "feet": null,
+        "receive_point": null
+      },
+      "status": "PIXELS_MEASURED_ANCHORS_PENDING"
+    },
+    {
+      "path": "assets/characters/named/be_ti/candidates/queue-wait-normal-02-candidate.png",
+      "sha256": "49c172c0bfa4b62c1845b414aad80ab97051da4de8e72833ab50675b83cbe9b6",
+      "size": [
+        1278,
+        1230
+      ],
+      "alpha_bbox_raw": [
+        124,
+        19,
+        1151,
+        1198
+      ],
+      "alpha_bbox_visible": [
+        370,
+        59,
+        912,
+        1195
+      ],
+      "visible_alpha_min": 10,
+      "semantic_anchors": {
+        "head": null,
+        "hand_right": null,
+        "feet": null,
+        "receive_point": null
+      },
+      "status": "PIXELS_MEASURED_ANCHORS_PENDING"
+    },
+    {
+      "path": "assets/characters/named/be_ti/candidates/queue-wait-normal-03-candidate.png",
+      "sha256": "e99996bb600b43583337c0ef4b2e1db41a364d53793107b6678bca72bccd5f99",
+      "size": [
+        1278,
+        1230
+      ],
+      "alpha_bbox_raw": [
+        25,
+        57,
+        1185,
+        1199
+      ],
+      "alpha_bbox_visible": [
+        371,
+        59,
+        911,
+        1194
+      ],
+      "visible_alpha_min": 10,
+      "semantic_anchors": {
+        "head": null,
+        "hand_right": null,
+        "feet": null,
+        "receive_point": null
+      },
+      "status": "PIXELS_MEASURED_ANCHORS_PENDING"
+    },
+    {
+      "path": "assets/characters/named/be_ti/candidates/queue-wait-normal-04-candidate.png",
+      "sha256": "db50e3aff45f77c4c4d7b274771ff9f5c2ecda9a70d72809403d0d3d57ad46ae",
+      "size": [
+        1278,
+        1230
+      ],
+      "alpha_bbox_raw": [
+        31,
+        21,
+        1213,
+        1198
+      ],
+      "alpha_bbox_visible": [
+        372,
+        61,
+        910,
+        1195
+      ],
+      "visible_alpha_min": 10,
+      "semantic_anchors": {
+        "head": null,
+        "hand_right": null,
+        "feet": null,
+        "receive_point": null
+      },
+      "status": "PIXELS_MEASURED_ANCHORS_PENDING"
+    }
+  ],
+  "pixel_scale_screen": {
+    "status": "NO_DRIFT_DETECTED",
+    "blockers": [],
+    "issues": [],
+    "warnings": [
+      "QUEUE_WAIT:normal[1]: near-transparent alpha extends 241px beyond visible sprite",
+      "QUEUE_WAIT:normal[2]: near-transparent alpha extends 246px beyond visible sprite",
+      "QUEUE_WAIT:normal[3]: near-transparent alpha extends 346px beyond visible sprite",
+      "QUEUE_WAIT:normal[4]: near-transparent alpha extends 341px beyond visible sprite"
+    ],
+    "measured_frames": 4,
+    "note": "BBox is a rough visual screen, not a body proportion or whole-gate PASS."
+  },
+  "preview": {
+    "path": "assets/characters/named/be_ti/candidates/queue-wait-normal-pilot.mp4",
+    "rendered_sprite_box_css_px": [
+      120,
+      124
+    ],
+    "duration_seconds": 2.933333,
+    "note": "Visual screen on warm flat background at game size. A 4-frame blink loop, not in-engine validation."
+  },
+  "observations": [
+    "Low alpha noise (<=5/255) extends far beyond the visible cutout; original PNGs retained unmodified.",
+    "Frame 3 scarf silhouette differs slightly; review in harness before any art approval.",
+    "Estimated opaque shoe-bottom pixels drift <=3 source pixels; semantic feet/world origin remain unmeasured."
+  ],
+  "open_gates": [
+    "independent semantic anchor review",
+    "in-engine queue slot and transition test",
+    "human art/identity review",
+    "other wait_reason variants",
+    "full representative lifecycle and handoff"
+  ]
+}
