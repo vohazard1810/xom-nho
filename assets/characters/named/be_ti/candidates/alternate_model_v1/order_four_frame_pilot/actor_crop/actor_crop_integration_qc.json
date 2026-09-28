@@ -1,5 +1,5 @@
 {
-  "status": "ACTOR_CROP_AUTOMATED_COMPARISON_COMPLETE_HUMAN_HARNESS_PLAYBACK_PENDING",
+  "status": "ACTOR_CROP_AUTOMATED_COMPARISON_AND_HUMAN_HARNESS_PLAYBACK_PASS",
   "commands": [
     {
       "command": "python tools/animation-qc/prepare_order_actor_crop.py --stage-dir assets/characters/named/be_ti/candidates/alternate_model_v1/order_four_frame_pilot/canvas_960x1704 --output-dir assets/characters/named/be_ti/candidates/alternate_model_v1/order_four_frame_pilot/actor_crop",
@@ -33,7 +33,7 @@
   },
   "metadata_sha256": "2c31530eeb7c61257a7f517ce80d54358ed2edade0b68066b13623263535b752",
   "manifest_gate_after_test": "BLOCKED",
-  "browser_rendered_playback": "NOT_RUN_IN_THIS_ENVIRONMENT",
+  "browser_rendered_playback": "PASS_HUMAN_REVIEW_USER_CONFIRMED",
   "physical_phone_playback": "NOT_RUN",
   "production_manifest_updated": false,
   "local_http_probe": {
@@ -42,5 +42,11 @@
     "candidate_metadata": 200,
     "candidate_frame_04_png": 200,
     "note": "HTTP probe in same process/container; not a browser-rendered screenshot."
+  },
+  "human_harness_playback_review": {
+    "status": "PASS",
+    "reviewer": "project owner (user)",
+    "evidence": "User explicitly confirmed “Xác nhận nghiệm thu Harness Playback PASS” in conversation on 2026-09-28 Asia/Bangkok. No screenshot or video attached to this confirmation.",
+    "scope": "Four-frame ORDER Actor Crop candidate in animation harness, one-shot playback. Does not attest production game or physical phone."
   }
 }

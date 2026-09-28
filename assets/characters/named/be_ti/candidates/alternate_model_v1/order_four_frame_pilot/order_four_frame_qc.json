@@ -77,7 +77,7 @@
     "Synthetic dark background only; in-game street background and phone flow not tested.",
     "All semantic anchors remain null; locking source pixels below y=1025 demonstrates shared foot artwork, not full in-engine anchor or manifest canvas integration.",
     "Generated upper-body redraw can cause hair/face/backpack volume flicker; inspect sequencing before state acceptance.",
-    "The four-frame one-shot has not been viewed as actual runtime playback on phone; visual frame review is complete but timing/transition is not."
+    "The four-frame one-shot passed human harness playback review; physical phone gameplay playback and production timing/transition remain untested."
   ],
   "production_manifest_updated": false,
   "animation_speed_or_logic_updated": false,
@@ -102,7 +102,13 @@
   "canvas_anchor_mapping": "canvas_960x1704/order_canvas_mapping.json",
   "semantic_anchor_gate": "PASS_HUMAN_ORDER_FOUR_FRAME_EXPORT",
   "semantic_anchor_evidence": "canvas_960x1704/order_anchor_human_review.json",
-  "packaging_status": "ACTOR_CROP_WITH_OFFSET_SELECTED_CANDIDATE_HARNESS_REVIEW_PENDING",
+  "packaging_status": "ACTOR_CROP_WITH_OFFSET_HUMAN_HARNESS_PLAYBACK_PASS",
   "actor_crop_metadata": "actor_crop/order_actor_crop_metadata.json",
-  "actor_crop_qc": "actor_crop/actor_crop_integration_qc.json"
+  "actor_crop_qc": "actor_crop/actor_crop_integration_qc.json",
+  "harness_playback_review": {
+    "status": "PASS",
+    "reviewer": "project owner (user)",
+    "evidence": "User explicitly confirmed “Xác nhận nghiệm thu Harness Playback PASS” in conversation on 2026-09-28 Asia/Bangkok. No screenshot or video attached to this confirmation.",
+    "scope": "Four-frame ORDER Actor Crop candidate in animation harness only; production manifest and physical phone flow remain outside this review."
+  }
 }
