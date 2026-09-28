@@ -37,6 +37,9 @@ const BETI_SPRITES = {
   ]
 };
 
+const CO_CHIN_IMG = '../assets/characters/named/co_chin/co_chin_standing.png';
+const ANH_TUNG_IMG = '../assets/characters/named/anh_tung/anh_tung_standing.png';
+
 // Audio effects using Web Audio API
 function playChime() {
   try {
@@ -144,196 +147,6 @@ function send(type, payload) {
   render();
 }
 
-// -------------------------------------------------------------
-// SVG ART ASSETS FOR VIETNAMESE COZY STREET SCENE
-// -------------------------------------------------------------
-const STREET_BACKGROUND_SVG = `
-<svg class="street-scene-svg" viewBox="0 0 440 290" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-  <defs>
-    <linearGradient id="skyGrad" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#fde68a" />
-      <stop offset="60%" stop-color="#fed7aa" />
-      <stop offset="100%" stop-color="#fdba74" />
-    </linearGradient>
-    <linearGradient id="wallGrad" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#eab308" />
-      <stop offset="100%" stop-color="#ca8a04" />
-    </linearGradient>
-    <pattern id="tilePattern" width="20" height="12" patternUnits="userSpaceOnUse">
-      <rect width="20" height="12" fill="#d4bda4" />
-      <line x1="0" y1="0" x2="20" y2="0" stroke="#b89c7d" stroke-width="1" />
-      <line x1="0" y1="0" x2="0" y2="12" stroke="#b89c7d" stroke-width="1" />
-      <line x1="10" y1="6" x2="10" y2="12" stroke="#b89c7d" stroke-width="0.7" />
-    </pattern>
-    <linearGradient id="awningStripes" x1="0" y1="0" x2="40" y2="0" patternUnits="userSpaceOnUse" gradientTransform="rotate(0)">
-      <stop offset="0%" stop-color="#0284c7" />
-      <stop offset="50%" stop-color="#0284c7" />
-      <stop offset="50%" stop-color="#ffffff" />
-      <stop offset="100%" stop-color="#ffffff" />
-    </linearGradient>
-  </defs>
-
-  <!-- Sky & Morning Light -->
-  <rect x="0" y="0" width="440" height="180" fill="url(#skyGrad)" />
-  
-  <!-- Weathered French-colonial Ochre Wall -->
-  <rect x="0" y="45" width="440" height="175" fill="url(#wallGrad)" />
-  <!-- Moss / Weathered stain -->
-  <path d="M 0,45 Q 80,70 160,45 Q 240,65 320,48 L 320,80 Q 200,105 100,75 Z" fill="#854d0e" opacity="0.25" />
-  
-  <!-- Alley Shutter Door / Rolling Door on Left -->
-  <rect x="15" y="70" width="130" height="150" fill="#a16207" rx="4" />
-  <line x1="15" y1="90" x2="145" y2="90" stroke="#713f12" stroke-width="1.5" />
-  <line x1="15" y1="110" x2="145" y2="110" stroke="#713f12" stroke-width="1.5" />
-  <line x1="15" y1="130" x2="145" y2="130" stroke="#713f12" stroke-width="1.5" />
-  <line x1="15" y1="150" x2="145" y2="150" stroke="#713f12" stroke-width="1.5" />
-  <line x1="15" y1="170" x2="145" y2="170" stroke="#713f12" stroke-width="1.5" />
-  <line x1="15" y1="190" x2="145" y2="190" stroke="#713f12" stroke-width="1.5" />
-  
-  <!-- Street Floor / Sidewalk -->
-  <rect x="0" y="220" width="440" height="70" fill="url(#tilePattern)" />
-  <!-- Sidewalk curb curb line -->
-  <line x1="0" y1="220" x2="440" y2="220" stroke="#854d0e" stroke-width="2.5" />
-
-  <!-- Overhanging Bougainvillea Flowers (Giàn hoa giấy đỏ hồng) -->
-  <g id="bougainvillea" opacity="0.95">
-    <!-- Vine branches -->
-    <path d="M 0,20 Q 90,40 180,25 Q 260,35 340,15 Q 380,25 440,10" stroke="#543015" stroke-width="4" fill="none" />
-    <path d="M 30,25 Q 70,55 110,35" stroke="#543015" stroke-width="2.5" fill="none" />
-    <path d="M 140,28 Q 190,60 230,30" stroke="#543015" stroke-width="2.5" fill="none" />
-    <!-- Leaves -->
-    <ellipse cx="60" cy="30" rx="9" ry="5" fill="#15803d" transform="rotate(-15 60 30)" />
-    <ellipse cx="90" cy="40" rx="8" ry="4.5" fill="#166534" transform="rotate(20 90 40)" />
-    <ellipse cx="140" cy="35" rx="10" ry="5" fill="#15803d" transform="rotate(-30 140 35)" />
-    <ellipse cx="190" cy="42" rx="9" ry="5" fill="#166534" transform="rotate(15 190 42)" />
-    <ellipse cx="260" cy="28" rx="11" ry="6" fill="#15803d" transform="rotate(-10 260 28)" />
-    <!-- Pink Bougainvillea Flower Clusters -->
-    <circle cx="50" cy="25" r="7" fill="#e11d48" />
-    <circle cx="56" cy="30" r="6" fill="#f43f5e" />
-    <circle cx="45" cy="32" r="5" fill="#fb7185" />
-    
-    <circle cx="105" cy="35" r="8" fill="#e11d48" />
-    <circle cx="112" cy="42" r="7" fill="#f43f5e" />
-    <circle cx="98" cy="42" r="6" fill="#fb7185" />
-
-    <circle cx="185" cy="38" r="8" fill="#e11d48" />
-    <circle cx="192" cy="46" r="7" fill="#f43f5e" />
-    <circle cx="178" cy="45" r="6" fill="#fb7185" />
-    
-    <circle cx="280" cy="22" r="9" fill="#e11d48" />
-    <circle cx="288" cy="28" r="7" fill="#f43f5e" />
-  </g>
-
-  <!-- ==============================================
-       VIETNAMESE STREET FOOD CART (XE BÁNH MÌ TỦ KÍNH)
-       ============================================== -->
-  <g id="banh-mi-cart" transform="translate(255, 95)">
-    <!-- Awning canopy (Mái bạt sọc xanh trắng) -->
-    <path d="M 0,0 L 175,0 L 180,28 L -5,28 Z" fill="#0284c7" />
-    <!-- Awning scalloped edge -->
-    <path d="M -5,28 Q 10,38 25,28 Q 40,38 55,28 Q 70,38 85,28 Q 100,38 115,28 Q 130,38 145,28 Q 160,38 180,28" fill="#ffffff" stroke="#0284c7" stroke-width="2" />
-    
-    <!-- Glass Cabinet Body -->
-    <rect x="10" y="30" width="155" height="85" fill="#f0fdf4" opacity="0.6" stroke="#475569" stroke-width="2" rx="3" />
-    <line x1="10" y1="72" x2="165" y2="72" stroke="#475569" stroke-width="1.5" />
-    <line x1="88" y1="30" x2="88" y2="115" stroke="#475569" stroke-width="1.5" />
-    
-    <!-- Signboard text: BÁNH MÌ & NƯỚC -->
-    <rect x="20" y="34" width="135" height="18" fill="#dc2626" rx="3" />
-    <text x="88" y="47" font-family="system-ui, sans-serif" font-weight="900" font-size="10" fill="#fef08a" text-anchor="middle" letter-spacing="1">BÁNH MÌ XÓM NHỎ</text>
-
-    <!-- Loaves of bread visible in the cabinet -->
-    <ellipse cx="38" cy="62" rx="14" ry="7" fill="#d97706" stroke="#b45309" stroke-width="1" transform="rotate(-10 38 62)" />
-    <ellipse cx="62" cy="62" rx="14" ry="7" fill="#f59e0b" stroke="#b45309" stroke-width="1" transform="rotate(5 62 62)" />
-    
-    <!-- Cha Lua (Pork roll) in cabinet -->
-    <rect x="102" y="55" width="22" height="15" fill="#fbcfe8" stroke="#db2777" stroke-width="1" rx="2" />
-    <circle cx="140" cy="62" r="7" fill="#84cc16" stroke="#4d7c0f" stroke-width="1" />
-
-    <!-- Stainless steel lower cart structure -->
-    <rect x="5" y="115" width="165" height="50" fill="#94a3b8" stroke="#334155" stroke-width="2" rx="4" />
-    <rect x="12" y="122" width="45" height="35" fill="#cbd5e1" stroke="#475569" rx="2" />
-    <rect x="65" y="122" width="45" height="35" fill="#cbd5e1" stroke="#475569" rx="2" />
-    
-    <!-- Cart Wheels -->
-    <circle cx="35" cy="165" r="14" fill="#1e293b" stroke="#0f172a" stroke-width="3" />
-    <circle cx="35" cy="165" r="5" fill="#94a3b8" />
-    <circle cx="140" cy="165" r="14" fill="#1e293b" stroke="#0f172a" stroke-width="3" />
-    <circle cx="140" cy="165" r="5" fill="#94a3b8" />
-
-    <!-- Red Plastic Stool (Ghế nhựa đỏ quen thuộc) -->
-    <g transform="translate(-35, 140)">
-      <rect x="0" y="0" width="26" height="5" fill="#e11d48" rx="2" />
-      <polygon points="2,5 5,26 8,26 5,5" fill="#be123c" />
-      <polygon points="24,5 21,26 18,26 21,5" fill="#be123c" />
-      <rect x="4" y="16" width="18" height="2" fill="#9f1239" />
-    </g>
-  </g>
-</svg>
-`;
-
-// Illustrated SVG Avatar for Cô Chín
-const CO_CHIN_SVG = `
-<svg viewBox="0 0 65 95" xmlns="http://www.w3.org/2000/svg">
-  <!-- Conical Hat (Nón lá) -->
-  <polygon points="32,8 4,28 60,28" fill="#fef3c7" stroke="#d97706" stroke-width="1.5" />
-  <line x1="32" y1="8" x2="32" y2="28" stroke="#d97706" stroke-width="0.8" opacity="0.6" />
-  <line x1="32" y1="8" x2="18" y2="28" stroke="#d97706" stroke-width="0.8" opacity="0.6" />
-  <line x1="32" y1="8" x2="46" y2="28" stroke="#d97706" stroke-width="0.8" opacity="0.6" />
-  
-  <!-- Face & Hair Bun -->
-  <circle cx="32" cy="36" r="12" fill="#fed7aa" />
-  <!-- Hair bun peeking -->
-  <circle cx="32" cy="27" r="7" fill="#451a03" />
-  <!-- Cheerful facial features -->
-  <ellipse cx="28" cy="36" rx="1.5" ry="2" fill="#451a03" />
-  <ellipse cx="36" cy="36" rx="1.5" ry="2" fill="#451a03" />
-  <path d="M 28,42 Q 32,46 36,42" stroke="#b91c1c" stroke-width="1.5" fill="none" stroke-linecap="round" />
-  <!-- Blush -->
-  <circle cx="26" cy="40" r="2.5" fill="#f87171" opacity="0.5" />
-  <circle cx="38" cy="40" r="2.5" fill="#f87171" opacity="0.5" />
-
-  <!-- Floral Áo Bà Ba (Áo bà ba hoa nhã nhặn) -->
-  <path d="M 20,48 Q 32,46 44,48 L 47,82 L 17,82 Z" fill="#67e8f9" stroke="#0891b2" stroke-width="1.2" />
-  <!-- Tiny floral pattern -->
-  <circle cx="27" cy="58" r="2" fill="#f43f5e" />
-  <circle cx="37" cy="65" r="2" fill="#f43f5e" />
-  <circle cx="29" cy="74" r="2" fill="#f43f5e" />
-  <line x1="32" y1="48" x2="32" y2="82" stroke="#0e7490" stroke-width="1" />
-  
-  <!-- Black pants (Quần đen) -->
-  <rect x="21" y="82" width="10" height="12" fill="#1e293b" />
-  <rect x="33" y="82" width="10" height="12" fill="#1e293b" />
-</svg>
-`;
-
-// Illustrated SVG Avatar for Anh Tùng
-const ANH_TUNG_SVG = `
-<svg viewBox="0 0 65 95" xmlns="http://www.w3.org/2000/svg">
-  <!-- Green Baseball Cap / Delivery Helmet -->
-  <ellipse cx="32" cy="20" rx="13" ry="9" fill="#15803d" />
-  <path d="M 22,22 L 46,22 L 52,26 L 24,26 Z" fill="#166534" />
-  
-  <!-- Face -->
-  <circle cx="32" cy="32" r="11" fill="#fed7aa" />
-  <!-- Eyes with friendly focus -->
-  <ellipse cx="28" cy="31" rx="1.5" ry="1.8" fill="#1c1917" />
-  <ellipse cx="36" cy="31" rx="1.5" ry="1.8" fill="#1c1917" />
-  <!-- Broad friendly smile -->
-  <path d="M 28,36 Q 32,41 36,36" stroke="#78350f" stroke-width="1.6" fill="none" stroke-linecap="round" />
-
-  <!-- Green Driver Jacket (Áo khoác gió xanh sọc) -->
-  <path d="M 18,43 L 46,43 L 49,80 L 15,80 Z" fill="#16a34a" stroke="#15803d" stroke-width="1.2" />
-  <!-- Yellow safety stripe -->
-  <rect x="17" y="56" width="30" height="6" fill="#facc15" />
-  <line x1="32" y1="43" x2="32" y2="80" stroke="#14532d" stroke-width="1.5" />
-  
-  <!-- Jeans (Quần jean xanh) -->
-  <rect x="20" y="80" width="11" height="14" fill="#1e3a8a" />
-  <rect x="33" y="80" width="11" height="14" fill="#1e3a8a" />
-</svg>
-`;
-
 // Bé Tí animation loop manager with natural biological blink cadence
 function startBetiAnimation() {
   if (betiAnimationTimer) clearTimeout(betiAnimationTimer);
@@ -371,17 +184,21 @@ function startBetiAnimation() {
 
 function renderHome() {
   return `
-    <div class="story-card" style="text-align: center; padding: 28px 20px;">
-      <div style="font-size: 40px; margin-bottom: 8px;">🏮 🥖 ☕</div>
+    <div class="story-card" style="text-align: center; padding: 26px 18px;">
+      <div style="font-size: 42px; margin-bottom: 6px;">🏮 🥖 ☕</div>
       <h1 style="font-size: 26px; margin: 0 0 6px; color: #7c2d12; font-family: var(--font-serif);">XÓM NHỎ</h1>
       <p style="font-size: 15px; font-weight: 700; color: #b45309; margin: 0 0 16px;">Chuyện Làm Ăn · Ngày 1</p>
       
-      <p style="text-align: left; background: #fffdf9; border: 1px dashed #d97706; padding: 12px; border-radius: 12px; font-size: 13.5px; line-height: 1.6;">
-        Một buổi sáng trong con hẻm nhỏ Sài Gòn. Quán bạn mở đầu ngày với <b>60.000đ</b> tiền vốn. 
-        Hãy ra chợ mua nguyên liệu tươi, dọn quầy đón Bé Tí, Cô Chín, Anh Tùng và tự tay chăm sóc từng món ăn nhé!
+      <p style="text-align: left; background: #fffdf9; border: 1.5px dashed #d97706; padding: 14px; border-radius: 12px; font-size: 13.5px; line-height: 1.6;">
+        Một buổi sáng ấm áp trong con hẻm nhỏ Sài Gòn. Bạn mở đầu ngày với <b>60.000đ</b> tiền vốn. 
+        Hãy ra chợ mua nguyên liệu tươi, dọn quầy đón <b>Bé Tí</b>, <b>Cô Chín</b>, <b>Anh Tùng</b> và tự tay pha chế, chăm sóc từng món ăn nhé!
       </p>
 
-      <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 20px;">
+      <div class="story-tip" style="text-align: left; margin: 14px 0 18px;">
+        💡 <b>Mẹo xóm:</b> Bé Tí mê Bánh mì chả và hay xin thêm chả, Cô Chín đi chợ về cần Trà tắc giải nhiệt, Anh Tùng chạy xe thèm ly Sữa đậu đá thơm mát.
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 10px;">
         <button class="btn-primary btn-wide" data-type="NAVIGATE">
           🌿 Bắt Đầu Mở Quán Hôm Nay
         </button>
@@ -400,16 +217,16 @@ function renderXomOi() {
         <h2>Xóm Ơi · Tiếng Rao Buổi Sớm</h2>
       </div>
       <p>
-        Nắng sớm bắt đầu chiếu xiên qua giàn hoa giấy. Tiếng chổi tre quét lá xào xạc đầu hẻm. 
-        Trời hôm nay oi ả lắm, mấy món giải nhiệt có đá lạnh và tắc chua ngọt chắc chắn sẽ hút khách.
+        Nắng sớm rọi qua giàn hoa giấy rực rỡ trước hiên. Tiếng chổi tre xào xạc đầu hẻm báo hiệu một ngày mới bắt đầu. 
+        Trời hôm nay oi ả lắm, mấy món giải nhiệt có đá lạnh và tắc chua ngọt chắc chắn sẽ đắt khách.
       </p>
       <p>
         Giờ tan trường trưa, <b>Bé Tí</b> thế nào cũng ghé quán ăn bánh mì lót dạ. 
-        <b>Cô Chín</b> và <b>Anh Tùng</b> chạy xe ngang cũng sẽ dừng lại giải khát.
+        <b>Cô Chín</b> đi chợ ngang và <b>Anh Tùng</b> chạy xe ôm cũng sẽ dừng lại làm ly nước mát.
       </p>
+      
       <div class="story-tip">
-        💡 <b>Mẹo quản lý quán:</b> Đá bi và nước đường được dùng chung cho cả Trà tắc và Sữa đậu. 
-        Bé Tí rất mê chả lụa và có thể xin thêm chả đấy!
+        💡 <b>Gợi ý nguyên liệu:</b> Đá bi và nước đường dùng chung cho cả Trà tắc và Sữa đậu đá. Nhớ mua dư một chút chả nếu muốn chiều Bé Tí nhé!
       </div>
 
       <div style="margin-top: 20px;">
@@ -435,11 +252,21 @@ function renderMarket() {
         </div>
         <div class="wallet-badge">💵 ${money(state.cash)}</div>
       </div>
-      <p style="margin-bottom: 12px; font-size: 12.5px;">
-        Chọn số lượng nguyên liệu mang về quán. Mua đủ cho 3 vị khách quen nhé!
-      </p>
+      
+      <!-- Gợi ý combo mua nhanh Ngày 1 -->
+      <div class="market-quick-bundle">
+        <div style="font-size: 13px; font-weight: 700; color: #7c2d12; margin-bottom: 2px;">
+          ⚡ Gợi Ý Mua Nhanh Cho Ngày 1 (3 khách):
+        </div>
+        <div style="font-size: 11.5px; color: #78350f; margin-bottom: 8px;">
+          Đủ Bánh mì chả thêm chả (Bé Tí), Trà tắc (Cô Chín) và Sữa đậu đá (Anh Tùng).
+        </div>
+        <button class="btn-secondary" data-type="BUNDLE_DAY1" style="font-size: 12px; padding: 6px 12px; width: 100%; border: 1.5px dashed #d97706; background: #fffdf9;">
+          🧺 Tự động chọn combo chuẩn 3 khách (48.000đ)
+        </button>
+      </div>
 
-      <div class="market-table">
+      <div class="market-table" style="margin-top: 12px;">
         ${Object.entries(ingredients).map(([id, item]) => {
           const meta = ingredientMeta[id] || { icon: '📦', unit: 'phần' };
           const qty = state.basket[id] || 0;
@@ -491,10 +318,32 @@ function renderShop() {
   // Check if draft matches recipe
   let isReadyToCommit = false;
   let targetRecipe = null;
+  let recipeChecklist = [];
+  let isMissingStock = false;
+  let neededKeys = [];
+
   if (selectedCustomer) {
     targetRecipe = recipes[selectedCustomer.recipe];
     const needed = needFor(selectedCustomer.id, state.extraCha);
+    neededKeys = Object.keys(needed);
     isReadyToCommit = equalCounts(state.draft, needed);
+
+    for (const [ingId, reqQty] of Object.entries(needed)) {
+      const draftQty = state.draft[ingId] || 0;
+      const stockQty = state.stock[ingId] || 0;
+      const isDone = draftQty === reqQty;
+      const isOver = draftQty > reqQty;
+      if (stockQty < reqQty) isMissingStock = true;
+      recipeChecklist.push({
+        id: ingId,
+        meta: ingredientMeta[ingId],
+        reqQty,
+        draftQty,
+        stockQty,
+        isDone,
+        isOver
+      });
+    }
   }
 
   const betiStatus = getBetiStatus();
@@ -502,8 +351,6 @@ function renderShop() {
   return `
     <!-- SÂN KHẤU 2D: HẺM VÀ QUẦY HÀNG -->
     <div class="game-stage-wrapper">
-      ${STREET_BACKGROUND_SVG}
-
       <div class="stage-actors">
         <!-- Bé Tí (Animated 2D Character) -->
         ${!betiServed ? `
@@ -516,14 +363,14 @@ function renderShop() {
         <!-- Cô Chín -->
         <div class="actor-queue-character co-chin ${coChinServed ? 'served' : ''} ${state.selected === 'co_chin' ? 'selected' : ''}" 
              ${!coChinServed ? 'data-type="SELECT" data-payload="co_chin"' : ''}>
-          ${CO_CHIN_SVG}
+          <img src="${CO_CHIN_IMG}" alt="Cô Chín">
           <span class="actor-name-tag">${coChinServed ? 'Đã nhận nước' : 'Cô Chín'}</span>
         </div>
 
         <!-- Anh Tùng -->
         <div class="actor-queue-character anh-tung ${anhTungServed ? 'served' : ''} ${state.selected === 'anh_tung' ? 'selected' : ''}" 
              ${!anhTungServed ? 'data-type="SELECT" data-payload="anh_tung"' : ''}>
-          ${ANH_TUNG_SVG}
+          <img src="${ANH_TUNG_IMG}" alt="Anh Tùng">
           <span class="actor-name-tag">${anhTungServed ? 'Đã nhận nước' : 'Anh Tùng'}</span>
         </div>
       </div>
@@ -550,9 +397,9 @@ function renderShop() {
           </div>
         </div>
       ` : `
-        <div class="speech-bubble" style="left: 20px; top: 12px; background: rgba(255,255,255,0.92);">
+        <div class="speech-bubble">
           <div class="speech-bubble-inner" style="font-weight: 500;">
-            👉 <b>Chạm vào một người khách</b> đang đứng trước quầy để nhận đơn!
+            👉 <b>Chạm vào Bé Tí, Cô Chín hoặc Anh Tùng</b> để nhận đơn và làm món!
           </div>
         </div>
       `}
@@ -574,12 +421,34 @@ function renderShop() {
         </div>
       </div>
 
+      <!-- Hướng dẫn công thức chuẩn cho món đang chọn -->
+      ${selectedCustomer ? `
+        <div class="recipe-formula-card">
+          <div class="formula-title">📋 Thành phần cần cho vào đĩa:</div>
+          <div class="formula-pills">
+            ${recipeChecklist.map(item => `
+              <div class="pill-item ${item.isDone ? 'done' : item.isOver ? 'over' : ''} ${item.stockQty < item.reqQty ? 'no-stock' : ''}">
+                <span class="pill-icon">${item.meta.icon}</span>
+                <span class="pill-name">${item.meta.name}</span>
+                <span class="pill-count">${item.draftQty}/${item.reqQty}</span>
+                ${item.isDone ? '<span class="pill-check">✓</span>' : ''}
+              </div>
+            `).join('')}
+          </div>
+          ${isMissingStock ? `
+            <div class="stock-warning">
+              ⚠️ Quán không còn đủ nguyên liệu này trong kho! Bạn hãy chọn phục vụ khách khác hoặc bấm "Đóng Quán Nghỉ Ngơi".
+            </div>
+          ` : ''}
+        </div>
+      ` : ''}
+
       <!-- Đĩa món đang chuẩn bị (Interactive Assembly Slot) -->
       <div class="assembly-board">
         ${selectedCustomer ? `
           <div class="assembly-dish-preview">
             ${Object.keys(state.draft).length === 0 ? `
-              <span class="assembly-prompt-empty">Chạm các khay nguyên liệu bên dưới để cho vào ${targetRecipe.name.toLowerCase()}...</span>
+              <span class="assembly-prompt-empty">Chạm các ô nguyên liệu bên dưới để cho vào ${targetRecipe.name.toLowerCase()}...</span>
             ` : Object.entries(state.draft).map(([id, qty]) => {
               const meta = ingredientMeta[id] || { icon: '📦', name: id };
               return `
@@ -602,8 +471,9 @@ function renderShop() {
         ${Object.entries(ingredients).map(([id, item]) => {
           const meta = ingredientMeta[id];
           const stockQty = state.stock[id] || 0;
+          const isNeeded = neededKeys.includes(id);
           return `
-            <button class="btn-ingredient" data-type="TAP" data-payload="${id}" ${stockQty <= 0 || !selectedCustomer ? 'disabled' : ''}>
+            <button class="btn-ingredient ${isNeeded ? 'highlight-needed' : ''}" data-type="TAP" data-payload="${id}" ${stockQty <= 0 || !selectedCustomer ? 'disabled' : ''}>
               <span class="ing-icon">${meta.icon}</span>
               <span class="ing-name">${meta.name}</span>
               <span class="ing-stock">Còn: ${stockQty}</span>
@@ -615,7 +485,7 @@ function renderShop() {
       <!-- Thao tác Commit hoặc Clear -->
       <div class="kitchen-actions">
         <button class="btn-secondary" data-type="CLEAR" ${Object.keys(state.draft).length === 0 ? 'disabled' : ''}>
-          🗑️ Xóa
+          🗑️ Xóa Đĩa
         </button>
         <button class="btn-commit ${isReadyToCommit ? 'pulse-ready' : ''}" data-type="COMMIT" ${!isReadyToCommit ? 'disabled' : ''}>
           ${isReadyToCommit ? '✨ GIAO MÓN CHO KHÁCH (+Tiền)' : '🥢 Đang chuẩn bị món...'}
@@ -760,6 +630,25 @@ $.addEventListener('click', e => {
   }
 
   lastServedToast = null;
+
+  if (t === 'BUNDLE_DAY1') {
+    const bundle = {
+      bread: 1,
+      cha: 2,
+      vegetable: 1,
+      ice: 2,
+      sugar_syrup: 2,
+      kumquat: 1,
+      soy_milk: 1
+    };
+    for (const [id, qty] of Object.entries(bundle)) {
+      const r = action(state, 'BASKET', { id, qty });
+      if (!r.error) state = r.state;
+    }
+    persist();
+    render();
+    return;
+  }
 
   if (t === 'BASKET') {
     const [id, qty] = p.split(':');

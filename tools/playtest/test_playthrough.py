@@ -5,7 +5,8 @@ from playwright.async_api import async_playwright
 async def play_through():
     async with async_playwright() as p:
         browser = await p.chromium.launch(executable_path=r'C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe', headless=True)
-        page = await browser.new_page(viewport={'width': 440, 'height': 820})
+        # Test in a desktop viewport (1000 x 850) to see both ambient coffee shop border and game stage
+        page = await browser.new_page(viewport={'width': 1000, 'height': 850})
         
         errors = []
         page.on('pageerror', lambda err: errors.append(str(err)))
@@ -30,31 +31,9 @@ async def play_through():
         await page.click('button[data-type="NAVIGATE"]')
         await page.wait_for_timeout(400)
         
-        # 3. MARKET -> Buy ingredients
-        print('3. On MARKET screen, selecting basket items')
-        # bread +2, cha +3, vegetable +2, ice +3, sugar_syrup +3, kumquat +2, soy_milk +2
-        for _ in range(2): 
-            await page.click('button[data-type="BASKET"][data-payload^="bread:"]:has-text("+")')
-            await page.wait_for_timeout(40)
-        for _ in range(3): 
-            await page.click('button[data-type="BASKET"][data-payload^="cha:"]:has-text("+")')
-            await page.wait_for_timeout(40)
-        for _ in range(2): 
-            await page.click('button[data-type="BASKET"][data-payload^="vegetable:"]:has-text("+")')
-            await page.wait_for_timeout(40)
-        for _ in range(3): 
-            await page.click('button[data-type="BASKET"][data-payload^="ice:"]:has-text("+")')
-            await page.wait_for_timeout(40)
-        for _ in range(3): 
-            await page.click('button[data-type="BASKET"][data-payload^="sugar_syrup:"]:has-text("+")')
-            await page.wait_for_timeout(40)
-        for _ in range(2): 
-            await page.click('button[data-type="BASKET"][data-payload^="kumquat:"]:has-text("+")')
-            await page.wait_for_timeout(40)
-        for _ in range(2): 
-            await page.click('button[data-type="BASKET"][data-payload^="soy_milk:"]:has-text("+")')
-            await page.wait_for_timeout(40)
-        
+        # 3. MARKET -> Click BUNDLE_DAY1
+        print('3. On MARKET screen, clicking Quick Bundle button')
+        await page.click('button[data-type="BUNDLE_DAY1"]')
         await page.wait_for_timeout(200)
         await page.screenshot(path='market_screen.png')
         
