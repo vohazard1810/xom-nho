@@ -96,5 +96,7 @@
     "reason": "One-shot progression: raise hand, ready, speak, close mouth and wait. No extra nod or lowering hand in this pass.",
     "owner_feedback": "Owner inspected the runtime-size sheet, approved visual of frames 01 and 03 earlier, rejected old frame 04, found the replacement brighter and delegated the A/B choice.",
     "production_timing": "NOT_SET; proposed 150–200 ms/frame was not implemented or tested."
-  }
+  },
+  "runtime_gate_report": "order_runtime_gate_report.json",
+  "runtime_gate_status": "BLOCKED_BROWSER_AND_PRODUCTION_INTEGRATION"
 }

@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Bé Tí ORDER — candidate review</title>
+  <style>
+    *{box-sizing:border-box}body{margin:0;background:#f3e8d3;color:#332b25;font:14px system-ui,sans-serif}
+    main{max-width:480px;margin:auto;padding:16px}h1{font-size:20px;margin:0 0 8px}p{line-height:1.45}
+    .stage{height:340px;border-radius:18px;border:2px solid #8d7562;position:relative;overflow:hidden;background:linear-gradient(#d9eef0 0 58%,#b9a797 58%)}
+    .stage:after{content:"";position:absolute;top:58%;left:0;right:0;border-top:2px solid #907e70}
+    .sprite{position:absolute;left:50%;bottom:38px;transform:translateX(-50%);width:120px;height:124px;z-index:1}
+    .sprite img{display:block;width:100%;height:100%;object-fit:contain}
+    .floor{position:absolute;left:0;right:0;bottom:42px;border-top:1px dashed #9a3232;z-index:2;pointer-events:none}
+    .controls{display:flex;gap:8px;margin:12px 0}.controls button{flex:1;min-height:48px;border:1px solid #9c7144;background:#fff8e9;border-radius:10px;font-size:16px}
+    #debug{background:#fff8e9;border:1px solid #d5bfa1;border-radius:10px;padding:12px;white-space:pre-wrap;word-break:break-word;font:12px ui-monospace,monospace}
+    small{color:#675345}
+  </style>
+</head>
+<body><main>
+  <h1>ORDER · Bé Tí · 4 frame</h1>
+  <p>Kiểm tra thủ công ở hộp 120×124. Bấm từng frame để quan sát điểm đặt chân. Đây là candidate review; thời gian phát trong game chưa xác định.</p>
+  <section class="stage" aria-label="Sân khấu kiểm tra sprite">
+    <div class="sprite"><img id="actor" alt="Bé Tí ORDER candidate"></div>
+    <div class="floor"></div>
+  </section>
+  <div class="controls"><button id="prev">◀ Trước</button><button id="next">Sau ▶</button></div>
+  <div id="debug" role="status"></div>
+  <p><small>Không dùng manifest production; không tự gán PASS cho state. Nền ở đây là nền kiểm tra, không phải hình nền game.</small></p>
+</main>
+<script>
+const dir='../../assets/characters/named/be_ti/candidates/alternate_model_v1/order_four_frame_pilot/';
+const files=['order_01_mid_raise.png','order_02_raise_approved.png','order_03_speaking.png','order_04_expectant.png'];
+let index=0;const actor=document.getElementById('actor'),debug=document.getElementById('debug');
+function render(){
+  actor.src=dir+files[index];actor.alt='Bé Tí ORDER frame '+(index+1);
+  debug.textContent=`Frame ${index+1}/4 — ${files[index]}\nCanvas nguồn: 1128×1394 · hộp CSS: 120×124\nMode: bấm thủ công; không áp tốc độ animation`;
+}
+actor.onerror=()=>{debug.textContent+='\nERROR: image failed to load'};
+document.getElementById('prev').onclick=()=>{index=Math.max(0,index-1);render()};
+document.getElementById('next').onclick=()=>{index=Math.min(files.length-1,index+1);render()};
+render();
+</script></body></html>

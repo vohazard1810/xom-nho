@@ -1,0 +1,171 @@
+{
+  "status": "PIXEL_CONTACT_MEASURED_RUNTIME_BROWSER_BLOCKED",
+  "scope": "Candidate ORDER one-shot, not production manifest or physical device",
+  "frames": [
+    {
+      "file": "order_01_mid_raise.png",
+      "sha256": "af4f9c1df03d8b45d58eb8e47ba900be3befd2ab785be5cf8ed877bf6451320c",
+      "size": [
+        1128,
+        1394
+      ],
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "below_y_1025_exact_idle": true,
+      "shoe_opaque_alpha_threshold": 127,
+      "shoe_edge_measured": {
+        "left_screen_shoe": {
+          "bottom_x_median": 507,
+          "bottom_y": 1339,
+          "bottom_x_range": [
+            501,
+            513
+          ]
+        },
+        "right_screen_shoe": {
+          "bottom_x_median": 732,
+          "bottom_y": 1328,
+          "bottom_x_range": [
+            715,
+            750
+          ]
+        }
+      },
+      "semantic_feet_anchor": null
+    },
+    {
+      "file": "order_02_raise_approved.png",
+      "sha256": "dae355f36e67483816a071d9f02db1dc7ea3aeaa2d638433768134dcbd1c1f88",
+      "size": [
+        1128,
+        1394
+      ],
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "below_y_1025_exact_idle": true,
+      "shoe_opaque_alpha_threshold": 127,
+      "shoe_edge_measured": {
+        "left_screen_shoe": {
+          "bottom_x_median": 507,
+          "bottom_y": 1339,
+          "bottom_x_range": [
+            501,
+            513
+          ]
+        },
+        "right_screen_shoe": {
+          "bottom_x_median": 732,
+          "bottom_y": 1328,
+          "bottom_x_range": [
+            715,
+            750
+          ]
+        }
+      },
+      "semantic_feet_anchor": null
+    },
+    {
+      "file": "order_03_speaking.png",
+      "sha256": "d0aace4070d56d08588cb5f4d571c5652b53958f7038c62c82972c84e5f8e9c6",
+      "size": [
+        1128,
+        1394
+      ],
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "below_y_1025_exact_idle": true,
+      "shoe_opaque_alpha_threshold": 127,
+      "shoe_edge_measured": {
+        "left_screen_shoe": {
+          "bottom_x_median": 507,
+          "bottom_y": 1339,
+          "bottom_x_range": [
+            501,
+            513
+          ]
+        },
+        "right_screen_shoe": {
+          "bottom_x_median": 732,
+          "bottom_y": 1328,
+          "bottom_x_range": [
+            715,
+            750
+          ]
+        }
+      },
+      "semantic_feet_anchor": null
+    },
+    {
+      "file": "order_04_expectant.png",
+      "sha256": "75312dc713e830d878fd8f1c4de6451414f7e0f536ca8c9c2c7dc4264ca4a84b",
+      "size": [
+        1128,
+        1394
+      ],
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "below_y_1025_exact_idle": true,
+      "shoe_opaque_alpha_threshold": 127,
+      "shoe_edge_measured": {
+        "left_screen_shoe": {
+          "bottom_x_median": 507,
+          "bottom_y": 1339,
+          "bottom_x_range": [
+            501,
+            513
+          ]
+        },
+        "right_screen_shoe": {
+          "bottom_x_median": 732,
+          "bottom_y": 1328,
+          "bottom_x_range": [
+            715,
+            750
+          ]
+        }
+      },
+      "semantic_feet_anchor": null
+    }
+  ],
+  "display_geometry": {
+    "css_box": [
+      120,
+      124
+    ],
+    "object_fit": "contain",
+    "source_size": [
+      1128,
+      1394
+    ],
+    "scale": 0.08895265423242468,
+    "horizontal_padding_css_px": 9.831,
+    "floor_guide": "candidate page dashed line at stage bottom 42px; sprite container bottom 38px; shoe contact appears near line; browser screenshot not captured"
+  },
+  "known_runtime_source": {
+    "path": "/workspace/scratch/51fd41afda68/xom_mobile/src/ui/components/CustomerActor.tsx",
+    "finding": "Demo uses /assets/beti/idle.webp or step_a/b/c.webp; no ORDER four-frame candidate wiring. Travel loop 145ms is WALK and was not modified."
+  },
+  "harness_source": {
+    "path": "tools/animation-harness/harness.js",
+    "finding": "currentFrame uses modulo, Play uses 140ms setInterval for all states; as written it loops even ORDER whose manifest loop=false. This is a harness limitation, not an observed production playback failure."
+  },
+  "manual_candidate_viewer": "tools/animation-harness/order-candidate.html",
+  "browser_attempts": [
+    "Local Playwright chromium executable missing; launch failed before page opened.",
+    "Cloud browser refused http://127.0.0.1:8127 with net::ERR_BLOCKED_BY_CLIENT."
+  ],
+  "physical_phone_test": "NOT_RUN",
+  "semantic_anchor_review": "NOT_EVALUATED; measured shoe edges are numeric pixel contacts, not human-approved feet_anchor",
+  "production_canvas_mapping": "NOT_EVALUATED; candidate is 1128x1394 and manifest canvas 960x1704",
+  "production_manifest_updated": false,
+  "animation_logic_or_speed_updated": false,
+  "full_order_state_pass": false
+}
