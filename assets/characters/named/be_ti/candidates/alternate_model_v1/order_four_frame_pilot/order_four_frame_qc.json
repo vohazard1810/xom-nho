@@ -1,5 +1,5 @@
 {
-  "status": "CANDIDATE_FOUR_FRAME_ORDER_FRAME04_REVIEW_PENDING",
+  "status": "CANDIDATE_ORDER_FOUR_FRAME_VISUAL_REVIEW_COMPLETE",
   "state": "ORDER",
   "manifest_requirement": {
     "frame_count": 4,
@@ -49,8 +49,9 @@
       "pixel_and_alpha": "MEASURED",
       "lower_from_y_1025": "EXACT_IDLE_PIXELS",
       "semantic_anchors": "NOT_MEASURED",
-      "human_art_review": "NOT_EVALUATED",
-      "note": "New bright open-eye, closed-mouth smile; differs from approved frame 02 and needs direct review."
+      "human_art_review": "PASS_VISUAL",
+      "note": "Closed-mouth smile after speaking is intentional for one-shot ORDER; close visual resemblance to frame 02 is accepted for this beat.",
+      "review_evidence": "Project owner described new bright-eyed frame as much better than rejected version, inspected the 120x124 four-frame sequence, and delegated A/B decision; A selected on 2026-09-28 Asia/Bangkok. Review attaches to this exact frame SHA-256."
     }
   },
   "source": {
@@ -73,10 +74,10 @@
     ]
   },
   "risks": [
-    "Frame 04 replacement has not been human reviewed; its held hand and smile may read close to approved frame 02.",
     "Synthetic dark background only; in-game street background and phone flow not tested.",
     "All semantic anchors remain null; locking source pixels below y=1025 demonstrates shared foot artwork, not full in-engine anchor or manifest canvas integration.",
-    "Generated upper-body redraw can cause hair/face/backpack volume flicker; inspect sequencing before state acceptance."
+    "Generated upper-body redraw can cause hair/face/backpack volume flicker; inspect sequencing before state acceptance.",
+    "The four-frame one-shot has not been viewed as actual runtime playback on phone; visual frame review is complete but timing/transition is not."
   ],
   "production_manifest_updated": false,
   "animation_speed_or_logic_updated": false,
@@ -89,5 +90,11 @@
       "reviewer": "project owner (user)",
       "reviewed_on": "2026-09-28 Asia/Bangkok"
     }
+  },
+  "sequence_visual_decision": {
+    "selected": "A_KEEP_EXISTING_FRAME_04",
+    "reason": "One-shot progression: raise hand, ready, speak, close mouth and wait. No extra nod or lowering hand in this pass.",
+    "owner_feedback": "Owner inspected the runtime-size sheet, approved visual of frames 01 and 03 earlier, rejected old frame 04, found the replacement brighter and delegated the A/B choice.",
+    "production_timing": "NOT_SET; proposed 150–200 ms/frame was not implemented or tested."
   }
 }
