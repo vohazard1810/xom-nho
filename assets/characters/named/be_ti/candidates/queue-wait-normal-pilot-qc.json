@@ -139,8 +139,14 @@
       120,
       124
     ],
-    "duration_seconds": 2.933333,
-    "note": "Visual screen on warm flat background at game size. A 4-frame blink loop, not in-engine validation."
+    "duration_seconds": 4.958333,
+    "note": "Two blink cycles on a warm flat background at game size. Static hold precedes each blink; not in-engine validation.",
+    "frame_durations_seconds": [
+      2.2,
+      0.08,
+      0.08,
+      0.1
+    ]
   },
   "observations": [
     "Low alpha noise (<=5/255) extends far beyond the visible cutout; original PNGs retained unmodified.",
