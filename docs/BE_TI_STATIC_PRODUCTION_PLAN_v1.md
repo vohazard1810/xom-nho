@@ -58,7 +58,7 @@ Số 51 là phép cộng từ manifest hiện hữu, không phải định nghĩ
 ## 5. Điểm chưa đồng bộ trong nguồn, chưa tự sửa kiến trúc
 
 1. `NPC_STATE_MACHINE_v1.md` mô tả `ORDER → AUTO_PREPARE`; Asset System v0.4 §4A xác định luồng runtime hiện tại phải là `ORDER → [SPECIAL_REQUEST?] → RECIPE_ASSEMBLY → VALID_COMMIT → PREPARE_FOOD/DRINK → HANDOFF ↔ RECEIVE`. Cần cập nhật chú giải runtime ở tài liệu freeze theo quy trình thay đổi riêng; không dùng bản cũ để bỏ qua thao tác assembly trong game.
-2. `validate_manifest.py` hiện chỉ duyệt feet của ORDER, SPECIAL_REQUEST, CONFLICT_WAIT, RECEIVE, ba REACT và PAY; **chưa duyệt bốn `QUEUE_WAIT` và `REFUSED`** dù Asset System §17C yêu cầu mọi state/variant tại chỗ. Do đó không được dựa riêng exit code của script này để tuyên bố numeric gate đầy đủ. Nên bổ sung coverage và test bằng frame có chủ đích trước khi mở gate.
+2. Khi tài liệu này được soạn lần đầu, `validate_manifest.py` chưa duyệt bốn `QUEUE_WAIT` và `REFUSED`. Nhánh QC tiếp theo đã bổ sung các mục này, kiểm tra số frame và từ chối anchor không hữu hạn; `scale_consistency_check.py` đã bao gồm `QUEUE_WAIT` trong phép so chiều cao. Script riêng lẻ vẫn không thể xác nhận người thật đã duyệt art hoặc frame đã qua full lifecycle gate.
 3. Script handoff hiện lấy frame cuối của HANDOFF/RECEIVE để tính khoảng cách; Asset System §17C yêu cầu transfer frame được chỉ định và timeline trước/sau tiếp xúc. Cần marker và kiểm tra theo timeline; không xem phép đo frame cuối là đủ.
 4. Rig document gọi `ankle_pivot` là feet anchor. Pivot khớp cổ chân và điểm đế giày chạm đất cần lưu tách để thử chân trụ; góc xoay một mình không khóa world contact. Đây là việc của track locomotion B1, không sửa frame tại chỗ để che lỗi.
 
@@ -74,7 +74,7 @@ Số 51 là phép cộng từ manifest hiện hữu, không phải định nghĩ
 Lệnh tìm file: `git log --all --name-only --pretty=format: | rg -i 'asset|measure_frames'`.  
 Lệnh xác minh gate: `python tools/animation-qc/validate_manifest.py tools/animation-harness/manifest.json -o /tmp/xom_be_ti_validation_report.json`.
 
-Output hiện tại (nguyên văn):
+Output tại thời điểm soạn bản đầu, trước khi mở rộng validator (nguyên văn):
 
 ```json
 {

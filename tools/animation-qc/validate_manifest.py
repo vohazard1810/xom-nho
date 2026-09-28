@@ -5,9 +5,12 @@ import argparse,json,math
 from pathlib import Path
 
 STATIONARY=[
+ ("QUEUE_WAIT","normal"),("QUEUE_WAIT","deprioritized"),
+ ("QUEUE_WAIT","reserved_for_other"),("QUEUE_WAIT","stock_pending"),
  ("ORDER",None),("SPECIAL_REQUEST",None),("CONFLICT_WAIT",None),
- ("RECEIVE",None),("REACT","positive"),("REACT","neutral"),
- ("REACT","negative"),("PAY",None)
+ ("RECEIVE",None),("REFUSED",None),
+ ("REACT","positive"),("REACT","neutral"),("REACT","negative"),
+ ("PAY",None)
 ]
 
 def frames(spec,variant=None):
@@ -15,18 +18,24 @@ def frames(spec,variant=None):
 
 def measured_anchor(frame,name):
     a=frame.get("anchors",{}).get(name)
-    return frame.get("status")=="MEASURED" and a and isinstance(a.get("x"),(int,float)) and isinstance(a.get("y"),(int,float))
+    return (frame.get("status")=="MEASURED" and isinstance(a,dict)
+            and all(isinstance(a.get(axis),(int,float)) and not isinstance(a.get(axis),bool)
+                    and math.isfinite(a[axis]) for axis in ("x","y")))
 
 def main():
     ap=argparse.ArgumentParser(); ap.add_argument("manifest"); ap.add_argument("-o","--output",default="tools/animation-qc/report.json")
     a=ap.parse_args(); m=json.loads(Path(a.manifest).read_text(encoding="utf-8"))
     states=m["characters"]["be_ti"]["states"]; ys=[]; missing=[]
     for state,var in STATIONARY:
-        fs=frames(states[state],var)
-        if not fs: missing.append(f"{state}{'.'+var if var else ''}:no_frames"); continue
+        spec=states[state]; fs=frames(spec,var)
+        label=f"{state}{'.'+var if var else ''}"
+        expected=spec.get("frame_count_per_variant" if var else "frame_count")
+        if expected is not None and len(fs)!=expected:
+            missing.append(f"{label}:expected_{expected}_found_{len(fs)}")
+        if not fs: missing.append(f"{label}:no_frames"); continue
         for f in fs:
             if measured_anchor(f,"feet"): ys.append(f["anchors"]["feet"]["y"])
-            else: missing.append(f"{state}:{f.get('index','?')}:feet")
+            else: missing.append(f"{label}:{f.get('index','?')}:feet")
     feet={"status":"BLOCKED","result":None,"missing":missing}
     if not missing:
         delta=max(ys)-min(ys); feet={"status":"PASS" if delta<=3 else "FAIL","result":{"min_y":min(ys),"max_y":max(ys),"delta_px":delta},"missing":[]}
