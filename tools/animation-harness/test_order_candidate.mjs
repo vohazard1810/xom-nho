@@ -22,7 +22,7 @@ const context = vm.createContext({
   Image: class {set src(v){this._src=v;queueMicrotask(()=>this.onload?.())} get src(){return this._src}},
   fetch: async url => ({ok: true, json: async () => JSON.parse(fs.readFileSync(
     url.includes('manifest.json') ? 'tools/animation-harness/manifest.json' : base+'order_actor_crop_metadata.json','utf8'))}),
-  setInterval: fn => {tick=fn;return 1},clearInterval:()=>{tick=null},console,
+  setInterval: fn => {tick=fn;return 1},clearInterval:()=>{tick=null},clearTimeout:()=>{tick=null},console,
 });
 vm.runInContext(fs.readFileSync('tools/animation-harness/harness.js','utf8'),context);
 for(let i=0;i<30 && !node('debug').textContent.includes('CANDIDATE_ACTOR_CROP_PIXEL');i++)

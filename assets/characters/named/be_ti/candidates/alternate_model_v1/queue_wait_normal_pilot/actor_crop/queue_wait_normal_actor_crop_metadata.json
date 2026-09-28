@@ -1,0 +1,382 @@
+{
+  "status": "CANDIDATE_PIXEL_AND_ANCHOR_QC_COMPLETE_HUMAN_REVIEW_PENDING",
+  "state": "QUEUE_WAIT",
+  "variant": "normal",
+  "loop": true,
+  "stage_canvas": [
+    960,
+    1704
+  ],
+  "source_canvas": [
+    1278,
+    1230
+  ],
+  "normalized_canvas": [
+    1128,
+    1394
+  ],
+  "source_qc_sha256": "70d84467a43c9641dfd095641ab1acf8f11a3875efb63827760e2a043dbc4243",
+  "idle_sha256": "bab5d2ac6c0f40091e257205fdc9493553aee06584a495d6172be0168edfa3d5",
+  "order_stage_mapping_sha256": "5557ae5a88ed22fe33098bdb095652668c04e473e186e60a06aaac403da4dfd9",
+  "shoe_registration": {
+    "scale": 1.15,
+    "offset_x": -176,
+    "offset_y": -31,
+    "left_right_width_ratios": [
+      1.1590909090909092,
+      1.1467391304347827
+    ],
+    "idle_shoes": [
+      {
+        "x0": 425,
+        "x1": 577,
+        "bottom_x": 507,
+        "bottom_y": 1339
+      },
+      {
+        "x0": 605,
+        "x1": 815,
+        "bottom_x": 732,
+        "bottom_y": 1328
+      }
+    ],
+    "source_shoes_frame_01": [
+      {
+        "x0": 516,
+        "x1": 647,
+        "bottom_x": 587,
+        "bottom_y": 1191
+      },
+      {
+        "x0": 676,
+        "x1": 859,
+        "bottom_x": 796,
+        "bottom_y": 1183
+      }
+    ],
+    "alpha_noise_removed_at_or_below": 5
+  },
+  "stage_transform": {
+    "scale_x": 0.2127659574468085,
+    "scale_y": 0.21305595408895264,
+    "offset_x": 521,
+    "offset_y": 942,
+    "source_foot_reference": {
+      "x": 619.5,
+      "y": 1339
+    },
+    "target_ground_y": 1227,
+    "target_actor_x": 653
+  },
+  "shared_crop_origin": {
+    "x": 572,
+    "y": 947
+  },
+  "shared_crop_size": [
+    137,
+    283
+  ],
+  "anchor_semantics": {
+    "feet": "midpoint of idle sole bottom X; Y of lower sole",
+    "head": "median top opaque hair X within head ROI; bubble reference"
+  },
+  "preview_frame_durations_ms": [
+    2200,
+    80,
+    80,
+    100
+  ],
+  "preview_timing_note": "Existing source pilot hold/blink cadence; harness preview only, not production game timing.",
+  "comparison": {
+    "stage_reconstruction_changed_pixels_total": 0,
+    "anchor_coordinate_delta_px": 0,
+    "feet_frame_delta_px": 0,
+    "changed_lower_body_pixels_total": 0
+  },
+  "production_manifest_updated": false,
+  "production_state_pass": false,
+  "anchor_visual_review": "NOT_EVALUATED",
+  "harness_loop_human_review": "NOT_EVALUATED",
+  "frames": [
+    {
+      "index": 1,
+      "source": "assets/characters/named/be_ti/candidates/queue-wait-normal-01-clean-candidate.png",
+      "source_sha256": "1739db1d56da9955ba0ef0785c3a30a3b048da2ca60fc64dd37ee687b0cfb6e2",
+      "normalized": "assets/characters/named/be_ti/candidates/alternate_model_v1/queue_wait_normal_pilot/normalized/queue_wait_normal_01.png",
+      "normalized_sha256": "814f2b833e9970b73786840677c20115585207e7edf13dcb1820acf0586ba3b6",
+      "blended": "assets/characters/named/be_ti/candidates/alternate_model_v1/queue_wait_normal_pilot/blended/queue_wait_normal_01.png",
+      "blended_sha256": "5ce4aabc8afd00e42338958c1bc70ac0fbeca19a884ab281e93cfada1a679ae1",
+      "blend_log": "assets/characters/named/be_ti/candidates/alternate_model_v1/queue_wait_normal_pilot/blended/queue_wait_normal_01_blend_qc.json",
+      "stage": "assets/characters/named/be_ti/candidates/alternate_model_v1/queue_wait_normal_pilot/canvas_960x1704/queue_wait_normal_01.png",
+      "stage_sha256": "48050d3d02d8d0fd0ac0e04def1956afa5e0ae0acbbd27a5b81d152677c9d0f9",
+      "source_anchors": {
+        "feet": {
+          "x": 619.5,
+          "y": 1339
+        },
+        "head": {
+          "x": 646,
+          "y": 39
+        }
+      },
+      "anchors": {
+        "feet": {
+          "x": 652.81,
+          "y": 1227.28
+        },
+        "head": {
+          "x": 658.45,
+          "y": 950.31
+        }
+      },
+      "shoe_contacts_source": {
+        "left": {
+          "x0": 425,
+          "x1": 577,
+          "bottom_x": 507,
+          "bottom_y": 1339
+        },
+        "right": {
+          "x0": 605,
+          "x1": 815,
+          "bottom_x": 732,
+          "bottom_y": 1328
+        }
+      },
+      "blend_transition_gradient_exceeds_both_by_10_pixels": 0,
+      "lower_body_changed_pixels": 0,
+      "file": "assets/characters/named/be_ti/candidates/alternate_model_v1/queue_wait_normal_pilot/actor_crop/queue_wait_normal_01.png",
+      "sha256": "cdf991074b065c54724767a1c2d83ba64489727e0f68b054d582dec25219727f",
+      "crop_origin": {
+        "x": 572,
+        "y": 947
+      },
+      "crop_size": [
+        137,
+        283
+      ],
+      "anchors_local": {
+        "feet": {
+          "x": 80.81,
+          "y": 280.28
+        },
+        "head": {
+          "x": 86.45,
+          "y": 3.31
+        }
+      },
+      "reconstruction_changed_pixels": 0,
+      "status": "CANDIDATE_HUMAN_HARNESS_LOOP_REVIEW_PENDING"
+    },
+    {
+      "index": 2,
+      "source": "assets/characters/named/be_ti/candidates/queue-wait-normal-02-candidate.png",
+      "source_sha256": "49c172c0bfa4b62c1845b414aad80ab97051da4de8e72833ab50675b83cbe9b6",
+      "normalized": "assets/characters/named/be_ti/candidates/alternate_model_v1/queue_wait_normal_pilot/normalized/queue_wait_normal_02.png",
+      "normalized_sha256": "3051933827e513d1f069e766aa593ed3361b27306c10689fe3975321874683d6",
+      "blended": "assets/characters/named/be_ti/candidates/alternate_model_v1/queue_wait_normal_pilot/blended/queue_wait_normal_02.png",
+      "blended_sha256": "b9d358f551945d724ffe6fc9e8617feab7fac7616cc49260436e4159f6f622db",
+      "blend_log": "assets/characters/named/be_ti/candidates/alternate_model_v1/queue_wait_normal_pilot/blended/queue_wait_normal_02_blend_qc.json",
+      "stage": "assets/characters/named/be_ti/candidates/alternate_model_v1/queue_wait_normal_pilot/canvas_960x1704/queue_wait_normal_02.png",
+      "stage_sha256": "0ec767bc9086cdbffd610dcd3d48eac39645a1715684324d9a8c00263762a098",
+      "source_anchors": {
+        "feet": {
+          "x": 619.5,
+          "y": 1339
+        },
+        "head": {
+          "x": 646,
+          "y": 37
+        }
+      },
+      "anchors": {
+        "feet": {
+          "x": 652.81,
+          "y": 1227.28
+        },
+        "head": {
+          "x": 658.45,
+          "y": 949.88
+        }
+      },
+      "shoe_contacts_source": {
+        "left": {
+          "x0": 425,
+          "x1": 577,
+          "bottom_x": 507,
+          "bottom_y": 1339
+        },
+        "right": {
+          "x0": 605,
+          "x1": 815,
+          "bottom_x": 732,
+          "bottom_y": 1328
+        }
+      },
+      "blend_transition_gradient_exceeds_both_by_10_pixels": 0,
+      "lower_body_changed_pixels": 0,
+      "file": "assets/characters/named/be_ti/candidates/alternate_model_v1/queue_wait_normal_pilot/actor_crop/queue_wait_normal_02.png",
+      "sha256": "72d4bac8f7fc06d02f3711bebf661624ff29c8483167bf6720e4c3b8dc1f3227",
+      "crop_origin": {
+        "x": 572,
+        "y": 947
+      },
+      "crop_size": [
+        137,
+        283
+      ],
+      "anchors_local": {
+        "feet": {
+          "x": 80.81,
+          "y": 280.28
+        },
+        "head": {
+          "x": 86.45,
+          "y": 2.88
+        }
+      },
+      "reconstruction_changed_pixels": 0,
+      "status": "CANDIDATE_HUMAN_HARNESS_LOOP_REVIEW_PENDING"
+    },
+    {
+      "index": 3,
+      "source": "assets/characters/named/be_ti/candidates/queue-wait-normal-03-candidate.png",
+      "source_sha256": "e99996bb600b43583337c0ef4b2e1db41a364d53793107b6678bca72bccd5f99",
+      "normalized": "assets/characters/named/be_ti/candidates/alternate_model_v1/queue_wait_normal_pilot/normalized/queue_wait_normal_03.png",
+      "normalized_sha256": "91a5e6ed39b6debcbeb9e69c65b501416970276b608b7a3744c90d5d015bfaa2",
+      "blended": "assets/characters/named/be_ti/candidates/alternate_model_v1/queue_wait_normal_pilot/blended/queue_wait_normal_03.png",
+      "blended_sha256": "8e199ad1a06a03935c599c2ee1509fc13987e767c6ce2811c2d0bd53faaea630",
+      "blend_log": "assets/characters/named/be_ti/candidates/alternate_model_v1/queue_wait_normal_pilot/blended/queue_wait_normal_03_blend_qc.json",
+      "stage": "assets/characters/named/be_ti/candidates/alternate_model_v1/queue_wait_normal_pilot/canvas_960x1704/queue_wait_normal_03.png",
+      "stage_sha256": "11d8527ae850aa8683fb3b77cdb470714aeb45da475e27e73b4330ac567a5885",
+      "source_anchors": {
+        "feet": {
+          "x": 619.5,
+          "y": 1339
+        },
+        "head": {
+          "x": 647,
+          "y": 38
+        }
+      },
+      "anchors": {
+        "feet": {
+          "x": 652.81,
+          "y": 1227.28
+        },
+        "head": {
+          "x": 658.66,
+          "y": 950.1
+        }
+      },
+      "shoe_contacts_source": {
+        "left": {
+          "x0": 425,
+          "x1": 577,
+          "bottom_x": 507,
+          "bottom_y": 1339
+        },
+        "right": {
+          "x0": 605,
+          "x1": 815,
+          "bottom_x": 732,
+          "bottom_y": 1328
+        }
+      },
+      "blend_transition_gradient_exceeds_both_by_10_pixels": 0,
+      "lower_body_changed_pixels": 0,
+      "file": "assets/characters/named/be_ti/candidates/alternate_model_v1/queue_wait_normal_pilot/actor_crop/queue_wait_normal_03.png",
+      "sha256": "7d21fef8dc7b1e1f5a991529c49e5764562cbbaccdcfa7a375ba35ff7d2d6d1e",
+      "crop_origin": {
+        "x": 572,
+        "y": 947
+      },
+      "crop_size": [
+        137,
+        283
+      ],
+      "anchors_local": {
+        "feet": {
+          "x": 80.81,
+          "y": 280.28
+        },
+        "head": {
+          "x": 86.66,
+          "y": 3.1
+        }
+      },
+      "reconstruction_changed_pixels": 0,
+      "status": "CANDIDATE_HUMAN_HARNESS_LOOP_REVIEW_PENDING"
+    },
+    {
+      "index": 4,
+      "source": "assets/characters/named/be_ti/candidates/queue-wait-normal-04-candidate.png",
+      "source_sha256": "db50e3aff45f77c4c4d7b274771ff9f5c2ecda9a70d72809403d0d3d57ad46ae",
+      "normalized": "assets/characters/named/be_ti/candidates/alternate_model_v1/queue_wait_normal_pilot/normalized/queue_wait_normal_04.png",
+      "normalized_sha256": "cadf6a94ba8ef0bede8f185dc8521d75879bdfd260bfb2498614e1dff99d2f29",
+      "blended": "assets/characters/named/be_ti/candidates/alternate_model_v1/queue_wait_normal_pilot/blended/queue_wait_normal_04.png",
+      "blended_sha256": "5811578083edf07e3fb123e742aea0a546ffc1d6db1d91ff5d43e2f8b8dcb1a9",
+      "blend_log": "assets/characters/named/be_ti/candidates/alternate_model_v1/queue_wait_normal_pilot/blended/queue_wait_normal_04_blend_qc.json",
+      "stage": "assets/characters/named/be_ti/candidates/alternate_model_v1/queue_wait_normal_pilot/canvas_960x1704/queue_wait_normal_04.png",
+      "stage_sha256": "c556e56c2638cdb556e4dad5012f13104a9a4fb66cf56a496437405cb5a73669",
+      "source_anchors": {
+        "feet": {
+          "x": 619.5,
+          "y": 1339
+        },
+        "head": {
+          "x": 649,
+          "y": 40
+        }
+      },
+      "anchors": {
+        "feet": {
+          "x": 652.81,
+          "y": 1227.28
+        },
+        "head": {
+          "x": 659.09,
+          "y": 950.52
+        }
+      },
+      "shoe_contacts_source": {
+        "left": {
+          "x0": 425,
+          "x1": 577,
+          "bottom_x": 507,
+          "bottom_y": 1339
+        },
+        "right": {
+          "x0": 605,
+          "x1": 815,
+          "bottom_x": 732,
+          "bottom_y": 1328
+        }
+      },
+      "blend_transition_gradient_exceeds_both_by_10_pixels": 0,
+      "lower_body_changed_pixels": 0,
+      "file": "assets/characters/named/be_ti/candidates/alternate_model_v1/queue_wait_normal_pilot/actor_crop/queue_wait_normal_04.png",
+      "sha256": "e90497aa1f34b2c38cc2e4e7a08a277e8039ca7f80e4263d9329872e94153350",
+      "crop_origin": {
+        "x": 572,
+        "y": 947
+      },
+      "crop_size": [
+        137,
+        283
+      ],
+      "anchors_local": {
+        "feet": {
+          "x": 80.81,
+          "y": 280.28
+        },
+        "head": {
+          "x": 87.09,
+          "y": 3.52
+        }
+      },
+      "reconstruction_changed_pixels": 0,
+      "status": "CANDIDATE_HUMAN_HARNESS_LOOP_REVIEW_PENDING"
+    }
+  ]
+}

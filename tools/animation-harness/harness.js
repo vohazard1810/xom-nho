@@ -1,6 +1,7 @@
 const $=id=>document.getElementById(id);
-let manifest=null, frame=0, timer=null, handoff=false, orderCandidate=null, candidateError=null;
+let manifest=null, frame=0, timer=null, handoff=false, orderCandidate=null, queueCandidate=null, candidateError=null;
 const CANDIDATE_METADATA="../../assets/characters/named/be_ti/candidates/alternate_model_v1/order_four_frame_pilot/actor_crop/order_actor_crop_metadata.json";
+const QUEUE_METADATA="../../assets/characters/named/be_ti/candidates/alternate_model_v1/queue_wait_normal_pilot/actor_crop/queue_wait_normal_actor_crop_metadata.json";
 const PREVIEW_INTERVAL_MS=140; // Existing harness cadence, not approved runtime timing.
 
 async function loadManifest(){
@@ -14,6 +15,10 @@ async function loadManifest(){
     $("orderCandidate").checked=true;
     await $("orderCandidate").onchange();
   }
+  if(new URLSearchParams(location.search).get("queueCandidate")==="1"){
+    $("queueCandidate").checked=true;
+    await $("queueCandidate").onchange();
+  }
 }
 function stateKeys(character){
   return Object.keys(manifest.characters[character].states);
@@ -25,6 +30,11 @@ function populate(){
   stateKeys("shopkeeper").forEach(s=>shop.add(new Option(s,s)));
 }
 function selectedFrames(character,state){
+  if(character==="be_ti" && state==="QUEUE_WAIT" && $("waitReason").value==="normal" &&
+    $("queueCandidate").checked && queueCandidate){
+    return queueCandidate.frames.map(f=>({index:f.index,file:f.file,anchors:f.anchors,
+      crop_origin:f.crop_origin,crop_size:f.crop_size,status:f.status}));
+  }
   if(character==="be_ti" && state==="ORDER" && $("orderCandidate").checked && orderCandidate){
     return orderCandidate.frames.map(f=>({index:f.index,file:f.file,anchors:f.anchors,
       crop_origin:f.crop_origin,crop_size:f.crop_size,status:f.status}));
@@ -83,8 +93,13 @@ function render(){
   if(p){$("product").hidden=false;$("product").style.left=(p.x/manifest.canvas.width*100)+"%";$("product").style.top=(p.y/manifest.canvas.height*100)+"%"} else $("product").hidden=true;
   $("debug").textContent=JSON.stringify({
     gate_status:manifest.gate_status,
-    candidate_mode:$("orderCandidate").checked ? (candidateError || orderCandidate?.status || "LOADING") : (candidateError || "OFF"),
+    candidate_mode:$("queueCandidate").checked && npcState==="QUEUE_WAIT" && $("waitReason").value==="normal" ?
+      (candidateError || queueCandidate?.status || "LOADING") :
+      $("orderCandidate").checked && npcState==="ORDER" ?
+      (candidateError || orderCandidate?.status || "LOADING") : (candidateError || "OFF"),
     playback: {loop:manifest.characters.be_ti.states[npcState].loop,preview_interval_ms:PREVIEW_INTERVAL_MS,
+      queue_frame_durations_ms:npcState==="QUEUE_WAIT" && $("queueCandidate").checked ?
+        queueCandidate?.preview_frame_durations_ms : null,
       note:"Harness preview cadence only; no game timing approval"},
     npc:{state:$("npcState").value,frame:nf?.index??null,file:nf?.file??null,status:nf?.status??"NO_FRAME",anchors:nf?.anchors??null},
     shopkeeper:{state:$("shopState").value,frame:sf?.index??null,file:sf?.file??null,status:sf?.status??"NO_FRAME",anchors:sf?.anchors??null},
@@ -92,7 +107,7 @@ function render(){
     validation_tests:manifest.validation_tests
   },null,2);
 }
-function stopPlayback(){if(timer)clearInterval(timer);timer=null;$("play").textContent="▶ Play"}
+function stopPlayback(){if(timer){clearInterval(timer);clearTimeout(timer)}timer=null;$("play").textContent="▶ Play"}
 function npcPlayback(){const state=$("npcState").value;return {frames:selectedFrames("be_ti",state),loop:manifest.characters.be_ti.states[state].loop}}
 $("next").onclick=()=>{const {frames,loop}=npcPlayback();frame=loop?frame+1:Math.min(frame+1,Math.max(0,frames.length-1));render()};
 $("prev").onclick=()=>{frame=Math.max(0,frame-1);render()};
@@ -101,6 +116,13 @@ $("play").onclick=()=>{
   const {frames,loop}=npcPlayback();if(!frames.length)return;
   if(!loop && frame>=frames.length-1)frame=0;
   render();$("play").textContent="⏸ Pause";
+  if($("npcState").value==="QUEUE_WAIT" && $("waitReason").value==="normal" &&
+    $("queueCandidate").checked && queueCandidate){
+    const durations=queueCandidate.preview_frame_durations_ms;
+    const advance=()=>{frame++;render();timer=setTimeout(advance,durations[frame%frames.length])};
+    timer=setTimeout(advance,durations[frame%frames.length]);
+    return;
+  }
   timer=setInterval(()=>{
     if(!loop && frame>=frames.length-1){stopPlayback();return}
     frame++;render();
@@ -112,6 +134,7 @@ $("handoff").onclick=()=>{handoff=!handoff;render()};
 $("orderCandidate").onchange=async()=>{
   stopPlayback();frame=0;
   if($("orderCandidate").checked){
+    $("queueCandidate").checked=false;
     $("npcState").value="ORDER";
     if(!orderCandidate){
       try{
@@ -126,6 +149,34 @@ $("orderCandidate").onchange=async()=>{
         })));
         orderCandidate=data;candidateError=null;
       }catch(error){candidateError=String(error);$("orderCandidate").checked=false}
+    }
+  }
+  render();
+};
+$("queueCandidate").onchange=async()=>{
+  stopPlayback();frame=0;
+  if($("queueCandidate").checked){
+    $("orderCandidate").checked=false;
+    $("npcState").value="QUEUE_WAIT";
+    $("waitReason").value="normal";
+    if(!queueCandidate){
+      try{
+        const response=await fetch(QUEUE_METADATA,{cache:"no-store"});
+        if(!response.ok)throw new Error("HTTP "+response.status);
+        const data=await response.json();
+        const c=data.comparison;
+        if(data.stage_canvas[0]!==manifest.canvas.width || data.stage_canvas[1]!==manifest.canvas.height ||
+          data.state!=="QUEUE_WAIT" || data.variant!=="normal" || data.frames.length!==4 || data.loop!==true ||
+          c.stage_reconstruction_changed_pixels_total!==0 || c.anchor_coordinate_delta_px!==0 ||
+          c.feet_frame_delta_px!==0 || c.changed_lower_body_pixels_total!==0 ||
+          data.preview_frame_durations_ms.length!==4 ||
+          data.preview_frame_durations_ms.some(ms=>!Number.isFinite(ms) || ms<=0))
+          throw new Error("queue candidate metadata contract mismatch");
+        await Promise.all(data.frames.map(f=>new Promise((resolve,reject)=>{
+          const img=new Image();img.onload=resolve;img.onerror=()=>reject(new Error("image load "+f.file));img.src="../../"+f.file;
+        })));
+        queueCandidate=data;candidateError=null;
+      }catch(error){candidateError=String(error);$("queueCandidate").checked=false}
     }
   }
   render();

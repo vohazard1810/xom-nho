@@ -1,0 +1,51 @@
+{
+  "status": "CANDIDATE_QUEUE_WAIT_NORMAL_AUTOMATED_QC_COMPLETE_HUMAN_HARNESS_REVIEW_PENDING",
+  "scope": "Four static QUEUE_WAIT.normal candidate frames only",
+  "commands": [
+    {
+      "command": "python tools/animation-qc/prepare_queue_wait_normal.py",
+      "exit_code": 0,
+      "stdout": "{\"crop\": [572, 947, 709, 1230], \"frame_count\": 4, \"shoe_registration\": {\"scale\": 1.15, \"offset_x\": -176, \"offset_y\": -31, \"left_right_width_ratios\": [1.1590909090909092, 1.1467391304347827], \"idle_shoes\": [{\"x0\": 425, \"x1\": 577, \"bottom_x\": 507, \"bottom_y\": 1339}, {\"x0\": 605, \"x1\": 815, \"bottom_x\": 732, \"bottom_y\": 1328}], \"source_shoes_frame_01\": [{\"x0\": 516, \"x1\": 647, \"bottom_x\": 587, \"bottom_y\": 1191}, {\"x0\": 676, \"x1\": 859, \"bottom_x\": 796, \"bottom_y\": 1183}], \"alpha_noise_removed_at_or_below\": 5}, \"comparison\": {\"stage_reconstruction_changed_pixels_total\": 0, \"anchor_coordinate_delta_px\": 0, \"feet_frame_delta_px\": 0, \"changed_lower_body_pixels_total\": 0}, \"blend_gradient_excess\": [0, 0, 0, 0]}\n",
+      "stderr": ""
+    },
+    {
+      "command": "node --check tools/animation-harness/harness.js",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": "node tools/animation-harness/test_queue_candidate.mjs",
+      "exit_code": 0,
+      "stdout": "QUEUE_WAIT.normal: 4 actor crops; fixed feet and head anchors; preview dwell 2200/80/80/100 ms; loops 04→01; pause cancels timer.\n",
+      "stderr": ""
+    },
+    {
+      "command": "node tools/animation-harness/test_order_candidate.mjs",
+      "exit_code": 0,
+      "stdout": "ORDER candidate loaded: 4 actor crops; origin=(577,954); one-shot stops at frame 04; next does not wrap.\n",
+      "stderr": ""
+    },
+    {
+      "command": "python tools/animation-qc/validate_manifest.py tools/animation-harness/manifest.json -o /tmp/queue_wait_normal_manifest_gate.json",
+      "exit_code": 0,
+      "stdout": "{\n  \"feet_anchor_consistency\": {\n    \"status\": \"BLOCKED\",\n    \"result\": null,\n    \"missing\": [\n      \"QUEUE_WAIT.normal:expected_4_found_0\",\n      \"QUEUE_WAIT.normal:no_frames\",\n      \"QUEUE_WAIT.deprioritized:expected_4_found_0\",\n      \"QUEUE_WAIT.deprioritized:no_frames\",\n      \"QUEUE_WAIT.reserved_for_other:expected_4_found_0\",\n      \"QUEUE_WAIT.reserved_for_other:no_frames\",\n      \"QUEUE_WAIT.stock_pending:expected_4_found_0\",\n      \"QUEUE_WAIT.stock_pending:no_frames\",\n      \"ORDER:expected_4_found_0\",\n      \"ORDER:no_frames\",\n      \"SPECIAL_REQUEST:expected_4_found_0\",\n      \"SPECIAL_REQUEST:no_frames\",\n      \"CONFLICT_WAIT:expected_4_found_0\",\n      \"CONFLICT_WAIT:no_frames\",\n      \"RECEIVE:expected_4_found_0\",\n      \"RECEIVE:no_frames\",\n      \"REFUSED:expected_3_found_0\",\n      \"REFUSED:no_frames\",\n      \"REACT.positive:expected_4_found_0\",\n      \"REACT.positive:no_frames\",\n      \"REACT.neutral:expected_4_found_0\",\n      \"REACT.neutral:no_frames\",\n      \"REACT.negative:expected_4_found_0\",\n      \"REACT.negative:no_frames\",\n      \"PAY:expected_4_found_0\",\n      \"PAY:no_frames\"\n    ]\n  },\n  \"handoff_sync\": {\n    \"status\": \"BLOCKED\",\n    \"result\": null\n  },\n  \"wait_readability_human\": {\n    \"status\": \"BLOCKED\"\n  },\n  \"gate_status\": \"BLOCKED\"\n}\n",
+      "stderr": ""
+    }
+  ],
+  "metadata_sha256": "bcfb932cb2ce4c385ad3847935596ee925311653a6aeedbc19c6b5e4f8a52829",
+  "source_pilot_qc_sha256": "70d84467a43c9641dfd095641ab1acf8f11a3875efb63827760e2a043dbc4243",
+  "comparison": {
+    "stage_reconstruction_changed_pixels_total": 0,
+    "anchor_coordinate_delta_px": 0,
+    "feet_frame_delta_px": 0,
+    "changed_lower_body_pixels_total": 0
+  },
+  "visual_human_review": "NOT_EVALUATED",
+  "semantic_anchor_human_review": "NOT_EVALUATED",
+  "harness_loop_human_review": "NOT_EVALUATED",
+  "physical_phone_playback": "NOT_RUN",
+  "source_visual_note": "Source QC flags frame 03 scarf silhouette variation; review loop before art approval.",
+  "production_manifest_updated": false,
+  "manifest_gate_after_test": "BLOCKED"
+}

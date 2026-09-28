@@ -27,7 +27,20 @@ python tools/animation-qc/prepare_order_actor_crop.py \
 node tools/animation-harness/test_order_candidate.mjs
 ```
 
-The crop metadata records stage anchors, local anchors and pixel reconstruction deltas. These PNGs are candidate art; the production manifest stays frozen. A browser or physical-device playback inspection is still needed for the rendered one-shot.
+The crop metadata records stage anchors, local anchors and pixel reconstruction deltas. These PNGs are candidate art; the production manifest stays frozen. The project owner has confirmed the ORDER harness playback PASS; physical-device gameplay playback remains untested.
+
+### QUEUE_WAIT.normal candidate review
+
+Open `/tools/animation-harness/?queueCandidate=1` or check **QUEUE_WAIT.normal candidate · Actor Crop + offset**. Play loops the four cropped frames. The dwell sequence 2200/80/80/100 ms comes from the earlier queue pilot preview, is used only by this harness mode and does not set the game's animation timing. The red and blue markers show projected feet and head anchors; head placement and the breathing/blink cycle need owner visual review.
+
+Rebuild from the four SHA-pinned queue candidates, `idle_open.png` and the reviewed ORDER stage transform:
+
+```bash
+python tools/animation-qc/prepare_queue_wait_normal.py
+node tools/animation-harness/test_queue_candidate.mjs
+```
+
+`queue_wait_normal_pilot/` contains the normalized PNG inputs, outputs of `blend_stationary_pose.py`, four 960×1704 comparison stages, four 137×283 RGBA actor crops, metadata and contact sheets. The exporter aligns the source and idle canvases by measured shoe widths and sole positions, masks source alpha noise at or below 5, blends Y=1016–1024 and locks idle pixels from Y=1025. The metadata checks pixel-perfect lower bodies, fixed feet, exact crop-to-stage reconstruction and lossless anchor offset conversion. These are candidate QC measurements, not a human art or production-manifest PASS.
 
 ## Required coverage
 

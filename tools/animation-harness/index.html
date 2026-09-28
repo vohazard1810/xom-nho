@@ -28,6 +28,7 @@ body{margin:0;padding:18px}.app{max-width:1180px;margin:auto;display:grid;grid-t
 <aside class="panel controls"><h2>Animation Validation Harness</h2>
 <div><span class="badge">Representative: Bé Tí</span><span class="badge">production gate</span></div>
 <label><input id="orderCandidate" type="checkbox"/> ORDER candidate · Actor Crop + offset (4 frame, one-shot)</label>
+<label><input id="queueCandidate" type="checkbox"/> QUEUE_WAIT.normal candidate · Actor Crop + offset (4 frame, loop)</label>
 <label>NPC state<select id="npcState"></select></label>
 <label>wait_reason<select id="waitReason"><option>normal</option><option>deprioritized</option><option>reserved_for_other</option><option>stock_pending</option></select></label>
 <label>reaction<select id="reaction"><option>positive</option><option>neutral</option><option>negative</option></select></label>
@@ -39,5 +40,6 @@ body{margin:0;padding:18px}.app{max-width:1180px;margin:auto;display:grid;grid-t
 <div id="debug" class="debug"></div>
 <p><b>PASS only if:</b> feet/scale do not pop, wait variants are readable, and product does not jump across HANDOFF ↔ RECEIVE.</p>
 <p>ORDER candidate dùng nhịp Play 140 ms có sẵn của harness để xem thử, dừng tại frame 04. Đây không phải timing đã duyệt của game; manifest vẫn bị khóa.</p>
+<p>QUEUE_WAIT.normal candidate lặp theo nhịp giữ/chớp mắt của preview gốc (2200/80/80/100 ms). Đây chỉ là thời gian xem thử trên harness; cần duyệt trực tiếp hình và loop.</p>
 <p>This harness intentionally starts with placeholders. Production sprite frames plug into the manifest without changing the validator.</p>
 </aside></div><script type="module" src="./harness.js"></script></body></html>
