@@ -1,5 +1,5 @@
 {
-  "status": "CANDIDATE_QUEUE_WAIT_NORMAL_AUTOMATED_QC_COMPLETE_HUMAN_HARNESS_REVIEW_PENDING",
+  "status": "CANDIDATE_QUEUE_WAIT_NORMAL_ACTOR_CROP_VISUAL_ANCHOR_HARNESS_LOOP_PASS",
   "scope": "Four static QUEUE_WAIT.normal candidate frames only",
   "commands": [
     {
@@ -41,11 +41,43 @@
     "feet_frame_delta_px": 0,
     "changed_lower_body_pixels_total": 0
   },
-  "visual_human_review": "NOT_EVALUATED",
-  "semantic_anchor_human_review": "NOT_EVALUATED",
-  "harness_loop_human_review": "NOT_EVALUATED",
+  "visual_human_review": "PASS_VISUAL",
+  "semantic_anchor_human_review": "PASS_HUMAN",
+  "harness_loop_human_review": "PASS",
   "physical_phone_playback": "NOT_RUN",
-  "source_visual_note": "Source QC flags frame 03 scarf silhouette variation; review loop before art approval.",
+  "source_visual_note": "Source QC noted frame 03 scarf silhouette variation; owner directly reviewed the loop and accepted this motion at the 80 ms preview dwell.",
   "production_manifest_updated": false,
-  "manifest_gate_after_test": "BLOCKED"
+  "manifest_gate_after_test": "BLOCKED",
+  "candidate_group_gate": "PASS_HUMAN_VISUAL_ANCHOR_AND_HARNESS_LOOP",
+  "human_review": {
+    "reviewer": "project owner (user)",
+    "reviewed_on": "2026-09-28 Asia/Bangkok",
+    "evidence": "Owner reports direct inspection of queue_wait_normal_frame_review.png and harness loop; explicitly approves four-frame blinking, frame 03 scarf displacement at 80 ms, fixed soles and feet/head anchors, and smooth loop=true playback. Confirmation provided in conversation on 2026-09-28. No screenshot or video attached to the confirmation.",
+    "scope": "QUEUE_WAIT.normal candidate Actor Crop, four frames and harness playback only",
+    "reviewed_metadata_sha256": "bcfb932cb2ce4c385ad3847935596ee925311653a6aeedbc19c6b5e4f8a52829",
+    "reviewed_crop_sha256": [
+      {
+        "index": 1,
+        "sha256": "cdf991074b065c54724767a1c2d83ba64489727e0f68b054d582dec25219727f"
+      },
+      {
+        "index": 2,
+        "sha256": "72d4bac8f7fc06d02f3711bebf661624ff29c8483167bf6720e4c3b8dc1f3227"
+      },
+      {
+        "index": 3,
+        "sha256": "7d21fef8dc7b1e1f5a991529c49e5764562cbbaccdcfa7a375ba35ff7d2d6d1e"
+      },
+      {
+        "index": 4,
+        "sha256": "e90497aa1f34b2c38cc2e4e7a08a277e8039ca7f80e4263d9329872e94153350"
+      }
+    ],
+    "preview_frame_durations_ms": [
+      2200,
+      80,
+      80,
+      100
+    ]
+  }
 }
