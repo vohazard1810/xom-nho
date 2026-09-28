@@ -1,0 +1,305 @@
+{
+  "status": "CANDIDATE_ART_REVIEW_PIXEL_AND_ANCHOR_QC_COMPLETE",
+  "state": "QUEUE_WAIT",
+  "variant": "deprioritized",
+  "loop": true,
+  "stage_canvas": [
+    960,
+    1704
+  ],
+  "source_canvas": [
+    1128,
+    1394
+  ],
+  "shared_crop_origin": {
+    "x": 572,
+    "y": 948
+  },
+  "shared_crop_size": [
+    138,
+    282
+  ],
+  "order_stage_mapping_sha256": "5557ae5a88ed22fe33098bdb095652668c04e473e186e60a06aaac403da4dfd9",
+  "idle_sha256": "bab5d2ac6c0f40091e257205fdc9493553aee06584a495d6172be0168edfa3d5",
+  "stage_alpha_noise_removed_at_or_below": 3,
+  "anchor_semantics": {
+    "feet": "midpoint X of idle shoe-bottom contacts and Y of lower sole",
+    "head": "top visible hair and median X within top head ROI"
+  },
+  "preview_frame_durations_ms": [
+    2200,
+    80,
+    80,
+    100
+  ],
+  "preview_timing_note": "Pilot comparison copied from QUEUE_WAIT.normal; harness preview only, NOT approved runtime timing.",
+  "comparison": {
+    "stage_reconstruction_changed_pixels_total": 0,
+    "anchor_coordinate_delta_px": 0,
+    "feet_frame_delta_px": 0,
+    "changed_lower_body_pixels_total": 0
+  },
+  "human_art_review": "NOT_EVALUATED",
+  "human_anchor_review": "NOT_EVALUATED",
+  "human_harness_loop_review": "NOT_EVALUATED",
+  "production_manifest_updated": false,
+  "production_state_pass": false,
+  "frames": [
+    {
+      "index": 1,
+      "raw": "assets/characters/named/be_ti/candidates/alternate_model_v1/queue_wait_deprioritized_pilot/deprioritized_01_raw.png",
+      "raw_sha256": "471eed1c750df0722fbf8f8a8c85f7840b26e252ee363bf25c15c3601b4557e9",
+      "fixed": "assets/characters/named/be_ti/candidates/alternate_model_v1/queue_wait_deprioritized_pilot/deprioritized_01_fixed.png",
+      "fixed_sha256": "be145076e35db4df0b05ae66871c0af71c4130f00d5f2e9168bf9d915650f72c",
+      "blend_qc": "assets/characters/named/be_ti/candidates/alternate_model_v1/queue_wait_deprioritized_pilot/deprioritized_01_blend_qc.json",
+      "stage": "assets/characters/named/be_ti/candidates/alternate_model_v1/queue_wait_deprioritized_pilot/canvas_960x1704/deprioritized_01.png",
+      "stage_sha256": "cd5df6d49b979334f5144ac8b099d55f4f2c716af7f6647ccbfbb413cbd5fe63",
+      "source_anchors": {
+        "feet": {
+          "x": 619.5,
+          "y": 1339
+        },
+        "head": {
+          "x": 697,
+          "y": 37
+        }
+      },
+      "anchors": {
+        "feet": {
+          "x": 652.81,
+          "y": 1227.28
+        },
+        "head": {
+          "x": 669.3,
+          "y": 949.88
+        }
+      },
+      "shoe_contacts": [
+        {
+          "x": 507,
+          "y": 1339
+        },
+        {
+          "x": 732,
+          "y": 1328
+        }
+      ],
+      "lower_body_changed_pixels": 0,
+      "blend_transition_gradient_excess": 0,
+      "file": "assets/characters/named/be_ti/candidates/alternate_model_v1/queue_wait_deprioritized_pilot/actor_crop/deprioritized_01.png",
+      "sha256": "504bdd6cceb8777bf0d1a6fc60b5c0868d6985484d9eebb5f297e09248c0349a",
+      "crop_origin": {
+        "x": 572,
+        "y": 948
+      },
+      "crop_size": [
+        138,
+        282
+      ],
+      "anchors_local": {
+        "feet": {
+          "x": 80.81,
+          "y": 279.28
+        },
+        "head": {
+          "x": 97.3,
+          "y": 1.88
+        }
+      },
+      "reconstruction_changed_pixels": 0,
+      "status": "CANDIDATE_ART_AND_HARNESS_REVIEW_PENDING"
+    },
+    {
+      "index": 2,
+      "raw": "assets/characters/named/be_ti/candidates/alternate_model_v1/queue_wait_deprioritized_pilot/deprioritized_02_raw.png",
+      "raw_sha256": "ad8684e30b728711093027ea42fd1206e9ae18076fb20a3fefebddabf241c68a",
+      "fixed": "assets/characters/named/be_ti/candidates/alternate_model_v1/queue_wait_deprioritized_pilot/deprioritized_02_fixed.png",
+      "fixed_sha256": "af5759e0b3cf63838549840e7500bf91232bf28812331ec80e96569ddf83ef44",
+      "blend_qc": "assets/characters/named/be_ti/candidates/alternate_model_v1/queue_wait_deprioritized_pilot/deprioritized_02_blend_qc.json",
+      "stage": "assets/characters/named/be_ti/candidates/alternate_model_v1/queue_wait_deprioritized_pilot/canvas_960x1704/deprioritized_02.png",
+      "stage_sha256": "52a92241d717ef326d741083bed2f3bdfda7bd43b98b6f2fd533dfad7444b655",
+      "source_anchors": {
+        "feet": {
+          "x": 619.5,
+          "y": 1339
+        },
+        "head": {
+          "x": 660,
+          "y": 38
+        }
+      },
+      "anchors": {
+        "feet": {
+          "x": 652.81,
+          "y": 1227.28
+        },
+        "head": {
+          "x": 661.43,
+          "y": 950.1
+        }
+      },
+      "shoe_contacts": [
+        {
+          "x": 507,
+          "y": 1339
+        },
+        {
+          "x": 732,
+          "y": 1328
+        }
+      ],
+      "lower_body_changed_pixels": 0,
+      "blend_transition_gradient_excess": 0,
+      "file": "assets/characters/named/be_ti/candidates/alternate_model_v1/queue_wait_deprioritized_pilot/actor_crop/deprioritized_02.png",
+      "sha256": "9a1d7c5739a4b54e760589a3676eb45c8145b70cc9f3381020d9dce596b9d52c",
+      "crop_origin": {
+        "x": 572,
+        "y": 948
+      },
+      "crop_size": [
+        138,
+        282
+      ],
+      "anchors_local": {
+        "feet": {
+          "x": 80.81,
+          "y": 279.28
+        },
+        "head": {
+          "x": 89.43,
+          "y": 2.1
+        }
+      },
+      "reconstruction_changed_pixels": 0,
+      "status": "CANDIDATE_ART_AND_HARNESS_REVIEW_PENDING"
+    },
+    {
+      "index": 3,
+      "raw": "assets/characters/named/be_ti/candidates/alternate_model_v1/queue_wait_deprioritized_pilot/deprioritized_03_raw.png",
+      "raw_sha256": "a093d3e4ade82027fafdf0f6c99ad93f5c1e570a40b99a60a1e63b7cd0bf9682",
+      "fixed": "assets/characters/named/be_ti/candidates/alternate_model_v1/queue_wait_deprioritized_pilot/deprioritized_03_fixed.png",
+      "fixed_sha256": "9959b2b260cfa34ed9bd23ab2b4674bb4c896205dcbcbe7423dd4ec37977d542",
+      "blend_qc": "assets/characters/named/be_ti/candidates/alternate_model_v1/queue_wait_deprioritized_pilot/deprioritized_03_blend_qc.json",
+      "stage": "assets/characters/named/be_ti/candidates/alternate_model_v1/queue_wait_deprioritized_pilot/canvas_960x1704/deprioritized_03.png",
+      "stage_sha256": "913522efc0ea5c48739ab162edf5f814e8f1fbd66c1b8ebbd89f0150d49e2563",
+      "source_anchors": {
+        "feet": {
+          "x": 619.5,
+          "y": 1339
+        },
+        "head": {
+          "x": 696,
+          "y": 36
+        }
+      },
+      "anchors": {
+        "feet": {
+          "x": 652.81,
+          "y": 1227.28
+        },
+        "head": {
+          "x": 669.09,
+          "y": 949.67
+        }
+      },
+      "shoe_contacts": [
+        {
+          "x": 507,
+          "y": 1339
+        },
+        {
+          "x": 732,
+          "y": 1328
+        }
+      ],
+      "lower_body_changed_pixels": 0,
+      "blend_transition_gradient_excess": 0,
+      "file": "assets/characters/named/be_ti/candidates/alternate_model_v1/queue_wait_deprioritized_pilot/actor_crop/deprioritized_03.png",
+      "sha256": "a7bd90d1a451cb33cffccf1c862ad21f789045e5f952dadffc1a72833f1d50f5",
+      "crop_origin": {
+        "x": 572,
+        "y": 948
+      },
+      "crop_size": [
+        138,
+        282
+      ],
+      "anchors_local": {
+        "feet": {
+          "x": 80.81,
+          "y": 279.28
+        },
+        "head": {
+          "x": 97.09,
+          "y": 1.67
+        }
+      },
+      "reconstruction_changed_pixels": 0,
+      "status": "CANDIDATE_ART_AND_HARNESS_REVIEW_PENDING"
+    },
+    {
+      "index": 4,
+      "raw": "assets/characters/named/be_ti/candidates/alternate_model_v1/queue_wait_deprioritized_pilot/deprioritized_04_raw.png",
+      "raw_sha256": "0acd19bbd5da2481edd8237ed7491c79f06b83f55e09dfdb6a8a70f156dcbc70",
+      "fixed": "assets/characters/named/be_ti/candidates/alternate_model_v1/queue_wait_deprioritized_pilot/deprioritized_04_fixed.png",
+      "fixed_sha256": "82a96e1664e6e167782fa7512da2762b0c73a430ddf7781d72b2759a685907d0",
+      "blend_qc": "assets/characters/named/be_ti/candidates/alternate_model_v1/queue_wait_deprioritized_pilot/deprioritized_04_blend_qc.json",
+      "stage": "assets/characters/named/be_ti/candidates/alternate_model_v1/queue_wait_deprioritized_pilot/canvas_960x1704/deprioritized_04.png",
+      "stage_sha256": "88a912c610ab513ec5895adbb927f4b098da6d779af80df7ce163e32e3381081",
+      "source_anchors": {
+        "feet": {
+          "x": 619.5,
+          "y": 1339
+        },
+        "head": {
+          "x": 697,
+          "y": 37
+        }
+      },
+      "anchors": {
+        "feet": {
+          "x": 652.81,
+          "y": 1227.28
+        },
+        "head": {
+          "x": 669.3,
+          "y": 949.88
+        }
+      },
+      "shoe_contacts": [
+        {
+          "x": 507,
+          "y": 1339
+        },
+        {
+          "x": 732,
+          "y": 1328
+        }
+      ],
+      "lower_body_changed_pixels": 0,
+      "blend_transition_gradient_excess": 0,
+      "file": "assets/characters/named/be_ti/candidates/alternate_model_v1/queue_wait_deprioritized_pilot/actor_crop/deprioritized_04.png",
+      "sha256": "36a50252f73b7d67a1d5f7f6269bfb24b425eb464040af94883483534f48a8b9",
+      "crop_origin": {
+        "x": 572,
+        "y": 948
+      },
+      "crop_size": [
+        138,
+        282
+      ],
+      "anchors_local": {
+        "feet": {
+          "x": 80.81,
+          "y": 279.28
+        },
+        "head": {
+          "x": 97.3,
+          "y": 1.88
+        }
+      },
+      "reconstruction_changed_pixels": 0,
+      "status": "CANDIDATE_ART_AND_HARNESS_REVIEW_PENDING"
+    }
+  ]
+}

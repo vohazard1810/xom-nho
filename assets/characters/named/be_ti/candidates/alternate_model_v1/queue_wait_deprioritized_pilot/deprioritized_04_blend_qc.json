@@ -1,0 +1,19 @@
+{
+  "asset": "assets/characters/named/be_ti/candidates/alternate_model_v1/queue_wait_deprioritized_pilot/deprioritized_04_fixed.png",
+  "sha256": "82a96e1664e6e167782fa7512da2762b0c73a430ddf7781d72b2759a685907d0",
+  "source_sha256": {
+    "idle": "bab5d2ac6c0f40091e257205fdc9493553aee06584a495d6172be0168edfa3d5",
+    "pose": "0acd19bbd5da2481edd8237ed7491c79f06b83f55e09dfdb6a8a70f156dcbc70"
+  },
+  "blend": "linear premultiplied RGBA; y=1016..1024, weight_idle=(y-1015)/10",
+  "fixed_idle_from_y": 1025,
+  "lower_body_pixel_match": true,
+  "changed_pixels_below_y_1025": 0,
+  "transition_gradient_exceeds_both_by_10_pixels": 0,
+  "y_1019_to_1020_gradient_exceeds_both_by_10_pixels": 0,
+  "y_1019_to_1020_mean_gradient": {
+    "idle": 0.699,
+    "pose": 0.751,
+    "blended": 0.788
+  }
+}

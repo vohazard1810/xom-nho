@@ -1,0 +1,80 @@
+{
+  "status": "CANDIDATE_ART_REVIEW",
+  "state": "QUEUE_WAIT",
+  "variant": "deprioritized",
+  "asset_generation": "Built-in imagegen identity-preserving edits using approved QUEUE_WAIT.normal fixed frame for the first pose, then first fixed pose for blink variants. Independent genuine RGBA PNGs; imagegen outputs remain unapproved.",
+  "art_direction": "Mild polite concern while another order is prioritized; frame01 eyes open, frame02 halfway blink, frame03 closed, frame04 eyes open.",
+  "source_reference": "assets/characters/named/be_ti/candidates/alternate_model_v1/queue_wait_normal_pilot/blended/queue_wait_normal_01.png",
+  "source_reference_sha256": "5ce4aabc8afd00e42338958c1bc70ac0fbeca19a884ab281e93cfada1a679ae1",
+  "metadata_sha256": "fa255a728251408a96f018a6842c13dfa633a8b74efe7fe939d857a6b0bc869d",
+  "review_sheet": "assets/characters/named/be_ti/candidates/alternate_model_v1/queue_wait_deprioritized_pilot/deprioritized_four_frame_review.png",
+  "review_sheet_sha256": "199353148bca773680a43e3f8b1a55e632512067f648008a51f28a26d1c82f9e",
+  "comparison": {
+    "stage_reconstruction_changed_pixels_total": 0,
+    "anchor_coordinate_delta_px": 0,
+    "feet_frame_delta_px": 0,
+    "changed_lower_body_pixels_total": 0
+  },
+  "frame_hashes": [
+    {
+      "index": 1,
+      "sha256": "504bdd6cceb8777bf0d1a6fc60b5c0868d6985484d9eebb5f297e09248c0349a"
+    },
+    {
+      "index": 2,
+      "sha256": "9a1d7c5739a4b54e760589a3676eb45c8145b70cc9f3381020d9dce596b9d52c"
+    },
+    {
+      "index": 3,
+      "sha256": "a7bd90d1a451cb33cffccf1c862ad21f789045e5f952dadffc1a72833f1d50f5"
+    },
+    {
+      "index": 4,
+      "sha256": "36a50252f73b7d67a1d5f7f6269bfb24b425eb464040af94883483534f48a8b9"
+    }
+  ],
+  "commands": [
+    {
+      "command": "python tools/animation-qc/prepare_queue_wait_deprioritized.py",
+      "exit_code": 0,
+      "stdout": "{\"crop\": [572, 948, 710, 1230], \"frames\": 4, \"comparison\": {\"stage_reconstruction_changed_pixels_total\": 0, \"anchor_coordinate_delta_px\": 0, \"feet_frame_delta_px\": 0, \"changed_lower_body_pixels_total\": 0}}\n",
+      "stderr": ""
+    },
+    {
+      "command": "node --check tools/animation-harness/harness.js",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": "node tools/animation-harness/test_deprioritized_candidate.mjs",
+      "exit_code": 0,
+      "stdout": "QUEUE_WAIT.deprioritized: 4 actor crops; fixed feet and head anchors; preview dwell 2200/80/80/100 ms; loops 04→01; pause cancels timer.\n",
+      "stderr": ""
+    },
+    {
+      "command": "node tools/animation-harness/test_queue_candidate.mjs",
+      "exit_code": 0,
+      "stdout": "QUEUE_WAIT.normal: 4 actor crops; fixed feet and head anchors; preview dwell 2200/80/80/100 ms; loops 04→01; pause cancels timer.\n",
+      "stderr": ""
+    },
+    {
+      "command": "node tools/animation-harness/test_order_candidate.mjs",
+      "exit_code": 0,
+      "stdout": "ORDER candidate loaded: 4 actor crops; origin=(577,954); one-shot stops at frame 04; next does not wrap.\n",
+      "stderr": ""
+    }
+  ],
+  "human_art_review": "NOT_EVALUATED",
+  "human_anchor_review": "NOT_EVALUATED",
+  "human_harness_loop_review": "NOT_EVALUATED",
+  "production_manifest_updated": false,
+  "production_gate": "BLOCKED",
+  "preview_timing_status": "UNAPPROVED_COMPARISON_WITH_NORMAL",
+  "physical_phone_playback": "NOT_RUN",
+  "known_risks": [
+    "AI-generated upper-body poses may vary in hair/scarf/face volume despite locked lower body.",
+    "The worried expression may be read as personal conflict rather than lower queue priority; owner must assess without labels.",
+    "Four-frame preview cadence copied from normal has not been approved for this variant."
+  ]
+}

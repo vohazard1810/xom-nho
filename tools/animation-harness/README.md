@@ -42,6 +42,15 @@ node tools/animation-harness/test_queue_candidate.mjs
 
 `queue_wait_normal_pilot/` contains the normalized PNG inputs, outputs of `blend_stationary_pose.py`, four 960×1704 comparison stages, four 137×283 RGBA actor crops, metadata and contact sheets. The exporter aligns the source and idle canvases by measured shoe widths and sole positions, masks source alpha noise at or below 5, blends Y=1016–1024 and locks idle pixels from Y=1025. The metadata checks pixel-perfect lower bodies, fixed feet, exact crop-to-stage reconstruction and lossless anchor offset conversion. These are candidate QC measurements, not a human art or production-manifest PASS.
 
+### QUEUE_WAIT.deprioritized art candidate
+
+Open `/tools/animation-harness/?deprioritizedCandidate=1` to inspect four separate candidate RGBA crops. The 2200/80/80/100 ms cadence is copied from the normal wait pilot strictly for side-by-side visual comparison, and does not change game timing. The new frames show a polite but concerned expression during a longer wait; owner art/anchor/harness review is `NOT_EVALUATED`. The inherited idle lower body is locked from Y=1025 and the stage crop round-trip is verified exactly. Review the expression and upper-body volume, especially at loop 04→01, before any PASS.
+
+```bash
+python tools/animation-qc/prepare_queue_wait_deprioritized.py
+node tools/animation-harness/test_deprioritized_candidate.mjs
+```
+
 ## Required coverage
 
 NPC:
