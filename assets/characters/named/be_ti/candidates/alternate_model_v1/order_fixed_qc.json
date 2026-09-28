@@ -1,0 +1,18 @@
+{
+  "status": "CANDIDATE_SEAM_REVIEW",
+  "file": "order_raise_hand_fixed.png",
+  "sha256": "d0ff0a89d3ede43bb9d023ba51e9849d4ca2e6462b3079bec7297dcc5dc94a9b",
+  "method": "Rows y>=1020 copied byte-identically from idle_open; rows above from order_raise_hand_candidate.",
+  "lower_body_pixel_match": true,
+  "upper_body_pixel_match": true,
+  "seam_y": 1020,
+  "visible_edge_pixels": 286,
+  "mean_neighbor_rgb_gradient": {
+    "idle": 0.699,
+    "order_original": 0.693,
+    "fixed": 2.766
+  },
+  "fixed_gradient_exceeds_both_by_10_pixels": 8,
+  "note": "Zero lower-body pixel difference does not establish seamless torso/shorts continuity or human approval. Visual review at game scale still needed.",
+  "production_manifest_updated": false
+}
