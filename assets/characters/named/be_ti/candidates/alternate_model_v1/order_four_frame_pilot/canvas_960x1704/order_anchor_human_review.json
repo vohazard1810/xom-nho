@@ -1,0 +1,101 @@
+{
+  "status": "PASS_SEMANTIC_ANCHORS_ORDER_FOUR_FRAMES",
+  "reviewer": "project owner (user)",
+  "reviewed_on": "2026-09-28 Asia/Bangkok",
+  "review_source": "Direct visual inspection of order_canvas_anchor_detail.png at commit 7a8188c860937a91239451b9bc1ee12714a76366",
+  "reviewed_overlay_sha256": "df89262962adc9cf961f44b10e95b901bc227caf1b86c3e74e1b72cb04856209",
+  "reviewed_mapping_sha256": "5557ae5a88ed22fe33098bdb095652668c04e473e186e60a06aaac403da4dfd9",
+  "reviewed_anchor_names": [
+    "feet",
+    "head",
+    "hand_right"
+  ],
+  "anchor_assessments": {
+    "feet": "PASS: red marker on floor guide, y=1227.28 identical across all four frames",
+    "head": "PASS: blue marker immediately above hair for speech bubble",
+    "hand_right": "PASS: green marker centered in raised palm for all four frames"
+  },
+  "frames": [
+    {
+      "index": 1,
+      "source_sha256": "af4f9c1df03d8b45d58eb8e47ba900be3befd2ab785be5cf8ed877bf6451320c",
+      "stage_output_sha256": "b26407f0295f380f2fa1a5bf0696253bedd75217c2f9b91bcc18a6aed0c5d283",
+      "anchors": {
+        "feet": {
+          "x": 652.81,
+          "y": 1227.28
+        },
+        "head": {
+          "x": 641.85,
+          "y": 956.7
+        },
+        "hand_right": {
+          "x": 634.62,
+          "y": 1091.99
+        }
+      }
+    },
+    {
+      "index": 2,
+      "source_sha256": "dae355f36e67483816a071d9f02db1dc7ea3aeaa2d638433768134dcbd1c1f88",
+      "stage_output_sha256": "a7f917923347b0c296dfb39ad7e72a75c9cdc605050139c4386aebf805705e46",
+      "anchors": {
+        "feet": {
+          "x": 652.81,
+          "y": 1227.28
+        },
+        "head": {
+          "x": 641.64,
+          "y": 956.91
+        },
+        "hand_right": {
+          "x": 614.19,
+          "y": 1072.18
+        }
+      }
+    },
+    {
+      "index": 3,
+      "source_sha256": "d0aace4070d56d08588cb5f4d571c5652b53958f7038c62c82972c84e5f8e9c6",
+      "stage_output_sha256": "9785bf9936f4a817210a0651047bca0e99e03f3145a90e2c0fc2933907dd2adc",
+      "anchors": {
+        "feet": {
+          "x": 652.81,
+          "y": 1227.28
+        },
+        "head": {
+          "x": 641.85,
+          "y": 956.7
+        },
+        "hand_right": {
+          "x": 614.19,
+          "y": 1072.18
+        }
+      }
+    },
+    {
+      "index": 4,
+      "source_sha256": "75312dc713e830d878fd8f1c4de6451414f7e0f536ca8c9c2c7dc4264ca4a84b",
+      "stage_output_sha256": "e89633d8918f6b1f1d6fcf1ed505ed8545091a47c3103922b236df118b52bb74",
+      "anchors": {
+        "feet": {
+          "x": 652.81,
+          "y": 1227.28
+        },
+        "head": {
+          "x": 641.64,
+          "y": 956.27
+        },
+        "hand_right": {
+          "x": 614.19,
+          "y": 1071.96
+        }
+      }
+    }
+  ],
+  "scope": "Semantic placement of three anchors for this exact four-frame ORDER canvas export, including web viewer feet contact. Does not approve packaging, integration, frame timing, or other NPC states.",
+  "packaging_status": "UNDECIDED_ACTOR_CROP_WITH_OFFSET_OR_FULL_CANVAS_RENDER",
+  "manifest_updated": false,
+  "full_state_pass": false,
+  "on_regeneration": "If any source frame, mapping, or overlay SHA-256 changes, review does not transfer automatically."
+}

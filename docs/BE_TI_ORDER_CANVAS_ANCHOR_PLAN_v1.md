@@ -2,6 +2,8 @@
 
 Ngày: 2026-09-28 (Asia/Bangkok). Phạm vi: bốn PNG `ORDER` đã duyệt visual trên nhánh `docs/be-ti-static-production`.
 
+**Cập nhật duyệt:** Chủ dự án đã trực tiếp xem `order_canvas_anchor_detail.png` tại commit `7a8188c` và xác nhận `feet`, `head`, `hand_right` đều PASS về vị trí ngữ nghĩa trên cả bốn frame. Bằng chứng phiên bản/giá trị tọa độ nằm trong `canvas_960x1704/order_anchor_human_review.json`. PASS này ràng buộc với SHA-256 của overlay, mapping và từng frame; nếu sinh lại bất kỳ file nào, phải đối chiếu hash trước khi chuyển kết quả duyệt. Lựa chọn đóng gói Actor Crop + offset hoặc Full Canvas render vẫn chưa chốt; manifest tiếp tục đóng băng.
+
 ## 1. Bằng chứng và ranh giới
 
 - Chủ dự án xác nhận đã mở `tools/animation-harness/order-candidate.html`, bấm qua bốn frame ở hộp CSS 120×124, quan sát cả hai đế giày bám vạch sàn và hành động giơ tay tự nhiên. Đây là **PASS kiểm tra thủ công trên web viewer**, không phải ghi hình điện thoại vật lý hoặc state production PASS.
