@@ -1,0 +1,81 @@
+{
+  "status": "CANDIDATE_FOUR_FRAME_ORDER_REVIEW",
+  "state": "ORDER",
+  "manifest_requirement": {
+    "frame_count": 4,
+    "loop": false,
+    "production_canvas": [
+      960,
+      1704
+    ]
+  },
+  "candidate_canvas": [
+    1128,
+    1394
+  ],
+  "timing": "NOT_SPECIFIED_IN_MANIFEST; contact sheet is simultaneous comparison, not gameplay timing",
+  "frame_order": [
+    "order_01_mid_raise.png",
+    "order_02_raise_approved.png",
+    "order_03_speaking.png",
+    "order_04_half_blink.png"
+  ],
+  "frame_reviews": {
+    "order_01_mid_raise.png": {
+      "sha256": "af4f9c1df03d8b45d58eb8e47ba900be3befd2ab785be5cf8ed877bf6451320c",
+      "pixel_and_alpha": "MEASURED",
+      "lower_from_y_1025": "EXACT_IDLE_PIXELS",
+      "semantic_anchors": "NOT_MEASURED",
+      "human_art_review": "NOT_EVALUATED"
+    },
+    "order_02_raise_approved.png": {
+      "sha256": "dae355f36e67483816a071d9f02db1dc7ea3aeaa2d638433768134dcbd1c1f88",
+      "pixel_and_alpha": "MEASURED",
+      "lower_from_y_1025": "EXACT_IDLE_PIXELS",
+      "semantic_anchors": "NOT_MEASURED",
+      "human_art_review": "PASS_SINGLE_FRAME"
+    },
+    "order_03_speaking.png": {
+      "sha256": "d0aace4070d56d08588cb5f4d571c5652b53958f7038c62c82972c84e5f8e9c6",
+      "pixel_and_alpha": "MEASURED",
+      "lower_from_y_1025": "EXACT_IDLE_PIXELS",
+      "semantic_anchors": "NOT_MEASURED",
+      "human_art_review": "NOT_EVALUATED"
+    },
+    "order_04_half_blink.png": {
+      "sha256": "373e56e0db734fb6d484013a2aad18d7cdbb333317810df1c284675dc71be94c",
+      "pixel_and_alpha": "MEASURED",
+      "lower_from_y_1025": "EXACT_IDLE_PIXELS",
+      "semantic_anchors": "NOT_MEASURED",
+      "human_art_review": "NOT_EVALUATED"
+    }
+  },
+  "source": {
+    "raw_files": [
+      "order_01_mid_raise_raw.png",
+      "order_03_speaking_raw.png",
+      "order_04_half_blink_raw.png"
+    ],
+    "blend_tool": "tools/animation-qc/blend_stationary_pose.py",
+    "idle": "assets/characters/named/be_ti/candidates/alternate_model_v1/idle_open.png",
+    "frame_02": "copy of exact reviewed order_raise_hand_blended.png"
+  },
+  "evidence": {
+    "frame_measurements": "order_four_frame_measurements.json",
+    "runtime_sheet": "order_four_frame_review.png",
+    "blend_logs": [
+      "order_01_mid_raise_measurements.json",
+      "order_03_speaking_measurements.json",
+      "order_04_half_blink_measurements.json"
+    ]
+  },
+  "risks": [
+    "Frames 01, 03, 04 have not been human reviewed; frame 04 half blink can read as sleepy at game size.",
+    "Synthetic dark background only; in-game street background and phone flow not tested.",
+    "All semantic anchors remain null; locking source pixels below y=1025 demonstrates shared foot artwork, not full in-engine anchor or manifest canvas integration.",
+    "Generated upper-body redraw can cause hair/face/backpack volume flicker; inspect sequencing before state acceptance."
+  ],
+  "production_manifest_updated": false,
+  "animation_speed_or_logic_updated": false,
+  "full_state_pass": false
+}

@@ -1,0 +1,114 @@
+[
+  {
+    "file": "assets/characters/named/be_ti/candidates/alternate_model_v1/order_four_frame_pilot/order_01_mid_raise.png",
+    "sha256": "af4f9c1df03d8b45d58eb8e47ba900be3befd2ab785be5cf8ed877bf6451320c",
+    "width": 1128,
+    "height": 1394,
+    "has_alpha": true,
+    "alpha_bbox": [
+      49,
+      37,
+      1062,
+      1370
+    ],
+    "alpha_bbox_visible": [
+      276,
+      68,
+      862,
+      1341
+    ],
+    "visible_alpha_min": 10,
+    "opaque_pixel_count": 452341,
+    "semantic_anchors": {
+      "head": null,
+      "hand_right": null,
+      "feet": null,
+      "receive_point": null
+    },
+    "status": "PIXELS_MEASURED_ANCHORS_PENDING"
+  },
+  {
+    "file": "assets/characters/named/be_ti/candidates/alternate_model_v1/order_four_frame_pilot/order_02_raise_approved.png",
+    "sha256": "dae355f36e67483816a071d9f02db1dc7ea3aeaa2d638433768134dcbd1c1f88",
+    "width": 1128,
+    "height": 1394,
+    "has_alpha": true,
+    "alpha_bbox": [
+      49,
+      37,
+      1062,
+      1370
+    ],
+    "alpha_bbox_visible": [
+      276,
+      70,
+      859,
+      1341
+    ],
+    "visible_alpha_min": 10,
+    "opaque_pixel_count": 454602,
+    "semantic_anchors": {
+      "head": null,
+      "hand_right": null,
+      "feet": null,
+      "receive_point": null
+    },
+    "status": "PIXELS_MEASURED_ANCHORS_PENDING"
+  },
+  {
+    "file": "assets/characters/named/be_ti/candidates/alternate_model_v1/order_four_frame_pilot/order_03_speaking.png",
+    "sha256": "d0aace4070d56d08588cb5f4d571c5652b53958f7038c62c82972c84e5f8e9c6",
+    "width": 1128,
+    "height": 1394,
+    "has_alpha": true,
+    "alpha_bbox": [
+      33,
+      36,
+      1062,
+      1370
+    ],
+    "alpha_bbox_visible": [
+      276,
+      69,
+      862,
+      1341
+    ],
+    "visible_alpha_min": 10,
+    "opaque_pixel_count": 458378,
+    "semantic_anchors": {
+      "head": null,
+      "hand_right": null,
+      "feet": null,
+      "receive_point": null
+    },
+    "status": "PIXELS_MEASURED_ANCHORS_PENDING"
+  },
+  {
+    "file": "assets/characters/named/be_ti/candidates/alternate_model_v1/order_four_frame_pilot/order_04_half_blink.png",
+    "sha256": "373e56e0db734fb6d484013a2aad18d7cdbb333317810df1c284675dc71be94c",
+    "width": 1128,
+    "height": 1394,
+    "has_alpha": true,
+    "alpha_bbox": [
+      49,
+      53,
+      1058,
+      1370
+    ],
+    "alpha_bbox_visible": [
+      276,
+      69,
+      862,
+      1341
+    ],
+    "visible_alpha_min": 10,
+    "opaque_pixel_count": 458453,
+    "semantic_anchors": {
+      "head": null,
+      "hand_right": null,
+      "feet": null,
+      "receive_point": null
+    },
+    "status": "PIXELS_MEASURED_ANCHORS_PENDING"
+  }
+]
