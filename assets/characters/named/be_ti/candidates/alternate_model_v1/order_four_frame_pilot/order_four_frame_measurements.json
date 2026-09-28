@@ -84,25 +84,25 @@
     "status": "PIXELS_MEASURED_ANCHORS_PENDING"
   },
   {
-    "file": "assets/characters/named/be_ti/candidates/alternate_model_v1/order_four_frame_pilot/order_04_half_blink.png",
-    "sha256": "373e56e0db734fb6d484013a2aad18d7cdbb333317810df1c284675dc71be94c",
+    "file": "assets/characters/named/be_ti/candidates/alternate_model_v1/order_four_frame_pilot/order_04_expectant.png",
+    "sha256": "75312dc713e830d878fd8f1c4de6451414f7e0f536ca8c9c2c7dc4264ca4a84b",
     "width": 1128,
     "height": 1394,
     "has_alpha": true,
     "alpha_bbox": [
-      49,
-      53,
-      1058,
+      51,
+      37,
+      1062,
       1370
     ],
     "alpha_bbox_visible": [
-      276,
-      69,
-      862,
+      274,
+      67,
+      861,
       1341
     ],
     "visible_alpha_min": 10,
-    "opaque_pixel_count": 458453,
+    "opaque_pixel_count": 460104,
     "semantic_anchors": {
       "head": null,
       "hand_right": null,
