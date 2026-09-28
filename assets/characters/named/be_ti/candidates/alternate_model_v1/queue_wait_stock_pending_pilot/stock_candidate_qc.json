@@ -1,5 +1,5 @@
 {
-  "status": "CANDIDATE_QUEUE_WAIT_STOCK_PENDING_PIXEL_AND_ANCHOR_QC_COMPLETE",
+  "status": "CANDIDATE_QUEUE_WAIT_STOCK_PENDING_ACTOR_CROP_VISUAL_ANCHOR_HARNESS_LOOP_PASS",
   "state": "QUEUE_WAIT",
   "variant": "stock_pending",
   "asset_generation": "Imagegen edits from approved QUEUE_WAIT.normal pose, four independent genuine RGBA sources; deterministic lower-body blend and stage/crop export.",
@@ -77,15 +77,48 @@
       "stderr": ""
     }
   ],
-  "human_art_review": "NOT_EVALUATED",
-  "human_anchor_review": "NOT_EVALUATED",
-  "human_harness_loop_review": "NOT_EVALUATED",
+  "human_art_review": "PASS_VISUAL",
+  "human_anchor_review": "PASS_HUMAN",
+  "human_harness_loop_review": "PASS",
   "production_manifest_updated": false,
   "production_gate": "BLOCKED",
   "physical_phone_playback": "NOT_RUN",
   "known_risks": [
-    "Cross-frame face/hair silhouette variation may be noticeable in actual loop at runtime size; owner review required.",
-    "Preview cadence does not establish production timing."
+    "Phone gameplay remains untested; only candidate harness review was approved.",
+    "Harness preview cadence does not set production game timing."
   ],
-  "candidate_group_gate": "CANDIDATE_AWAITING_HUMAN_VISUAL_ANCHOR_HARNESS_REVIEW"
+  "candidate_group_gate": "PASS_HUMAN_VISUAL_ANCHOR_AND_HARNESS_LOOP",
+  "preview_timing_status": "PASS_HUMAN_HARNESS_PREVIEW_ONLY_NOT_PRODUCTION_TIMING",
+  "human_review": {
+    "reviewer": "project owner (user)",
+    "reviewed_on": "2026-09-28 Asia/Bangkok",
+    "evidence": "Owner directly inspected stock_four_frame_review.png and harness loop; approved polite hands-clasped waiting pose, small face/hair movement as natural breathing at runtime size, fixed shoe contacts and smooth four-frame blink. Confirmation in conversation 2026-09-28; no separate video or screenshot attached.",
+    "scope": "Four QUEUE_WAIT.stock_pending candidate Actor Crops and harness playback only; physical phone gameplay and production manifest excluded.",
+    "reviewed_metadata_sha256": "5955f44f22795a27a144164bded6f181353260f9c69f669a9db66d97337ab210",
+    "reviewed_sheet_sha256": "1854d2522ace3c2687d62e13615cfdc7b21dbbfbda924672c25e51fa44bb73fd",
+    "reviewed_crop_sha256": [
+      {
+        "index": 1,
+        "sha256": "aada13033a111f9361f84ae8dda454ad655af39ef1564091781ba5e8cb2f540a"
+      },
+      {
+        "index": 2,
+        "sha256": "bef8d8c729b9d077ee4b6a61bdee1a84a6b4659073b2d5853d5601e1f0a3e070"
+      },
+      {
+        "index": 3,
+        "sha256": "77f7da14b84f9d31896352ba48ee52e5db469aa92017898a3024a5c0644838fc"
+      },
+      {
+        "index": 4,
+        "sha256": "dd58da1cff9bc514a83adde5534669e4b37ce7d78d9abbcf4a47c3ca7258c1c1"
+      }
+    ],
+    "preview_frame_durations_ms": [
+      2200,
+      80,
+      80,
+      100
+    ]
+  }
 }
