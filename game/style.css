@@ -1,1 +1,609 @@
-:root{font-family:system-ui,'Segoe UI',sans-serif;color:#392b27;background:#eee0ca}*{box-sizing:border-box}body{margin:0}.shell{max-width:480px;min-height:100dvh;margin:auto;background:#fff8ed;box-shadow:0 0 30px #5d47301c;display:flex;flex-direction:column}.top{position:sticky;top:0;z-index:5;background:#674933;color:#fff8ed;padding:13px 18px;display:flex;justify-content:space-between;gap:10px;align-items:center}.top small{display:block;color:#ffe5b6}.body{padding:18px;flex:1}.hero{background:linear-gradient(#f8cf9d,#f8e7cd 64%,#caaf87 64%);border-radius:18px;min-height:210px;padding:20px;position:relative;overflow:hidden}.hero:after{content:'🌺     🪴      🛵';position:absolute;bottom:9px;right:12px;opacity:.7}.hero h1{font-size:2.3rem;margin:2px 0 5px}.hero p{max-width:255px;line-height:1.5}.card{background:white;border:1px solid #e9d8bd;border-radius:16px;padding:15px;margin:13px 0;box-shadow:0 3px 12px #604b2520}.card h2,.card h3{margin:0 0 9px}.hint{color:#785d47;font-size:.9rem;line-height:1.45}.row{display:flex;justify-content:space-between;align-items:center;gap:9px;margin:9px 0}.pill{background:#f2e5d1;padding:5px 10px;border-radius:99px;font-size:.85rem}button{border:0;border-radius:12px;background:#a44931;color:white;min-height:46px;padding:10px 16px;font-size:1rem;font-weight:700;cursor:pointer}button.secondary{background:#e9d9bd;color:#4c392c}button:disabled{opacity:.45;cursor:not-allowed}.wide{width:100%;margin-top:11px}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.grid button{min-height:65px;text-align:left}.qty{display:flex;align-items:center;gap:10px}.qty button{width:42px;padding:0}.qty output{min-width:20px;text-align:center}.customer{display:flex;gap:12px;align-items:center;min-height:85px}.portrait{width:57px;height:70px;object-fit:contain;background:#f2dfc4;border-radius:10px}.portrait.emoji{display:grid;place-items:center;font-size:2rem}.customer .detail{flex:1}.customer button{font-size:.9rem}.selected{outline:2px solid #b16b46}.message{background:#fff0bd;border-left:4px solid #be8233;padding:10px;border-radius:8px;margin:12px 0}.dock{background:#f5e4cb;border-radius:15px;padding:14px;margin-top:12px}.dock .grid button{background:#77583f}footer{padding:8px 18px 18px;color:#826c59;font-size:.75rem}hr{border:0;border-top:1px solid #eadbc5;margin:14px 0}
+:root {
+  --font-main: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+  --font-serif: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+  --bg-page: #f2e9dc;
+  --bg-card: #fffdf9;
+  --bg-dock: #f8efe1;
+  --border-color: #e5d3bc;
+  --text-main: #33261d;
+  --text-muted: #7d6553;
+  --text-light: #9c826e;
+  --primary: #c2410c;
+  --primary-hover: #9a3412;
+  --primary-light: #ffedd5;
+  --secondary: #0284c7;
+  --accent: #d97706;
+  --success: #15803d;
+  --success-bg: #dcfce7;
+  --shadow-sm: 0 2px 8px rgba(92, 59, 34, 0.08);
+  --shadow-md: 0 8px 24px rgba(92, 59, 34, 0.12);
+  --shadow-lg: 0 16px 36px rgba(92, 59, 34, 0.18);
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+}
+
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: var(--bg-page);
+  color: var(--text-main);
+  font-family: var(--font-main);
+  font-size: 14px;
+  line-height: 1.45;
+  display: flex;
+  justify-content: center;
+}
+
+#app {
+  width: 100%;
+  max-width: 440px;
+  min-height: 100vh;
+  min-height: 100dvh;
+  background: #fbf6ee;
+  box-shadow: 0 0 40px rgba(71, 46, 25, 0.15);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* Header Bar */
+.top-nav {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: #3b281d;
+  color: #fff8ef;
+  padding: 10px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+}
+.brand-title {
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.brand-title small {
+  font-size: 11px;
+  font-weight: 400;
+  color: #fbd38d;
+  background: rgba(251, 211, 141, 0.15);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+.wallet-badge {
+  background: #251912;
+  border: 1px solid #5a3e2d;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #4ade80;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+/* Content Area */
+.view-container {
+  flex: 1;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* Story Cards */
+.story-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 18px;
+  box-shadow: var(--shadow-sm);
+  position: relative;
+}
+.story-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.story-header h2 {
+  font-size: 18px;
+  margin: 0;
+  color: #4a2c17;
+}
+.story-card p {
+  margin: 0 0 10px;
+  color: var(--text-muted);
+  font-size: 13.5px;
+  line-height: 1.5;
+}
+.story-tip {
+  background: #fdf5ea;
+  border-left: 3px solid #d97706;
+  padding: 8px 12px;
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  font-size: 12.5px;
+  color: #8c5623;
+  margin: 10px 0 0;
+}
+
+/* Buttons */
+button {
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 10px 16px;
+  border-radius: var(--radius-md);
+  border: none;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+button:active {
+  transform: scale(0.97);
+}
+.btn-primary {
+  background: linear-gradient(180deg, #c2410c 0%, #9a3412 100%);
+  color: white;
+  box-shadow: 0 4px 12px rgba(194, 65, 12, 0.3);
+}
+.btn-primary:hover {
+  background: #9a3412;
+}
+.btn-secondary {
+  background: #efe3d3;
+  color: #4a2c17;
+  border: 1px solid #dcc6af;
+}
+.btn-secondary:hover {
+  background: #e5d5c1;
+}
+.btn-wide {
+  width: 100%;
+  padding: 14px;
+  font-size: 15px;
+}
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+/* ==========================================================
+   2D GAME STAGE (HẺM XÓM NHỎ & QUẦY HÀNG)
+   ========================================================== */
+.game-stage-wrapper {
+  background: #ebd8be;
+  border: 2px solid #b89c7d;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  position: relative;
+  height: 290px;
+  box-shadow: var(--shadow-md);
+}
+
+.street-scene-svg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+/* Sidewalk Actor Zone */
+.stage-actors {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: auto;
+}
+
+/* Bé Tí Animated Character */
+.actor-beti {
+  position: absolute;
+  left: 28px;
+  bottom: 24px;
+  width: 105px;
+  height: 130px;
+  cursor: pointer;
+  z-index: 10;
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.actor-beti img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 6px 8px rgba(0, 0, 0, 0.25));
+}
+.actor-beti:hover, .actor-beti.selected {
+  transform: scale(1.05);
+}
+.actor-beti.selected {
+  filter: drop-shadow(0 0 10px rgba(251, 191, 36, 0.8));
+}
+
+/* Queuing secondary characters */
+.actor-queue-character {
+  position: absolute;
+  bottom: 28px;
+  width: 65px;
+  height: 95px;
+  cursor: pointer;
+  z-index: 8;
+  transition: transform 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.actor-queue-character.co-chin {
+  left: 135px;
+  width: 55px;
+}
+.actor-queue-character.anh-tung {
+  left: 195px;
+  width: 55px;
+}
+.actor-queue-character svg {
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.25));
+}
+.actor-queue-character:hover, .actor-queue-character.selected {
+  transform: scale(1.08) translateY(-4px);
+}
+.actor-queue-character.served {
+  opacity: 0.25;
+  pointer-events: none;
+  filter: grayscale(1);
+}
+.actor-name-tag {
+  position: absolute;
+  bottom: -16px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(41, 30, 23, 0.88);
+  color: #fff;
+  font-size: 9.5px;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+/* Interactive Speech Bubble */
+.speech-bubble {
+  position: absolute;
+  left: 10px;
+  top: 14px;
+  max-width: 250px;
+  background: #ffffff;
+  border: 2px solid #5a3e2d;
+  border-radius: 14px;
+  padding: 10px 12px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+  z-index: 30;
+  animation: popIn 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.speech-bubble::after {
+  content: "";
+  position: absolute;
+  bottom: -10px;
+  left: 45px;
+  border-width: 10px 8px 0;
+  border-style: solid;
+  border-color: #5a3e2d transparent;
+  display: block;
+  width: 0;
+}
+.speech-bubble-inner {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #3b281d;
+  line-height: 1.4;
+}
+.speech-request-actions {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+}
+.btn-mini-action {
+  padding: 5px 8px;
+  font-size: 11px;
+  font-weight: 700;
+  border-radius: 6px;
+}
+
+@keyframes popIn {
+  0% { transform: scale(0.6); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+/* ==========================================================
+   KITCHEN COUNTER / BÀN CHẾ BIẾN (Interactive Prep Slot)
+   ========================================================== */
+.kitchen-dock {
+  background: var(--bg-dock);
+  border: 2px solid #d4bda4;
+  border-radius: var(--radius-lg);
+  padding: 14px;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.kitchen-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px dashed #d4bda4;
+  padding-bottom: 8px;
+}
+.recipe-target-name {
+  font-size: 14px;
+  font-weight: 800;
+  color: #7c2d12;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.recipe-target-badge {
+  background: #ffedd5;
+  color: #c2410c;
+  font-size: 11px;
+  padding: 2px 7px;
+  border-radius: 20px;
+  border: 1px solid #fed7aa;
+}
+
+/* Visual Assembly Board */
+.assembly-board {
+  background: #fdf6ec;
+  border: 2px solid #e2cfb9;
+  border-radius: var(--radius-md);
+  padding: 12px;
+  min-height: 90px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  background-image: radial-gradient(#ebd5ba 10%, transparent 11%);
+  background-size: 12px 12px;
+}
+.assembly-dish-preview {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  min-height: 48px;
+}
+.ingredient-token {
+  background: #ffffff;
+  border: 1.5px solid #d8bfa3;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #4a2c17;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08);
+  animation: dropIn 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes dropIn {
+  0% { transform: translateY(-12px) scale(0.7); opacity: 0; }
+  100% { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+.assembly-prompt-empty {
+  color: var(--text-light);
+  font-size: 12px;
+  font-style: italic;
+}
+
+/* Ingredient Shelf Grid */
+.ingredient-shelf {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 7px;
+}
+.btn-ingredient {
+  background: #ffffff;
+  border: 1.5px solid #d8bfa3;
+  border-radius: var(--radius-md);
+  padding: 8px 4px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+  transition: all 0.12s ease;
+}
+.btn-ingredient:hover:not(:disabled) {
+  background: #fff7ed;
+  border-color: #ea580c;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(234, 88, 12, 0.15);
+}
+.btn-ingredient .ing-icon {
+  font-size: 22px;
+  line-height: 1;
+}
+.btn-ingredient .ing-name {
+  font-size: 11px;
+  font-weight: 700;
+  color: #4a2c17;
+  white-space: nowrap;
+}
+.btn-ingredient .ing-stock {
+  font-size: 10px;
+  color: var(--text-light);
+  background: #f4eae0;
+  padding: 1px 5px;
+  border-radius: 10px;
+}
+
+/* Commit & Clear Actions */
+.kitchen-actions {
+  display: grid;
+  grid-template-columns: 80px 1fr;
+  gap: 8px;
+  margin-top: 4px;
+}
+.btn-commit {
+  background: linear-gradient(180deg, #16a34a 0%, #15803d 100%);
+  color: white;
+  font-size: 14.5px;
+  font-weight: 800;
+  box-shadow: 0 4px 14px rgba(22, 163, 74, 0.35);
+}
+.btn-commit:hover:not(:disabled) {
+  background: #15803d;
+}
+.btn-commit.pulse-ready {
+  animation: readyPulse 1.4s infinite;
+}
+@keyframes readyPulse {
+  0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); }
+  70% { box-shadow: 0 0 0 10px rgba(34, 197, 94, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+}
+
+/* ==========================================================
+   MARKET & SHOPPING SCREEN
+   ========================================================== */
+.market-table {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.market-item-row {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.market-item-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.market-item-icon {
+  font-size: 24px;
+}
+.market-item-text strong {
+  font-size: 14px;
+  color: #3b281d;
+}
+.market-item-text small {
+  color: #c2410c;
+  font-weight: 700;
+  font-size: 12px;
+}
+.market-stepper {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.btn-stepper {
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border-radius: 8px;
+  background: #f4eae0;
+  color: #4a2c17;
+  font-size: 16px;
+  font-weight: 700;
+}
+.stepper-val {
+  min-width: 24px;
+  text-align: center;
+  font-size: 15px;
+  font-weight: 800;
+}
+
+/* ==========================================================
+   SỔ GHI TIỀN CUỐI NGÀY (DAY RESULT NOTEBOOK)
+   ========================================================== */
+.notebook-card {
+  background: #fdfaf2;
+  border: 2px solid #c9b097;
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  box-shadow: var(--shadow-md);
+  position: relative;
+  background-image: linear-gradient(#e8d6c3 1px, transparent 1px);
+  background-size: 100% 28px;
+  line-height: 28px;
+}
+.notebook-title {
+  font-family: var(--font-serif);
+  font-size: 20px;
+  font-weight: 700;
+  color: #432818;
+  text-align: center;
+  margin: 0 0 14px;
+  line-height: 1.2;
+}
+.ledger-line {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 14px;
+  height: 28px;
+}
+.ledger-profit {
+  font-weight: 800;
+  color: #15803d;
+  font-size: 16px;
+  border-top: 2px solid #5a3e2d;
+  margin-top: 4px;
+}
+.journal-section {
+  margin-top: 18px;
+  padding-top: 8px;
+  border-top: 1px dashed #bba187;
+}
+.journal-item {
+  font-size: 13px;
+  color: #5c4331;
+  margin: 4px 0;
+  line-height: 1.5;
+}
+
+/* Toast Message */
+.toast-msg {
+  background: #fef08a;
+  border: 1px solid #eab308;
+  color: #713f12;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 12.5px;
+  font-weight: 600;
+}
