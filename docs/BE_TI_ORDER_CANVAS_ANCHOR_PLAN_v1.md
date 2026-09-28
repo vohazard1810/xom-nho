@@ -2,7 +2,9 @@
 
 Ngày: 2026-09-28 (Asia/Bangkok). Phạm vi: bốn PNG `ORDER` đã duyệt visual trên nhánh `docs/be-ti-static-production`.
 
-**Cập nhật duyệt:** Chủ dự án đã trực tiếp xem `order_canvas_anchor_detail.png` tại commit `7a8188c` và xác nhận `feet`, `head`, `hand_right` đều PASS về vị trí ngữ nghĩa trên cả bốn frame. Bằng chứng phiên bản/giá trị tọa độ nằm trong `canvas_960x1704/order_anchor_human_review.json`. PASS này ràng buộc với SHA-256 của overlay, mapping và từng frame; nếu sinh lại bất kỳ file nào, phải đối chiếu hash trước khi chuyển kết quả duyệt. Lựa chọn đóng gói Actor Crop + offset hoặc Full Canvas render vẫn chưa chốt; manifest tiếp tục đóng băng.
+**Cập nhật duyệt:** Chủ dự án đã trực tiếp xem `order_canvas_anchor_detail.png` tại commit `7a8188c` và xác nhận `feet`, `head`, `hand_right` đều PASS về vị trí ngữ nghĩa trên cả bốn frame. Bằng chứng phiên bản/giá trị tọa độ nằm trong `canvas_960x1704/order_anchor_human_review.json`. PASS này ràng buộc với SHA-256 của overlay, mapping và từng frame; nếu sinh lại bất kỳ file nào, phải đối chiếu hash trước khi chuyển kết quả duyệt. Ở thời điểm duyệt anchor, cách đóng gói chưa được chọn; manifest tiếp tục đóng băng.
+
+**Cập nhật đóng gói:** Chủ dự án đã chọn Actor Crop + offset cho bản thử. `prepare_order_actor_crop.py` lấy union alpha bbox chung `(577,954,707,1230)`, xuất bốn PNG 130×276 và `actor_crop/order_actor_crop_metadata.json`. Ghép mỗi crop tại offset `(577,954)` tái dựng đúng **0 pixel khác** so với bản sân khấu; đổi tọa độ crop-local sang sân khấu cho cả ba anchor có sai số **0 px**. `tools/animation-harness/?orderCandidate=1` đọc bộ crop ở chế độ candidate và chạy ORDER one-shot rồi dừng tại frame 04. Đây là phép kiểm tự động và tích hợp thử; vẫn cần người dùng xem playback render thực tế trước khi nối vào manifest. Nhật ký kiểm tra: `actor_crop/actor_crop_integration_qc.json`.
 
 ## 1. Bằng chứng và ranh giới
 

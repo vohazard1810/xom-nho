@@ -1,0 +1,218 @@
+{
+  "status": "CANDIDATE_ACTOR_CROP_PIXEL_AND_ANCHOR_EQUIVALENCE_VERIFIED",
+  "state": "ORDER",
+  "loop": false,
+  "stage_canvas": [
+    960,
+    1704
+  ],
+  "shared_crop_origin": {
+    "x": 577,
+    "y": 954
+  },
+  "shared_crop_size": [
+    130,
+    276
+  ],
+  "reviewed_mapping_sha256": "5557ae5a88ed22fe33098bdb095652668c04e473e186e60a06aaac403da4dfd9",
+  "reviewed_anchor_evidence_sha256": "dc933dabc5b67403ae2648986d85308e393f71f15da5dd5a00e8e5e484a2c8e1",
+  "comparison": {
+    "stage_reconstruction_changed_pixels_total": 0,
+    "anchor_coordinate_delta_px": 0,
+    "feet_frame_delta_px": 0
+  },
+  "integration": "Harness candidate mode places PNG at shared_crop_origin/size relative to 960x1704 stage, outside the existing actor-box transform.",
+  "preview_cadence": "Harness's existing 140ms interval; preview only, not approved game timing.",
+  "production_manifest_updated": false,
+  "production_state_pass": false,
+  "frames": [
+    {
+      "index": 1,
+      "file": "assets/characters/named/be_ti/candidates/alternate_model_v1/order_four_frame_pilot/actor_crop/order_01_mid_raise.png",
+      "sha256": "73f57e5e4497b20f331e50387f58cd7dc24ac2ae7d43548b19cc4a978a8d4749",
+      "stage_source_sha256": "b26407f0295f380f2fa1a5bf0696253bedd75217c2f9b91bcc18a6aed0c5d283",
+      "crop_origin": {
+        "x": 577,
+        "y": 954
+      },
+      "crop_size": [
+        130,
+        276
+      ],
+      "anchors": {
+        "feet": {
+          "x": 652.81,
+          "y": 1227.28
+        },
+        "head": {
+          "x": 641.85,
+          "y": 956.7
+        },
+        "hand_right": {
+          "x": 634.62,
+          "y": 1091.99
+        },
+        "receive_point": null
+      },
+      "anchors_local": {
+        "feet": {
+          "x": 75.81,
+          "y": 273.28
+        },
+        "head": {
+          "x": 64.85,
+          "y": 2.7
+        },
+        "hand_right": {
+          "x": 57.62,
+          "y": 137.99
+        },
+        "receive_point": null
+      },
+      "reconstruction_changed_pixels": 0,
+      "anchor_coordinate_delta_px": 0,
+      "status": "CANDIDATE_ACTOR_CROP_HUMAN_RUNTIME_REVIEW_PENDING"
+    },
+    {
+      "index": 2,
+      "file": "assets/characters/named/be_ti/candidates/alternate_model_v1/order_four_frame_pilot/actor_crop/order_02_raise_approved.png",
+      "sha256": "596157506bfa0ecbf7ba6ddfad9e4fecbe982d090597b13bdd04763c04354358",
+      "stage_source_sha256": "a7f917923347b0c296dfb39ad7e72a75c9cdc605050139c4386aebf805705e46",
+      "crop_origin": {
+        "x": 577,
+        "y": 954
+      },
+      "crop_size": [
+        130,
+        276
+      ],
+      "anchors": {
+        "feet": {
+          "x": 652.81,
+          "y": 1227.28
+        },
+        "head": {
+          "x": 641.64,
+          "y": 956.91
+        },
+        "hand_right": {
+          "x": 614.19,
+          "y": 1072.18
+        },
+        "receive_point": null
+      },
+      "anchors_local": {
+        "feet": {
+          "x": 75.81,
+          "y": 273.28
+        },
+        "head": {
+          "x": 64.64,
+          "y": 2.91
+        },
+        "hand_right": {
+          "x": 37.19,
+          "y": 118.18
+        },
+        "receive_point": null
+      },
+      "reconstruction_changed_pixels": 0,
+      "anchor_coordinate_delta_px": 0,
+      "status": "CANDIDATE_ACTOR_CROP_HUMAN_RUNTIME_REVIEW_PENDING"
+    },
+    {
+      "index": 3,
+      "file": "assets/characters/named/be_ti/candidates/alternate_model_v1/order_four_frame_pilot/actor_crop/order_03_speaking.png",
+      "sha256": "82b556fcd2091f781456c30347f0b338520f80f0c43db05df4188fdc9ced77ba",
+      "stage_source_sha256": "9785bf9936f4a817210a0651047bca0e99e03f3145a90e2c0fc2933907dd2adc",
+      "crop_origin": {
+        "x": 577,
+        "y": 954
+      },
+      "crop_size": [
+        130,
+        276
+      ],
+      "anchors": {
+        "feet": {
+          "x": 652.81,
+          "y": 1227.28
+        },
+        "head": {
+          "x": 641.85,
+          "y": 956.7
+        },
+        "hand_right": {
+          "x": 614.19,
+          "y": 1072.18
+        },
+        "receive_point": null
+      },
+      "anchors_local": {
+        "feet": {
+          "x": 75.81,
+          "y": 273.28
+        },
+        "head": {
+          "x": 64.85,
+          "y": 2.7
+        },
+        "hand_right": {
+          "x": 37.19,
+          "y": 118.18
+        },
+        "receive_point": null
+      },
+      "reconstruction_changed_pixels": 0,
+      "anchor_coordinate_delta_px": 0,
+      "status": "CANDIDATE_ACTOR_CROP_HUMAN_RUNTIME_REVIEW_PENDING"
+    },
+    {
+      "index": 4,
+      "file": "assets/characters/named/be_ti/candidates/alternate_model_v1/order_four_frame_pilot/actor_crop/order_04_expectant.png",
+      "sha256": "4c890c7c67861e8a6f204aa36a7ca912203f34dbc95d928398a4518394582a9b",
+      "stage_source_sha256": "e89633d8918f6b1f1d6fcf1ed505ed8545091a47c3103922b236df118b52bb74",
+      "crop_origin": {
+        "x": 577,
+        "y": 954
+      },
+      "crop_size": [
+        130,
+        276
+      ],
+      "anchors": {
+        "feet": {
+          "x": 652.81,
+          "y": 1227.28
+        },
+        "head": {
+          "x": 641.64,
+          "y": 956.27
+        },
+        "hand_right": {
+          "x": 614.19,
+          "y": 1071.96
+        },
+        "receive_point": null
+      },
+      "anchors_local": {
+        "feet": {
+          "x": 75.81,
+          "y": 273.28
+        },
+        "head": {
+          "x": 64.64,
+          "y": 2.27
+        },
+        "hand_right": {
+          "x": 37.19,
+          "y": 117.96
+        },
+        "receive_point": null
+      },
+      "reconstruction_changed_pixels": 0,
+      "anchor_coordinate_delta_px": 0,
+      "status": "CANDIDATE_ACTOR_CROP_HUMAN_RUNTIME_REVIEW_PENDING"
+    }
+  ]
+}

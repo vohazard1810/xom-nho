@@ -1,0 +1,46 @@
+{
+  "status": "ACTOR_CROP_AUTOMATED_COMPARISON_COMPLETE_HUMAN_HARNESS_PLAYBACK_PENDING",
+  "commands": [
+    {
+      "command": "python tools/animation-qc/prepare_order_actor_crop.py --stage-dir assets/characters/named/be_ti/candidates/alternate_model_v1/order_four_frame_pilot/canvas_960x1704 --output-dir assets/characters/named/be_ti/candidates/alternate_model_v1/order_four_frame_pilot/actor_crop",
+      "exit_code": 0,
+      "stdout": "{\"crop\": [577, 954, 707, 1230], \"frame_count\": 4, \"reconstruction_changed_pixels\": 0, \"anchor_coordinate_delta_px\": 0, \"feet_frame_delta_px\": 0}\n",
+      "stderr": ""
+    },
+    {
+      "command": "node --check tools/animation-harness/harness.js",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": "node tools/animation-harness/test_order_candidate.mjs",
+      "exit_code": 0,
+      "stdout": "ORDER candidate loaded: 4 actor crops; origin=(577,954); one-shot stops at frame 04; next does not wrap.\n",
+      "stderr": ""
+    },
+    {
+      "command": "python tools/animation-qc/validate_manifest.py tools/animation-harness/manifest.json -o /tmp/xom_order_actor_manifest_gate.json",
+      "exit_code": 0,
+      "stdout": "{\n  \"feet_anchor_consistency\": {\n    \"status\": \"BLOCKED\",\n    \"result\": null,\n    \"missing\": [\n      \"QUEUE_WAIT.normal:expected_4_found_0\",\n      \"QUEUE_WAIT.normal:no_frames\",\n      \"QUEUE_WAIT.deprioritized:expected_4_found_0\",\n      \"QUEUE_WAIT.deprioritized:no_frames\",\n      \"QUEUE_WAIT.reserved_for_other:expected_4_found_0\",\n      \"QUEUE_WAIT.reserved_for_other:no_frames\",\n      \"QUEUE_WAIT.stock_pending:expected_4_found_0\",\n      \"QUEUE_WAIT.stock_pending:no_frames\",\n      \"ORDER:expected_4_found_0\",\n      \"ORDER:no_frames\",\n      \"SPECIAL_REQUEST:expected_4_found_0\",\n      \"SPECIAL_REQUEST:no_frames\",\n      \"CONFLICT_WAIT:expected_4_found_0\",\n      \"CONFLICT_WAIT:no_frames\",\n      \"RECEIVE:expected_4_found_0\",\n      \"RECEIVE:no_frames\",\n      \"REFUSED:expected_3_found_0\",\n      \"REFUSED:no_frames\",\n      \"REACT.positive:expected_4_found_0\",\n      \"REACT.positive:no_frames\",\n      \"REACT.neutral:expected_4_found_0\",\n      \"REACT.neutral:no_frames\",\n      \"REACT.negative:expected_4_found_0\",\n      \"REACT.negative:no_frames\",\n      \"PAY:expected_4_found_0\",\n      \"PAY:no_frames\"\n    ]\n  },\n  \"handoff_sync\": {\n    \"status\": \"BLOCKED\",\n    \"result\": null\n  },\n  \"wait_readability_human\": {\n    \"status\": \"BLOCKED\"\n  },\n  \"gate_status\": \"BLOCKED\"\n}\n",
+      "stderr": ""
+    }
+  ],
+  "comparison": {
+    "stage_reconstruction_changed_pixels_total": 0,
+    "anchor_coordinate_delta_px": 0,
+    "feet_frame_delta_px": 0
+  },
+  "metadata_sha256": "2c31530eeb7c61257a7f517ce80d54358ed2edade0b68066b13623263535b752",
+  "manifest_gate_after_test": "BLOCKED",
+  "browser_rendered_playback": "NOT_RUN_IN_THIS_ENVIRONMENT",
+  "physical_phone_playback": "NOT_RUN",
+  "production_manifest_updated": false,
+  "local_http_probe": {
+    "harness_index": 200,
+    "harness_js": 200,
+    "candidate_metadata": 200,
+    "candidate_frame_04_png": 200,
+    "note": "HTTP probe in same process/container; not a browser-rendered screenshot."
+  }
+}

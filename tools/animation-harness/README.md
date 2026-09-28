@@ -14,6 +14,21 @@ python -m http.server 8080
 
 Open `/tools/animation-harness/`.
 
+### ORDER candidate review (isolated from production manifest)
+
+Open `/tools/animation-harness/?orderCandidate=1` or check **ORDER candidate · Actor Crop + offset**. The harness reads `order_actor_crop_metadata.json`, preloads four 130×276 RGBA crops and places them at their shared `(577,954)` origin on the 960×1704 stage. Red, blue and green dots show the reviewed feet, head and raised-hand anchors. Use **Play** to watch the ORDER one-shot stop at frame 04, or step manually. The existing 140 ms harness interval is a preview cadence only; it does not set or approve game timing.
+
+Recreate and verify the crop from repo root:
+
+```bash
+python tools/animation-qc/prepare_order_actor_crop.py \
+  --stage-dir assets/characters/named/be_ti/candidates/alternate_model_v1/order_four_frame_pilot/canvas_960x1704 \
+  --output-dir assets/characters/named/be_ti/candidates/alternate_model_v1/order_four_frame_pilot/actor_crop
+node tools/animation-harness/test_order_candidate.mjs
+```
+
+The crop metadata records stage anchors, local anchors and pixel reconstruction deltas. These PNGs are candidate art; the production manifest stays frozen. A browser or physical-device playback inspection is still needed for the rendered one-shot.
+
 ## Required coverage
 
 NPC:

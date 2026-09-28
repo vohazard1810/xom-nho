@@ -102,5 +102,7 @@
   "canvas_anchor_mapping": "canvas_960x1704/order_canvas_mapping.json",
   "semantic_anchor_gate": "PASS_HUMAN_ORDER_FOUR_FRAME_EXPORT",
   "semantic_anchor_evidence": "canvas_960x1704/order_anchor_human_review.json",
-  "packaging_status": "UNDECIDED_ACTOR_CROP_WITH_OFFSET_OR_FULL_CANVAS_RENDER"
+  "packaging_status": "ACTOR_CROP_WITH_OFFSET_SELECTED_CANDIDATE_HARNESS_REVIEW_PENDING",
+  "actor_crop_metadata": "actor_crop/order_actor_crop_metadata.json",
+  "actor_crop_qc": "actor_crop/actor_crop_integration_qc.json"
 }
