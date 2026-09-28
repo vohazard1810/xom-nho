@@ -1,0 +1,83 @@
+{
+  "status": "CANDIDATE_ART_REVIEW",
+  "replacement_authorized": false,
+  "production_manifest_updated": false,
+  "role": "alternative simplified Be Ti identity pilot, two stationary frames",
+  "files": [
+    {
+      "file": "assets/characters/named/be_ti/candidates/alternate_model_v1/idle_open.png",
+      "sha256": "bab5d2ac6c0f40091e257205fdc9493553aee06584a495d6172be0168edfa3d5",
+      "size": [
+        1128,
+        1394
+      ],
+      "has_alpha": true,
+      "alpha_bbox_raw": [
+        49,
+        37,
+        1062,
+        1370
+      ],
+      "alpha_bbox_visible": [
+        277,
+        70,
+        857,
+        1341
+      ],
+      "anchors": {
+        "head": null,
+        "hand_right": null,
+        "feet": null,
+        "receive_point": null
+      }
+    },
+    {
+      "file": "assets/characters/named/be_ti/candidates/alternate_model_v1/idle_half_blink.png",
+      "sha256": "1f54c39a8b256b46744b89afeede58ae57c4e6ff1da1c4504a5a6a93fe2e1926",
+      "size": [
+        1128,
+        1394
+      ],
+      "has_alpha": true,
+      "alpha_bbox_raw": [
+        49,
+        36,
+        1076,
+        1345
+      ],
+      "alpha_bbox_visible": [
+        275,
+        69,
+        860,
+        1341
+      ],
+      "anchors": {
+        "head": null,
+        "hand_right": null,
+        "feet": null,
+        "receive_point": null
+      }
+    }
+  ],
+  "pair_screen": {
+    "visible_bbox_width_change_pct": 0.86,
+    "visible_bbox_height_change_pct": 0.08,
+    "shoe_bottom_edge_estimate_source_px": {
+      "left": [
+        1338,
+        1339
+      ],
+      "right": [
+        1335,
+        1336
+      ]
+    },
+    "note": "Pixel/edge estimate only, not a human-approved semantic feet anchor."
+  },
+  "preview": "assets/characters/named/be_ti/candidates/alternate_model_v1/idle_pilot.mp4",
+  "review_risks": [
+    "The simplified face and hair may read more chibi/anime than the current textured model.",
+    "Two near-identical stills do not prove four-frame state loops, named-NPC transfer, locomotion, or in-engine handoff.",
+    "Do not substitute for idle.webp or amend production manifest without art comparison at game size."
+  ]
+}
