@@ -63,35 +63,27 @@ async def play_through():
         # Commit Bé Tí order
         print('Serving completed Bánh Mì to Bé Tí...')
         await page.click('button[data-type="COMMIT"]', force=True)
-        await page.wait_for_timeout(700)
+        await page.wait_for_timeout(600)
         
-        # Customer 2: Cô Chín
-        print('Customer 2 (Cô Chín) is now at the counter! Preparing Trà Tắc Đá...')
+        # Customer 2: Cô Chín (Auto-Service)
+        print('Customer 2 (Cô Chín) is now at the counter! Verifying Auto-Service for Trà Tắc...')
         await page.screenshot(path='shop_co_chin.png')
-        await page.click('button.tray-button[data-payload="ice"]')
-        await page.click('button.tray-button[data-payload="sugar_syrup"]')
-        await page.click('button.tray-button[data-payload="kumquat"]')
-        await page.wait_for_timeout(400)
-        await page.click('button[data-type="COMMIT"]', force=True)
-        await page.wait_for_timeout(700)
+        # Wait 1.8s for auto-preparation and auto-commit
+        await page.wait_for_timeout(1800)
         
-        # Customer 3: Anh Tùng
-        print('Customer 3 (Anh Tùng) is now at the counter! Preparing Sữa Đậu Đá...')
+        # Customer 3: Anh Tùng (Auto-Service)
+        print('Customer 3 (Anh Tùng) is now at the counter! Verifying Auto-Service for Sữa Đậu Đá...')
         await page.screenshot(path='shop_anh_tung.png')
-        await page.click('button.tray-button[data-payload="ice"]')
-        await page.click('button.tray-button[data-payload="sugar_syrup"]')
-        await page.click('button.tray-button[data-payload="soy_milk"]')
-        await page.wait_for_timeout(400)
-        await page.click('button[data-type="COMMIT"]', force=True)
-        await page.wait_for_timeout(800)
+        # Wait 1.8s for auto-preparation and auto-commit
+        await page.wait_for_timeout(1800)
         
         # All served -> Closing shop or auto transition
-        print('Closing shop for day result...')
+        print('All customers served! Verifying transition to day result...')
         try:
-            await page.click('button[data-type="CLOSE"]', timeout=1000)
+            await page.click('button[data-type="CLOSE"]', timeout=800)
         except:
             pass
-        await page.wait_for_timeout(600)
+        await page.wait_for_timeout(800)
         
         await page.screenshot(path='day_result.png')
         print('5. On DAY_RESULT screen! Screenshot saved to day_result.png')

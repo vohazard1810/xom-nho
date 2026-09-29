@@ -138,6 +138,15 @@ let betiFrameIdx = 0;
 let betiAnimationTimer = null;
 let lastServedToast = null;
 
+// TẦNG 1: Dynamic game feel state
+let customerTransitionState = 'idle'; // 'idle', 'entering', 'leaving'
+let floatingCash = null; // string for juice, e.g. "+25.000đ"
+let showParticles = false;
+let speechBubbleHidden = false;
+let bubbleFadeTimer = null;
+let autoServiceTimer = null;
+let isAutoServing = false;
+
 const money = n => new Intl.NumberFormat('vi-VN').format(n) + 'đ';
 
 const ingredientMeta = {
@@ -156,6 +165,45 @@ function persist() {
 }
 
 function send(type, payload) {
+  if (type === 'COMMIT') {
+    if (autoServiceTimer) {
+      clearTimeout(autoServiceTimer);
+      autoServiceTimer = null;
+    }
+    isAutoServing = false;
+    const r = action(state, type, payload);
+    if (r.error) {
+      message = r.error;
+      render();
+      return;
+    }
+    playCoins();
+    playChime();
+    const npc = customers.find(c => c.id === state.selected);
+    const price = recipes[npc.recipe].price;
+    lastServedToast = `Đã giao món cho ${npc.name}! +${money(price)}`;
+    floatingCash = '+' + money(price);
+    showParticles = true;
+
+    state = r.state;
+    message = '';
+    persist();
+
+    // Advance customer synchronously
+    ensureActiveCustomer();
+    customerTransitionState = 'entering';
+    render();
+
+    setTimeout(() => {
+      floatingCash = null;
+      showParticles = false;
+      customerTransitionState = 'idle';
+      const spot = document.querySelector('.active-customer-spot');
+      if (spot) spot.classList.remove('customer-entering');
+    }, 450);
+    return;
+  }
+
   const r = action(state, type, payload);
   if (r.error) {
     message = r.error;
@@ -163,21 +211,41 @@ function send(type, payload) {
     if (type === 'REPLAY') {
       localStorage.removeItem(SAVE_KEY + ':0');
       localStorage.removeItem(SAVE_KEY + ':1');
+      if (autoServiceTimer) clearTimeout(autoServiceTimer);
+      customerTransitionState = 'idle';
+      isAutoServing = false;
     }
     if (type === 'TAP') {
+      if (autoServiceTimer) {
+        clearTimeout(autoServiceTimer);
+        autoServiceTimer = null;
+      }
+      isAutoServing = false;
       playTap(payload);
     }
     if (type === 'SELECT') {
       playBell();
+      speechBubbleHidden = false;
+      if (bubbleFadeTimer) clearTimeout(bubbleFadeTimer);
+      bubbleFadeTimer = setTimeout(() => {
+        speechBubbleHidden = true;
+        const b = document.querySelector('.customer-order-bubble');
+        if (b && (!state.selected || state.selected !== 'be_ti' || state.extraCha !== null)) {
+          b.classList.add('bubble-faded');
+        }
+      }, 2500);
     }
     if (type === 'BUY') {
       playCoins();
     }
-    if (type === 'COMMIT') {
-      playCoins();
-      playChime();
-      const npc = customers.find(c => c.id === state.selected);
-      lastServedToast = `Đã giao món cho ${npc.name}! +${money(recipes[npc.recipe].price)}`;
+    if (type === 'EXTRA') {
+      speechBubbleHidden = false;
+      if (bubbleFadeTimer) clearTimeout(bubbleFadeTimer);
+      bubbleFadeTimer = setTimeout(() => {
+        speechBubbleHidden = true;
+        const b = document.querySelector('.customer-order-bubble');
+        if (b) b.classList.add('bubble-faded');
+      }, 2500);
     }
     state = r.state;
     message = '';
@@ -192,7 +260,6 @@ function ensureActiveCustomer() {
   
   const remaining = customers.filter(c => !state.served.includes(c.id) && !state.missed.includes(c.id));
   if (remaining.length === 0) {
-    // All customers processed, move to DAY_RESULT
     send('CLOSE');
     return;
   }
@@ -200,6 +267,48 @@ function ensureActiveCustomer() {
   if (!state.selected || state.served.includes(state.selected) || state.missed.includes(state.selected)) {
     send('SELECT', remaining[0].id);
   }
+}
+
+// 1.1 Khôi phục Auto-Service cho đơn thường
+function checkAutoService() {
+  if (state.screen !== 'SHOP') return;
+  const currentCustomer = customers.find(c => c.id === state.selected);
+  if (!currentCustomer) return;
+  
+  // Special Request: Bé Tí waits for player decision & assembly
+  if (currentCustomer.id === 'be_ti') return;
+  
+  const needed = needFor(currentCustomer.id, null);
+  const isMissingStock = Object.keys(needed).some(k => (state.stock[k] || 0) < needed[k]);
+  if (isMissingStock) return; // Stock conflict: requires manual resolution
+
+  if (autoServiceTimer) return;
+
+  isAutoServing = true;
+
+  // 1.0s auto preparation
+  autoServiceTimer = setTimeout(() => {
+    if (state.screen !== 'SHOP' || state.selected !== currentCustomer.id) {
+      isAutoServing = false;
+      return;
+    }
+    
+    // Auto-populate all needed ingredients cleanly
+    state.draft = { ...needed };
+    playChime();
+    render();
+    
+    // Auto commit after 350ms dish showcase
+    autoServiceTimer = setTimeout(() => {
+      if (state.screen !== 'SHOP' || state.selected !== currentCustomer.id) {
+        isAutoServing = false;
+        return;
+      }
+      isAutoServing = false;
+      autoServiceTimer = null;
+      send('COMMIT');
+    }, 350);
+  }, 1000);
 }
 
 // Bé Tí animation loop manager
@@ -419,9 +528,23 @@ function renderShop() {
           }).join('')}
         </div>
 
+        <!-- Counter Sill Bar (3D foreground edge in front of customer) -->
+        <div class="counter-sill-bar"></div>
+
+        <!-- Juice: Floating Cash & Particle Bursts -->
+        ${floatingCash ? `<div class="floating-cash-popup">${floatingCash}</div>` : ''}
+        ${showParticles ? `
+          <div class="serve-particles-burst">
+            <span class="spark-dot d1"></span>
+            <span class="spark-dot d2"></span>
+            <span class="spark-dot d3"></span>
+            <span class="spark-dot d4"></span>
+          </div>
+        ` : ''}
+
         <!-- Active Customer Standing in Front of Counter -->
         ${currentCustomer ? `
-          <div class="active-customer-spot">
+          <div class="active-customer-spot ${customerTransitionState === 'entering' ? 'customer-entering' : customerTransitionState === 'leaving' ? 'customer-leaving' : ''}">
             <div class="customer-avatar-box">
               ${isBeti ? `<img id="beti-sprite-img" src="${BETI_SPRITES.order[0]}" alt="Bé Tí">` : ''}
               ${isCoChin ? `<img src="${CO_CHIN_IMG}" alt="Cô Chín">` : ''}
@@ -429,34 +552,37 @@ function renderShop() {
             </div>
           </div>
 
-          <!-- Floating Order Speech Bubble -->
-          <div class="customer-order-bubble">
-            <div class="order-bubble-left">
-              <div class="order-dish-badge">
-                ${isBanhMiOrder ? '🥖' : isCoChin ? '🍊' : '🥛'}
+          <!-- Floating Order Speech Bubble - Sleek & Compact with Auto-Fade -->
+          <div class="customer-order-bubble ${speechBubbleHidden ? 'bubble-faded' : ''}">
+            <div class="order-dish-badge">
+              ${isBanhMiOrder ? '🥖' : isCoChin ? '🍊' : '🥛'}
+            </div>
+            <div class="order-bubble-text">
+              <div class="bubble-header-line">
+                <strong>${currentCustomer.name}</strong>
+                <span class="bubble-recipe-pill">${targetRecipe.name} · +${money(targetRecipe.price)}</span>
               </div>
-              <div class="order-bubble-text">
-                <strong>${currentCustomer.name} gọi món: ${targetRecipe.name} (+${money(targetRecipe.price)})</strong>
-                ${isBeti ? `
-                  <p>"Chú ơi cho con ổ Bánh mì chả! ...Mà cho con xin thêm chả được hông chú?"</p>
-                  <div style="display:flex; gap:6px; margin-top:6px;">
-                    <button class="btn-mini-action ${state.extraCha === true ? 'btn-primary' : 'btn-secondary'}" data-type="EXTRA" data-payload="yes" style="padding:3px 8px; font-size:11px;">
-                      👍 Thêm chả cho con (+1 chả)
-                    </button>
-                    <button class="btn-mini-action ${state.extraCha === false ? 'btn-primary' : 'btn-secondary'}" data-type="EXTRA" data-payload="no" style="padding:3px 8px; font-size:11px;">
-                      Ăn phần thường nha (1 chả)
-                    </button>
-                  </div>
-                ` : isCoChin ? `
-                  <p>"Cho cô ly Trà tắc nhiều đá mát lạnh nghen con, đi chợ về khát quá!"</p>
-                ` : `
-                  <p>"Cho anh ly Sữa đậu đá uống cho mát em ơi, chuẩn bị chạy thêm cuốc xe!"</p>
-                `}
-              </div>
+              <p class="bubble-dialogue-line">
+                ${isBeti ? '"Chú ơi cho con ổ Bánh mì chả, chú cho con xin thêm chả nghen!"' 
+                  : isCoChin ? '"Cho cô ly Trà tắc nhiều đá mát lạnh nghen con!"' 
+                  : '"Cho anh ly Sữa đậu đá nhiều đá mát rượi em ơi!"'}
+              </p>
+              ${isBeti && state.extraCha === null ? `
+                <div class="special-request-actions">
+                  <button class="btn-mini-action btn-primary" data-type="EXTRA" data-payload="yes">
+                    👍 Thêm chả cho con (+1 chả)
+                  </button>
+                  <button class="btn-mini-action btn-secondary" data-type="EXTRA" data-payload="no">
+                    Ăn phần thường nha (1 chả)
+                  </button>
+                </div>
+              ` : isBeti && state.extraCha !== null ? `
+                <span class="special-confirmed-tag">${state.extraCha ? '✓ Đã đồng ý thêm chả' : '✓ Bán phần thường'}</span>
+              ` : ''}
             </div>
             
             ${isMissingStock ? `
-              <button class="btn-secondary" data-type="SKIP" style="font-size:11px; padding:6px 8px; color:#b91c1c; border-color:#fca5a5;">
+              <button class="btn-secondary btn-skip-order" data-type="SKIP">
                 Hết hàng<br>(Qua lượt)
               </button>
             ` : ''}
@@ -516,6 +642,13 @@ function renderShop() {
               <span>🥤 Quầy Nước Giải Khát</span>
               ${isDrinkOrder ? `<span style="color:#0284c7; font-size:11px;">Món đang chuẩn bị</span>` : ''}
             </div>
+
+            ${isDrinkOrder && isAutoServing ? `
+              <div class="auto-service-indicator">
+                <div class="auto-service-bar"><div class="auto-service-fill"></div></div>
+                <span class="auto-service-label">⚡ Đang tự động pha...</span>
+              </div>
+            ` : ''}
 
             <div class="prep-visual-slot">
               ${isDrinkOrder && isReadyToCommit ? `
@@ -690,6 +823,11 @@ function render() {
   } else if (betiAnimationTimer) {
     clearTimeout(betiAnimationTimer);
     betiAnimationTimer = null;
+  }
+
+  // Trigger Auto-Service for regular orders in SHOP
+  if (state.screen === 'SHOP') {
+    checkAutoService();
   }
 }
 
