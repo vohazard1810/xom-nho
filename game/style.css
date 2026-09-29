@@ -1017,3 +1017,184 @@ button:disabled {
   0% { opacity: 1; }
   100% { opacity: 0; }
 }
+
+/* ==========================================================
+   SKILL MOMENT (HOLD & RELEASE POURING)
+   ========================================================== */
+
+/* 3. Patience Bar */
+.patience-bar-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(30, 20, 15, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 12px;
+  padding: 2px 7px;
+  margin-top: 3px;
+  backdrop-filter: blur(4px);
+}
+.patience-icon {
+  font-size: 11px;
+}
+.patience-bar-track {
+  width: 75px;
+  height: 5px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.patience-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #ef4444 0%, #f59e0b 50%, #22c55e 100%);
+  border-radius: 3px;
+  transition: width 0.1s linear;
+}
+.patience-text {
+  font-size: 10px;
+  font-weight: 700;
+  color: #fef08a;
+  white-space: nowrap;
+}
+
+/* 1. Skill Meter & Hold Station */
+.skill-moment-station {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: #fefce8;
+  border: 1.5px solid #ca8a04;
+  border-radius: 10px;
+  padding: 8px 10px;
+}
+.skill-meter-container {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.skill-meter-track {
+  position: relative;
+  height: 18px;
+  background: #e2e8f0;
+  border-radius: 9px;
+  border: 1.5px solid #94a3b8;
+  overflow: hidden;
+}
+.skill-target-zone {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background: repeating-linear-gradient(
+    -45deg,
+    #facc15,
+    #facc15 6px,
+    #eab308 6px,
+    #eab308 12px
+  );
+  border-left: 2px solid #ca8a04;
+  border-right: 2px solid #ca8a04;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+}
+.target-flag {
+  font-size: 9px;
+  font-weight: 900;
+  color: #713f12;
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
+  white-space: nowrap;
+}
+.skill-meter-fill {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  background: linear-gradient(90deg, #38bdf8 0%, #0284c7 100%);
+  border-radius: 7px;
+  z-index: 1;
+}
+.skill-indicator-needle {
+  position: absolute;
+  top: -2px;
+  bottom: -2px;
+  width: 4px;
+  background: #b91c1c;
+  border-radius: 2px;
+  box-shadow: 0 0 6px rgba(0, 0, 0, 0.4);
+  transform: translateX(-50%);
+  z-index: 5;
+  transition: left 0.04s linear;
+}
+
+/* 4. Guide Tooltip */
+.skill-guide-tooltip {
+  font-size: 11px;
+  color: #854d0e;
+  background: #fef08a;
+  border: 1px dashed #ca8a04;
+  border-radius: 6px;
+  padding: 4px 8px;
+  text-align: center;
+}
+
+/* 1. Hold Button */
+.btn-hold-pour {
+  width: 100%;
+  padding: 10px;
+  background: linear-gradient(180deg, #0284c7 0%, #0369a1 100%);
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 3px 8px rgba(2, 132, 199, 0.35);
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+  transition: background 0.1s, transform 0.05s;
+}
+.btn-hold-pour.is-holding {
+  background: linear-gradient(180deg, #ca8a04 0%, #a16207 100%);
+  box-shadow: 0 0 12px #facc15;
+  transform: scale(0.98);
+}
+
+/* 5. Juice: Jiggle when pouring */
+@keyframes pouringJiggle {
+  0% { transform: translate(0, 0) rotate(0deg); }
+  25% { transform: translate(-1.5px, 1px) rotate(-1deg); }
+  50% { transform: translate(1.5px, -1px) rotate(1deg); }
+  75% { transform: translate(-1px, -1px) rotate(-0.5deg); }
+  100% { transform: translate(0, 0) rotate(0deg); }
+}
+.prep-visual-slot.is-pouring-jiggle {
+  animation: pouringJiggle 0.1s infinite !important;
+}
+
+/* Result Banners */
+.skill-result-banner {
+  padding: 5px 8px;
+  border-radius: 6px;
+  font-size: 11.5px;
+  font-weight: 800;
+  text-align: center;
+  animation: popIn 0.2s ease-out;
+}
+.skill-result-banner.perfect {
+  background: #fef08a;
+  border: 1.5px solid #eab308;
+  color: #854d0e;
+  box-shadow: 0 0 12px rgba(250, 204, 21, 0.5);
+}
+.skill-result-banner.good {
+  background: #dcfce7;
+  border: 1.5px solid #22c55e;
+  color: #15803d;
+}
+.skill-result-banner.miss {
+  background: #f1f5f9;
+  border: 1.5px solid #94a3b8;
+  color: #475569;
+}

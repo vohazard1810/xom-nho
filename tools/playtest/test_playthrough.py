@@ -63,7 +63,9 @@ async def play_through():
         # Commit Bé Tí order
         print('Serving completed Bánh Mì to Bé Tí...')
         await page.click('button[data-type="COMMIT"]', force=True)
-        await page.wait_for_timeout(600)
+        await page.wait_for_timeout(120)
+        await page.screenshot(path='shop_serve_juice.png')
+        await page.wait_for_timeout(500)
         
         # Customer 2: Cô Chín (Auto-Service)
         print('Customer 2 (Cô Chín) is now at the counter! Verifying Auto-Service for Trà Tắc...')
@@ -71,11 +73,25 @@ async def play_through():
         # Wait 1.8s for auto-preparation and auto-commit
         await page.wait_for_timeout(1800)
         
-        # Customer 3: Anh Tùng (Auto-Service)
-        print('Customer 3 (Anh Tùng) is now at the counter! Verifying Auto-Service for Sữa Đậu Đá...')
+        # Customer 3: Anh Tùng (Rush Order: Skill Moment with Patience Bar)
+        print('Customer 3 (Anh Tùng) is now at the counter! Verifying Patience Bar and Hold & Release station...')
+        await page.wait_for_selector('#btn-hold-pour', timeout=3000)
         await page.screenshot(path='shop_anh_tung.png')
-        # Wait 1.8s for auto-preparation and auto-commit
-        await page.wait_for_timeout(1800)
+        await page.screenshot(path='shop_anh_tung_skill.png')
+        
+        # Test Hold & Release: Hold pour button for ~1250ms to hit perfect zone (70-85%)
+        print('Holding pour button on Quầy Nước to reach golden target zone (70-85%)...')
+        hold_btn = page.locator('#btn-hold-pour')
+        await hold_btn.hover()
+        await page.mouse.down()
+        await page.wait_for_timeout(1250) # 1250ms / 25ms = 50 ticks * 1.5% = 75% -> Perfect Zone
+        await page.mouse.up()
+        await page.wait_for_timeout(200)
+        await page.screenshot(path='shop_anh_tung_perfect.png')
+        print('Released! Captured shop_anh_tung_perfect.png')
+        
+        # Wait for auto-commit after showcase
+        await page.wait_for_timeout(1200)
         
         # All served -> Closing shop or auto transition
         print('All customers served! Verifying transition to day result...')

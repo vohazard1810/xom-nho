@@ -129,6 +129,32 @@ function playTap(ingredientId) {
   } catch (e) {}
 }
 
+function playCoong() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc1 = ctx.createOscillator();
+    const osc2 = ctx.createOscillator();
+    const gain = ctx.createGain();
+    
+    osc1.type = 'sine';
+    osc1.frequency.setValueAtTime(1318.51, ctx.currentTime);
+    osc2.type = 'triangle';
+    osc2.frequency.setValueAtTime(2637, ctx.currentTime);
+
+    gain.gain.setValueAtTime(0.45, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.9);
+
+    osc1.connect(gain);
+    osc2.connect(gain);
+    gain.connect(ctx.destination);
+
+    osc1.start();
+    osc2.start();
+    osc1.stop(ctx.currentTime + 0.9);
+    osc2.stop(ctx.currentTime + 0.9);
+  } catch (e) {}
+}
+
 // Persistent storage
 const load = () => [0, 1].map(i => decode(localStorage.getItem(SAVE_KEY + ':' + i))).filter(Boolean).sort((a, b) => b.revision - a.revision)[0] || null;
 let saved = load();
@@ -146,6 +172,15 @@ let speechBubbleHidden = false;
 let bubbleFadeTimer = null;
 let autoServiceTimer = null;
 let isAutoServing = false;
+
+// SKILL MOMENT (Hold & Release Pouring for Rush Orders)
+let patienceSeconds = 10;
+let patienceTimer = null;
+let isHoldingPour = false;
+let pourProgress = 0;
+let pourInterval = null;
+let skillResult = null; // { type: 'perfect' | 'good' | 'miss', text: '...', tip: number }
+let hasSeenSkillTutorial = localStorage.getItem('xom_nho_skill_tut_v1') === 'true';
 
 const money = n => new Intl.NumberFormat('vi-VN').format(n) + 'đ';
 
@@ -171,6 +206,11 @@ function send(type, payload) {
       autoServiceTimer = null;
     }
     isAutoServing = false;
+    if (patienceTimer) {
+      clearInterval(patienceTimer);
+      patienceTimer = null;
+    }
+
     const r = action(state, type, payload);
     if (r.error) {
       message = r.error;
@@ -180,9 +220,17 @@ function send(type, payload) {
     playCoins();
     playChime();
     const npc = customers.find(c => c.id === state.selected);
-    const price = recipes[npc.recipe].price;
-    lastServedToast = `Đã giao món cho ${npc.name}! +${money(price)}`;
-    floatingCash = '+' + money(price);
+    const basePrice = recipes[npc.recipe].price;
+    const bonusTip = (npc.id === 'anh_tung' && skillResult && skillResult.tip) ? skillResult.tip : 0;
+    const finalEarned = basePrice + bonusTip;
+
+    if (bonusTip) {
+      r.state.cash += bonusTip;
+      r.state.revenue += bonusTip;
+    }
+
+    lastServedToast = `Đã giao món cho ${npc.name}! +${money(finalEarned)}${bonusTip ? ' (Được tip hoàn hảo!)' : ''}`;
+    floatingCash = '+' + money(finalEarned);
     showParticles = true;
 
     state = r.state;
@@ -212,8 +260,13 @@ function send(type, payload) {
       localStorage.removeItem(SAVE_KEY + ':0');
       localStorage.removeItem(SAVE_KEY + ':1');
       if (autoServiceTimer) clearTimeout(autoServiceTimer);
+      if (patienceTimer) { clearInterval(patienceTimer); patienceTimer = null; }
+      if (pourInterval) { clearInterval(pourInterval); pourInterval = null; }
       customerTransitionState = 'idle';
       isAutoServing = false;
+      isHoldingPour = false;
+      pourProgress = 0;
+      skillResult = null;
     }
     if (type === 'TAP') {
       if (autoServiceTimer) {
@@ -269,7 +322,110 @@ function ensureActiveCustomer() {
   }
 }
 
-// 1.1 Khôi phục Auto-Service cho đơn thường
+// 3. Thanh kiên nhẫn khách (Patience Bar)
+function startPatienceTimer() {
+  if (patienceTimer) clearInterval(patienceTimer);
+  patienceSeconds = 10;
+  patienceTimer = setInterval(() => {
+    if (state.screen !== 'SHOP' || state.selected !== 'anh_tung' || skillResult || state.served.includes('anh_tung')) {
+      clearInterval(patienceTimer);
+      patienceTimer = null;
+      return;
+    }
+    patienceSeconds -= 0.1;
+    const bar = document.getElementById('patience-bar-fill');
+    if (bar) bar.style.width = Math.max(0, (patienceSeconds / 10) * 100) + '%';
+    
+    if (patienceSeconds <= 0) {
+      clearInterval(patienceTimer);
+      patienceTimer = null;
+      lastServedToast = 'Anh Tùng vội chạy cuốc khách trưa nên đi trước!';
+      send('SKIP');
+    }
+  }, 100);
+}
+
+// 1. Cơ chế Giữ-Thả (Hold & Release Pouring)
+function startHoldPour() {
+  if (isHoldingPour || skillResult) return;
+  isHoldingPour = true;
+  pourProgress = 0;
+  
+  const slot = document.querySelector('.prep-workstation.active-target .prep-visual-slot');
+  if (slot) slot.classList.add('is-pouring-jiggle');
+
+  const btn = document.getElementById('btn-hold-pour');
+  if (btn) {
+    btn.classList.add('is-holding');
+    btn.textContent = '🥛 ĐANG RÓT... THẢ ĐÚNG VẠCH VÀNG!';
+  }
+
+  if (pourInterval) clearInterval(pourInterval);
+  pourInterval = setInterval(() => {
+    pourProgress += 1.5; // Fills 0 to 100 in ~1.7s
+    if (pourProgress >= 100) {
+      pourProgress = 100;
+      stopHoldPour();
+      return;
+    }
+    const fillEl = document.getElementById('skill-meter-fill');
+    const needleEl = document.getElementById('skill-indicator-needle');
+    if (fillEl) fillEl.style.width = pourProgress + '%';
+    if (needleEl) needleEl.style.left = pourProgress + '%';
+  }, 25);
+}
+
+function stopHoldPour() {
+  if (!isHoldingPour) return;
+  isHoldingPour = false;
+  if (pourInterval) {
+    clearInterval(pourInterval);
+    pourInterval = null;
+  }
+  
+  const slot = document.querySelector('.prep-workstation.active-target .prep-visual-slot');
+  if (slot) slot.classList.remove('is-pouring-jiggle');
+
+  hasSeenSkillTutorial = true;
+  localStorage.setItem('xom_nho_skill_tut_v1', 'true');
+
+  if (patienceTimer) {
+    clearInterval(patienceTimer);
+    patienceTimer = null;
+  }
+
+  // 1. Kết quả Giữ-Thả:
+  // - Thả đúng vạch vàng (70% đến 85%): Hoàn hảo (+3.000đ tip + chuông coong + particle vàng)
+  // - Ngưỡng chấp nhận (55% - 69% hoặc 86% - 94%): Vừa vặn (ra món bình thường, không tip)
+  // - Quá lệch (< 55% hoặc >= 95%): Món vẫn ra (không làm hỏng đơn, triết lý Bad day creates different story)
+  if (pourProgress >= 70 && pourProgress <= 85) {
+    playCoong();
+    skillResult = { type: 'perfect', text: '✨ HOÀN HẢO! ĐÚNG VẠCH VÀNG (+3.000đ TIỀN TIP)', tip: 3000 };
+  } else if ((pourProgress >= 55 && pourProgress < 70) || (pourProgress > 85 && pourProgress <= 94)) {
+    playChime();
+    skillResult = { type: 'good', text: '👍 VỪA VẶN! RA MÓN', tip: 0 };
+  } else {
+    playTap('soy_milk');
+    skillResult = { 
+      type: 'miss', 
+      text: pourProgress < 55 ? '⚡ HƠI VỘI! RA MÓN THƯỜNG' : '💦 TRÀN LY NHẸ! RA MÓN THƯỜNG', 
+      tip: 0 
+    };
+  }
+
+  // Hoàn tất nguyên liệu Sữa đậu đá
+  state.draft = { ice: 1, sugar_syrup: 1, soy_milk: 1 };
+  render();
+
+  // Auto commit sau 600ms showcase
+  setTimeout(() => {
+    if (state.screen === 'SHOP' && state.selected === 'anh_tung') {
+      send('COMMIT');
+    }
+  }, 600);
+}
+
+// 1.1 Khôi phục Auto-Service cho đơn thường & Kích hoạt Skill Moment cho đơn gấp
 function checkAutoService() {
   if (state.screen !== 'SHOP') return;
   const currentCustomer = customers.find(c => c.id === state.selected);
@@ -277,6 +433,14 @@ function checkAutoService() {
   
   // Special Request: Bé Tí waits for player decision & assembly
   if (currentCustomer.id === 'be_ti') return;
+  
+  // Rush Order: Anh Tùng has Skill Moment (Hold & Release Pouring)
+  if (currentCustomer.id === 'anh_tung') {
+    if (!patienceTimer && !skillResult && !state.served.includes('anh_tung')) {
+      startPatienceTimer();
+    }
+    return;
+  }
   
   const needed = needFor(currentCustomer.id, null);
   const isMissingStock = Object.keys(needed).some(k => (state.stock[k] || 0) < needed[k]);
@@ -286,7 +450,7 @@ function checkAutoService() {
 
   isAutoServing = true;
 
-  // 1.0s auto preparation
+  // 1.0s auto preparation for regular order (Cô Chín)
   autoServiceTimer = setTimeout(() => {
     if (state.screen !== 'SHOP' || state.selected !== currentCustomer.id) {
       isAutoServing = false;
@@ -561,6 +725,15 @@ function renderShop() {
               ${isCoChin ? `<img src="${CO_CHIN_IMG}" alt="Cô Chín">` : ''}
               ${isAnhTung ? `<img src="${ANH_TUNG_IMG}" alt="Anh Tùng">` : ''}
             </div>
+            ${isAnhTung && !state.served.includes('anh_tung') ? `
+              <div class="patience-bar-wrap">
+                <span class="patience-icon">⏳</span>
+                <div class="patience-bar-track">
+                  <div class="patience-bar-fill" id="patience-bar-fill" style="width: ${Math.max(0, (patienceSeconds / 10) * 100)}%"></div>
+                </div>
+                <span class="patience-text">Đơn gấp</span>
+              </div>
+            ` : ''}
           </div>
 
           <!-- Floating Order Speech Bubble - Sleek & Compact with Auto-Fade -->
@@ -576,7 +749,7 @@ function renderShop() {
               <p class="bubble-dialogue-line">
                 ${isBeti ? '"Chú ơi cho con ổ Bánh mì chả, chú cho con xin thêm chả nghen!"' 
                   : isCoChin ? '"Cho cô ly Trà tắc nhiều đá mát lạnh nghen con!"' 
-                  : '"Cho anh ly Sữa đậu đá nhiều đá mát rượi em ơi!"'}
+                  : '"Cho anh ly Sữa đậu đá mát rượi em ơi! Đang vội chạy cuốc khách trưa!"'}
               </p>
               ${isBeti && state.extraCha === null ? `
                 <div class="special-request-actions">
@@ -661,6 +834,34 @@ function renderShop() {
               </div>
             ` : ''}
 
+            ${isDrinkOrder && isAnhTung && !state.served.includes('anh_tung') ? `
+              <div class="skill-moment-station">
+                ${skillResult ? `
+                  <div class="skill-result-banner ${skillResult.type}">
+                    ${skillResult.text}
+                  </div>
+                ` : `
+                  ${!hasSeenSkillTutorial ? `
+                    <div class="skill-guide-tooltip" title="Nhấn để đóng mẹo">
+                      💡 <strong>Mẹo:</strong> Giữ nút rót & thả tay khi chạm vạch vàng (70-85%)!
+                    </div>
+                  ` : ''}
+                  <div class="skill-meter-container">
+                    <div class="skill-meter-track">
+                      <div class="skill-target-zone" style="left: 70%; width: 15%;">
+                        <span class="target-flag">CHUẨN</span>
+                      </div>
+                      <div class="skill-meter-fill" id="skill-meter-fill" style="width: ${pourProgress}%"></div>
+                      <div class="skill-indicator-needle" id="skill-indicator-needle" style="left: ${pourProgress}%"></div>
+                    </div>
+                  </div>
+                  <button class="btn-hold-pour ${isHoldingPour ? 'is-holding' : ''}" id="btn-hold-pour">
+                    🥛 GIỮ ĐỂ RÓT SỮA ĐẬU
+                  </button>
+                `}
+              </div>
+            ` : ''}
+
             <div class="prep-visual-slot">
               ${isDrinkOrder && isReadyToCommit ? `
                 <div class="finished-dish-wrap">
@@ -679,7 +880,7 @@ function renderShop() {
                 </div>
               ` : `
                 <div class="prep-empty-hint">
-                  ${isDrinkOrder ? 'Chạm Đá, Đường và Tắc / Sữa đậu bên dưới để pha nước!' : 'Khay chờ pha nước giải khát'}
+                  ${isDrinkOrder ? (isAnhTung ? 'Giữ nút rót Sữa đậu ở trên để pha!' : 'Chạm Đá, Đường và Tắc bên dưới để pha nước!') : 'Khay chờ pha nước giải khát'}
                 </div>
               `}
             </div>
@@ -894,5 +1095,44 @@ $.addEventListener('click', e => {
   }
 });
 
+// Skill Moment: Hold & Release Listeners (Mouse & Touch)
+document.addEventListener('mousedown', e => {
+  const btn = e.target.closest('#btn-hold-pour');
+  if (btn) {
+    e.preventDefault();
+    startHoldPour();
+  }
+});
+
+document.addEventListener('touchstart', e => {
+  const btn = e.target.closest('#btn-hold-pour');
+  if (btn) {
+    e.preventDefault();
+    startHoldPour();
+  }
+}, { passive: false });
+
+window.addEventListener('mouseup', () => {
+  if (isHoldingPour) stopHoldPour();
+});
+
+window.addEventListener('touchend', () => {
+  if (isHoldingPour) stopHoldPour();
+});
+
+window.addEventListener('touchcancel', () => {
+  if (isHoldingPour) stopHoldPour();
+});
+
+document.addEventListener('click', e => {
+  if (e.target.closest('.skill-guide-tooltip')) {
+    hasSeenSkillTutorial = true;
+    localStorage.setItem('xom_nho_skill_tut_v1', 'true');
+    render();
+    return;
+  }
+});
+
 // Initial boot
 render();
+
