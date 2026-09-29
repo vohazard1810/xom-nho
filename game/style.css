@@ -944,3 +944,76 @@ button:disabled {
   0% { transform: scale(0.85); opacity: 0; }
   100% { transform: scale(1); opacity: 1; }
 }
+
+/* ==========================================================
+   TẦNG 2: AMBIENT LOOPS & CAMERA CUTSCENES
+   ========================================================== */
+
+/* 2.1 Ambient: Grill Smoke Loop */
+.grill-smoke-emitter {
+  position: absolute;
+  bottom: 22px;
+  left: 215px;
+  width: 50px;
+  height: 70px;
+  pointer-events: none;
+  z-index: 23;
+  overflow: visible;
+}
+@media (max-width: 600px) {
+  .grill-smoke-emitter {
+    left: 80px;
+  }
+}
+.smoke-puff {
+  position: absolute;
+  bottom: 0;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.4) 0%, rgba(245, 235, 220, 0.12) 65%, transparent 100%);
+  filter: blur(4px);
+  opacity: 0;
+  animation: smokeRise 2.8s infinite ease-out;
+}
+.smoke-puff.s1 { left: 4px; animation-delay: 0s; }
+.smoke-puff.s2 { left: 18px; animation-delay: 0.9s; animation-duration: 3.2s; }
+.smoke-puff.s3 { left: 12px; animation-delay: 1.8s; animation-duration: 2.6s; }
+
+@keyframes smokeRise {
+  0% { transform: translateY(0) scale(0.6); opacity: 0; }
+  25% { opacity: 0.55; }
+  70% { opacity: 0.25; }
+  100% { transform: translateY(-65px) scale(2.2); opacity: 0; }
+}
+
+/* 2.1 Ambient: Swaying Street Lantern */
+.ambient-lantern {
+  position: absolute;
+  top: 10px;
+  left: 60px;
+  font-size: 24px;
+  pointer-events: none;
+  z-index: 8;
+  transform-origin: top center;
+  animation: lanternSway 3.6s ease-in-out infinite alternate;
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.25));
+}
+@keyframes lanternSway {
+  0% { transform: rotate(-4deg); }
+  100% { transform: rotate(4deg); }
+}
+
+/* 2.3 Camera Cutscene Flash */
+.camera-cutscene-flash {
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 250, 240, 0.3);
+  pointer-events: none;
+  z-index: 35;
+  animation: cutsceneFlash 0.32s ease-out forwards;
+}
+@keyframes cutsceneFlash {
+  0% { opacity: 1; }
+  100% { opacity: 0; }
+}

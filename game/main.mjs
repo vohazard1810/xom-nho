@@ -528,6 +528,17 @@ function renderShop() {
           }).join('')}
         </div>
 
+        <!-- 2.1 Ambient Loops: Grill Smoke & Swaying Lantern -->
+        <div class="ambient-lantern">🏮</div>
+        <div class="grill-smoke-emitter">
+          <span class="smoke-puff s1"></span>
+          <span class="smoke-puff s2"></span>
+          <span class="smoke-puff s3"></span>
+        </div>
+
+        <!-- 2.3 Camera Cutscene Flash when new customer arrives -->
+        ${customerTransitionState === 'entering' ? `<div class="camera-cutscene-flash"></div>` : ''}
+
         <!-- Counter Sill Bar (3D foreground edge in front of customer) -->
         <div class="counter-sill-bar"></div>
 
