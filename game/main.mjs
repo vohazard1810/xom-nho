@@ -40,6 +40,12 @@ const BETI_SPRITES = {
 const CO_CHIN_IMG = '../assets/characters/named/co_chin/co_chin_standing.png';
 const ANH_TUNG_IMG = '../assets/characters/named/anh_tung/anh_tung_standing.png';
 
+const DISH_IMAGES = {
+  BANH_MI_CHA: '../assets/dishes/banh_mi_cha.png',
+  TRA_TAC: '../assets/dishes/tra_tac.png',
+  SUA_DAU_DA: '../assets/dishes/sua_dau.png'
+};
+
 // Audio effects using Web Audio API
 function playChime() {
   try {
@@ -47,9 +53,9 @@ function playChime() {
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
     osc.type = 'sine';
-    osc.frequency.setValueAtTime(587.33, ctx.currentTime); // D5
-    osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.15); // A5
-    gain.gain.setValueAtTime(0.25, ctx.currentTime);
+    osc.frequency.setValueAtTime(587.33, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.15);
+    gain.gain.setValueAtTime(0.3, ctx.currentTime);
     gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.45);
     osc.connect(gain);
     gain.connect(ctx.destination);
@@ -58,15 +64,63 @@ function playChime() {
   } catch (e) {}
 }
 
-function playTap() {
+function playBell() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    [0, 0.1].forEach((delay, idx) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(idx === 0 ? 1760 : 2349, ctx.currentTime + delay);
+      gain.gain.setValueAtTime(0.2, ctx.currentTime + delay);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + delay + 0.35);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(ctx.currentTime + delay);
+      osc.stop(ctx.currentTime + delay + 0.35);
+    });
+  } catch (e) {}
+}
+
+function playCoins() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    [0, 0.06, 0.12].forEach((delay, idx) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(1174 + idx * 300, ctx.currentTime + delay);
+      gain.gain.setValueAtTime(0.25, ctx.currentTime + delay);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + delay + 0.18);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(ctx.currentTime + delay);
+      osc.stop(ctx.currentTime + delay + 0.18);
+    });
+  } catch (e) {}
+}
+
+function playTap(ingredientId) {
   try {
     const ctx = new (window.AudioContext || window.webkitAudioContext)();
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
-    osc.type = 'triangle';
-    osc.frequency.setValueAtTime(360, ctx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(220, ctx.currentTime + 0.08);
-    gain.gain.setValueAtTime(0.18, ctx.currentTime);
+    
+    let freqStart = 380;
+    let freqEnd = 240;
+    let type = 'triangle';
+    if (ingredientId === 'ice') {
+      freqStart = 1400; freqEnd = 900; type = 'sine';
+    } else if (ingredientId === 'kumquat' || ingredientId === 'sugar_syrup' || ingredientId === 'soy_milk') {
+      freqStart = 500; freqEnd = 700; type = 'sine';
+    } else if (ingredientId === 'bread' || ingredientId === 'cha') {
+      freqStart = 320; freqEnd = 180; type = 'triangle';
+    }
+
+    osc.type = type;
+    osc.frequency.setValueAtTime(freqStart, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(freqEnd, ctx.currentTime + 0.08);
+    gain.gain.setValueAtTime(0.25, ctx.currentTime);
     gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.08);
     osc.connect(gain);
     gain.connect(ctx.destination);
@@ -86,9 +140,6 @@ let lastServedToast = null;
 
 const money = n => new Intl.NumberFormat('vi-VN').format(n) + 'đ';
 
-const button = (label, type, payload, extra = '') =>
-  `<button data-type="${type}" ${payload !== undefined ? `data-payload="${payload}"` : ''} ${extra}>${label}</button>`;
-
 const ingredientMeta = {
   bread: { name: 'Bánh mì', icon: '🥖', unit: 'ổ' },
   cha: { name: 'Chả lụa', icon: '🍖', unit: 'khoanh' },
@@ -98,25 +149,6 @@ const ingredientMeta = {
   kumquat: { name: 'Tắc tươi', icon: '🍊', unit: 'trái' },
   soy_milk: { name: 'Sữa đậu', icon: '🥛', unit: 'bịch' }
 };
-
-function getBetiStatus() {
-  if (state.selected === 'be_ti') {
-    return { variant: 'order', tag: 'Bé Tí · Đang gọi món' };
-  }
-  // If another customer is being served while Bé Tí is waiting
-  if (state.selected && !state.served.includes('be_ti')) {
-    return { variant: 'reserved', tag: 'Bé Tí · Chờ lượt' };
-  }
-  // If bread or cha stock is depleted
-  if ((state.stock.bread || 0) < 1 || (state.stock.cha || 0) < 1) {
-    return { variant: 'stock', tag: 'Bé Tí · Lo thiếu chả/bánh' };
-  }
-  // If someone else was served first
-  if (state.served.length > 0 && !state.served.includes('be_ti')) {
-    return { variant: 'deprioritized', tag: 'Bé Tí · Chờ nãy giờ' };
-  }
-  return { variant: 'normal', tag: 'Bé Tí · Chờ gọi món' };
-}
 
 function persist() {
   localStorage.setItem(SAVE_KEY + ':' + (state.revision % 2), encode(state));
@@ -133,9 +165,16 @@ function send(type, payload) {
       localStorage.removeItem(SAVE_KEY + ':1');
     }
     if (type === 'TAP') {
-      playTap();
+      playTap(payload);
+    }
+    if (type === 'SELECT') {
+      playBell();
+    }
+    if (type === 'BUY') {
+      playCoins();
     }
     if (type === 'COMMIT') {
+      playCoins();
       playChime();
       const npc = customers.find(c => c.id === state.selected);
       lastServedToast = `Đã giao món cho ${npc.name}! +${money(recipes[npc.recipe].price)}`;
@@ -147,7 +186,23 @@ function send(type, payload) {
   render();
 }
 
-// Bé Tí animation loop manager with natural biological blink cadence
+// Automatically advance queue in SHOP
+function ensureActiveCustomer() {
+  if (state.screen !== 'SHOP') return;
+  
+  const remaining = customers.filter(c => !state.served.includes(c.id) && !state.missed.includes(c.id));
+  if (remaining.length === 0) {
+    // All customers processed, move to DAY_RESULT
+    send('CLOSE');
+    return;
+  }
+  
+  if (!state.selected || state.served.includes(state.selected) || state.missed.includes(state.selected)) {
+    send('SELECT', remaining[0].id);
+  }
+}
+
+// Bé Tí animation loop manager
 function startBetiAnimation() {
   if (betiAnimationTimer) clearTimeout(betiAnimationTimer);
   betiFrameIdx = 0;
@@ -156,21 +211,11 @@ function startBetiAnimation() {
     const el = document.getElementById('beti-sprite-img');
     if (!el) return;
     
-    const { variant } = getBetiStatus();
-    const frames = BETI_SPRITES[variant] || BETI_SPRITES.normal;
+    const frames = BETI_SPRITES.order;
+    const delays = [200, 250, 450, 550];
+    const delay = delays[betiFrameIdx] || 400;
     
-    let delay = 600;
-    if (variant === 'order') {
-      const orderDelays = [200, 250, 450, 550];
-      delay = orderDelays[betiFrameIdx] || 400;
-      betiFrameIdx = (betiFrameIdx + 1) % frames.length;
-    } else {
-      // Natural cadence: 2200ms open, 80ms start, 80ms closed, 100ms reopen
-      const blinkDelays = [2200, 80, 80, 100];
-      delay = blinkDelays[betiFrameIdx] || 2000;
-      betiFrameIdx = (betiFrameIdx + 1) % frames.length;
-    }
-    
+    betiFrameIdx = (betiFrameIdx + 1) % frames.length;
     el.src = frames[betiFrameIdx];
     betiAnimationTimer = setTimeout(tick, delay);
   };
@@ -184,26 +229,26 @@ function startBetiAnimation() {
 
 function renderHome() {
   return `
-    <div class="story-card" style="text-align: center; padding: 26px 18px;">
-      <div style="font-size: 42px; margin-bottom: 6px;">🏮 🥖 ☕</div>
-      <h1 style="font-size: 26px; margin: 0 0 6px; color: #7c2d12; font-family: var(--font-serif);">XÓM NHỎ</h1>
-      <p style="font-size: 15px; font-weight: 700; color: #b45309; margin: 0 0 16px;">Chuyện Làm Ăn · Ngày 1</p>
-      
-      <p style="text-align: left; background: #fffdf9; border: 1.5px dashed #d97706; padding: 14px; border-radius: 12px; font-size: 13.5px; line-height: 1.6;">
-        Một buổi sáng ấm áp trong con hẻm nhỏ Sài Gòn. Bạn mở đầu ngày với <b>60.000đ</b> tiền vốn. 
-        Hãy ra chợ mua nguyên liệu tươi, dọn quầy đón <b>Bé Tí</b>, <b>Cô Chín</b>, <b>Anh Tùng</b> và tự tay pha chế, chăm sóc từng món ăn nhé!
-      </p>
-
-      <div class="story-tip" style="text-align: left; margin: 14px 0 18px;">
-        💡 <b>Mẹo xóm:</b> Bé Tí mê Bánh mì chả và hay xin thêm chả, Cô Chín đi chợ về cần Trà tắc giải nhiệt, Anh Tùng chạy xe thèm ly Sữa đậu đá thơm mát.
+    <div class="title-cover-wrapper">
+      <div class="title-header-box">
+        <span class="title-badge">🏮 PHIÊN BẢN CHƠI THỬ · NGÀY 1</span>
+        <h1 class="title-main-logo">XÓM NHỎ</h1>
+        <p class="title-sub-text">Chuyện Làm Ăn Quán Phố · Sài Gòn 2000s</p>
       </div>
 
-      <div style="display: flex; flex-direction: column; gap: 10px;">
-        <button class="btn-primary btn-wide" data-type="NAVIGATE">
-          🌿 Bắt Đầu Mở Quán Hôm Nay
-        </button>
-        ${saved && saved.screen !== 'HOME' ? `<button class="btn-secondary btn-wide" data-type="RESUME">Tiếp tục ngày đang chơi</button>` : ''}
-        ${button('Chơi lại từ đầu', 'REPLAY', undefined, 'class="btn-secondary" style="font-size: 12.5px;"')}
+      <div class="title-card-footer">
+        <div style="font-size: 13.5px; line-height: 1.6; color: var(--text-muted); margin-bottom: 16px;">
+          Chào buổi sáng! Quầy bánh mì nhỏ của bạn mở đầu ngày với <b>60.000đ</b> tiền vốn. 
+          Hãy ra chợ nhập nguyên liệu tươi ngon, dọn quầy đón <b>Bé Tí</b>, <b>Cô Chín</b> và <b>Anh Tùng</b> nhé!
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <button class="btn-primary btn-wide" data-type="NAVIGATE" style="font-size: 16px;">
+            🌿 Bắt Đầu Mở Quán Hôm Nay
+          </button>
+          ${saved && saved.screen !== 'HOME' ? `<button class="btn-secondary btn-wide" data-type="RESUME">Tiếp tục ngày đang chơi</button>` : ''}
+          <button class="btn-secondary" data-type="REPLAY" style="font-size: 12.5px;">Chơi lại từ đầu</button>
+        </div>
       </div>
     </div>
   `;
@@ -211,26 +256,26 @@ function renderHome() {
 
 function renderXomOi() {
   return `
-    <div class="story-card">
+    <div class="story-card" style="max-width: 650px; margin: 30px auto; width: calc(100% - 32px);">
       <div class="story-header">
-        <span style="font-size: 24px;">🌤️</span>
-        <h2>Xóm Ơi · Tiếng Rao Buổi Sớm</h2>
+        <span style="font-size: 28px;">🌤️</span>
+        <h2 style="font-size: 20px;">Xóm Ơi · Tiếng Rao Buổi Sớm</h2>
       </div>
-      <p>
-        Nắng sớm rọi qua giàn hoa giấy rực rỡ trước hiên. Tiếng chổi tre xào xạc đầu hẻm báo hiệu một ngày mới bắt đầu. 
+      <p style="font-size: 14.5px; line-height: 1.6;">
+        Nắng sớm len lỏi qua giàn hoa giấy rực rỡ đầu ngõ. Tiếng chổi tre quét lá xào xạc hòa cùng tiếng còi xe máy rộn rã. 
         Trời hôm nay oi ả lắm, mấy món giải nhiệt có đá lạnh và tắc chua ngọt chắc chắn sẽ đắt khách.
       </p>
-      <p>
-        Giờ tan trường trưa, <b>Bé Tí</b> thế nào cũng ghé quán ăn bánh mì lót dạ. 
-        <b>Cô Chín</b> đi chợ ngang và <b>Anh Tùng</b> chạy xe ôm cũng sẽ dừng lại làm ly nước mát.
+      <p style="font-size: 14.5px; line-height: 1.6;">
+        Trưa nay, <b>Bé Tí</b> thế nào cũng ghé quán ăn bánh mì lót dạ. 
+        <b>Cô Chín</b> đi chợ về và <b>Anh Tùng</b> chạy xe ôm cũng sẽ dừng lại trước quầy làm ly nước giải khát.
       </p>
       
-      <div class="story-tip">
-        💡 <b>Gợi ý nguyên liệu:</b> Đá bi và nước đường dùng chung cho cả Trà tắc và Sữa đậu đá. Nhớ mua dư một chút chả nếu muốn chiều Bé Tí nhé!
+      <div class="story-tip" style="margin: 16px 0;">
+        💡 <b>Mẹo nhập hàng:</b> Đá bi và nước đường dùng chung cho cả Trà tắc và Sữa đậu đá. Nhớ mua dư một chút chả lụa nếu muốn chiều lòng Bé Tí nhé!
       </div>
 
-      <div style="margin-top: 20px;">
-        <button class="btn-primary btn-wide" data-type="NAVIGATE">
+      <div style="margin-top: 24px;">
+        <button class="btn-primary btn-wide" data-type="NAVIGATE" style="font-size: 16px;">
           🛒 Ra Chợ Đầu Ngõ Nhập Hàng
         </button>
       </div>
@@ -244,29 +289,32 @@ function renderMarket() {
   const canBuy = basketCost > 0 && remainingCash >= 0;
 
   return `
-    <div class="story-card" style="padding: 14px 16px;">
-      <div class="story-header" style="justify-content: space-between;">
-        <div style="display:flex; align-items:center; gap:8px;">
-          <span style="font-size: 22px;">🏪</span>
-          <h2 style="font-size: 16px;">Sạp Chợ Đầu Ngõ</h2>
+    <div class="story-card" style="max-width: 680px; margin: 20px auto; width: calc(100% - 32px);">
+      <div class="story-header" style="justify-content: space-between; border-bottom: 1px dashed var(--border-color); padding-bottom: 12px;">
+        <div style="display:flex; align-items:center; gap:10px;">
+          <span style="font-size: 26px;">🏪</span>
+          <div>
+            <h2 style="font-size: 18px; margin: 0;">Sạp Chợ Đầu Ngõ</h2>
+            <small style="color: var(--text-light); font-size: 12px;">Mua nguyên liệu tươi về phục vụ 3 người khách</small>
+          </div>
         </div>
         <div class="wallet-badge">💵 ${money(state.cash)}</div>
       </div>
       
       <!-- Gợi ý combo mua nhanh Ngày 1 -->
-      <div class="market-quick-bundle">
-        <div style="font-size: 13px; font-weight: 700; color: #7c2d12; margin-bottom: 2px;">
+      <div style="background: #fdf5ea; border: 1.5px dashed #d97706; border-radius: 12px; padding: 12px 14px; margin: 14px 0;">
+        <div style="font-size: 13.5px; font-weight: 700; color: #7c2d12; margin-bottom: 2px;">
           ⚡ Gợi Ý Mua Nhanh Cho Ngày 1 (3 khách):
         </div>
-        <div style="font-size: 11.5px; color: #78350f; margin-bottom: 8px;">
-          Đủ Bánh mì chả thêm chả (Bé Tí), Trà tắc (Cô Chín) và Sữa đậu đá (Anh Tùng).
+        <div style="font-size: 12px; color: #78350f; margin-bottom: 8px;">
+          Tự động chọn đủ Bánh mì chả thêm chả (Bé Tí), Trà tắc (Cô Chín) và Sữa đậu đá (Anh Tùng).
         </div>
-        <button class="btn-secondary" data-type="BUNDLE_DAY1" style="font-size: 12px; padding: 6px 12px; width: 100%; border: 1.5px dashed #d97706; background: #fffdf9;">
+        <button class="btn-secondary" data-type="BUNDLE_DAY1" style="font-size: 13px; padding: 8px 14px; width: 100%; border: 1.5px solid #d97706; background: #fffdf9;">
           🧺 Tự động chọn combo chuẩn 3 khách (48.000đ)
         </button>
       </div>
 
-      <div class="market-table" style="margin-top: 12px;">
+      <div class="market-table">
         ${Object.entries(ingredients).map(([id, item]) => {
           const meta = ingredientMeta[id] || { icon: '📦', unit: 'phần' };
           const qty = state.basket[id] || 0;
@@ -290,41 +338,43 @@ function renderMarket() {
       </div>
 
       <!-- Basket summary bar -->
-      <div style="background: #fdf5ea; border: 1.5px solid #ebd3b6; border-radius: 14px; padding: 12px; margin-top: 14px;">
-        <div style="display:flex; justify-content:space-between; font-size: 13.5px; margin-bottom: 4px;">
+      <div style="background: #fdf5ea; border: 1.5px solid #ebd3b6; border-radius: 14px; padding: 14px; margin-top: 16px;">
+        <div style="display:flex; justify-content:space-between; font-size: 14px; margin-bottom: 6px;">
           <span>Tiền hàng trong giỏ:</span>
-          <strong style="color: #c2410c;">${money(basketCost)}</strong>
+          <strong style="color: #c2410c; font-size: 16px;">${money(basketCost)}</strong>
         </div>
-        <div style="display:flex; justify-content:space-between; font-size: 13.5px;">
+        <div style="display:flex; justify-content:space-between; font-size: 14px;">
           <span>Tiền mặt còn lại:</span>
-          <strong style="color: ${remainingCash < 0 ? '#dc2626' : '#15803d'};">${money(remainingCash)}</strong>
+          <strong style="color: ${remainingCash < 0 ? '#dc2626' : '#15803d'}; font-size: 16px;">${money(remainingCash)}</strong>
         </div>
       </div>
 
-      <button class="btn-primary btn-wide" data-type="BUY" ${!canBuy ? 'disabled' : ''} style="margin-top: 14px;">
-        ${remainingCash < 0 ? '❌ Không đủ tiền mặt' : basketCost === 0 ? '👉 Hãy chọn nguyên liệu' : '🥖 Mang Hàng Về Mở Quán!'}
+      <button class="btn-primary btn-wide" data-type="BUY" ${!canBuy ? 'disabled' : ''} style="margin-top: 16px; font-size: 16px;">
+        ${remainingCash < 0 ? '❌ Không đủ tiền mặt' : basketCost === 0 ? '👉 Hãy chọn nguyên liệu' : '🥖 Mang Hàng Về Mở Quán Ngay!'}
       </button>
     </div>
   `;
 }
 
+// -------------------------------------------------------------
+// FIRST-PERSON COOKING STAGE (SHOP)
+// -------------------------------------------------------------
 function renderShop() {
-  const selectedCustomer = customers.find(c => c.id === state.selected);
-  const remainingCustomers = customers.filter(c => !state.served.includes(c.id));
-  const betiServed = state.served.includes('be_ti');
-  const coChinServed = state.served.includes('co_chin');
-  const anhTungServed = state.served.includes('anh_tung');
+  const currentCustomer = customers.find(c => c.id === state.selected);
+  const isBeti = currentCustomer && currentCustomer.id === 'be_ti';
+  const isCoChin = currentCustomer && currentCustomer.id === 'co_chin';
+  const isAnhTung = currentCustomer && currentCustomer.id === 'anh_tung';
 
-  // Check if draft matches recipe
-  let isReadyToCommit = false;
   let targetRecipe = null;
-  let recipeChecklist = [];
-  let isMissingStock = false;
+  let needed = {};
   let neededKeys = [];
+  let isReadyToCommit = false;
+  let isMissingStock = false;
+  let checklist = [];
 
-  if (selectedCustomer) {
-    targetRecipe = recipes[selectedCustomer.recipe];
-    const needed = needFor(selectedCustomer.id, state.extraCha);
+  if (currentCustomer) {
+    targetRecipe = recipes[currentCustomer.recipe];
+    needed = needFor(currentCustomer.id, state.extraCha);
     neededKeys = Object.keys(needed);
     isReadyToCommit = equalCounts(state.draft, needed);
 
@@ -334,7 +384,7 @@ function renderShop() {
       const isDone = draftQty === reqQty;
       const isOver = draftQty > reqQty;
       if (stockQty < reqQty) isMissingStock = true;
-      recipeChecklist.push({
+      checklist.push({
         id: ingId,
         meta: ingredientMeta[ingId],
         reqQty,
@@ -346,161 +396,194 @@ function renderShop() {
     }
   }
 
-  const betiStatus = getBetiStatus();
+  // Active preparation dish type
+  const isBanhMiOrder = currentCustomer && currentCustomer.recipe === 'BANH_MI_CHA';
+  const isDrinkOrder = currentCustomer && currentCustomer.recipe !== 'BANH_MI_CHA';
 
   return `
-    <!-- SÂN KHẤU 2D: HẺM VÀ QUẦY HÀNG -->
-    <div class="game-stage-wrapper">
-      <div class="stage-actors">
-        <!-- Bé Tí (Animated 2D Character) -->
-        ${!betiServed ? `
-          <div class="actor-beti ${state.selected === 'be_ti' ? 'selected' : ''}" data-type="SELECT" data-payload="be_ti">
-            <img id="beti-sprite-img" src="${BETI_SPRITES[betiStatus.variant][0]}" alt="Bé Tí">
-            <span class="actor-name-tag">${betiStatus.tag}</span>
+    <div class="cooking-stage-container">
+      <!-- 1. UPPER HALF: THE STREET WINDOW WITH ACTIVE CUSTOMER -->
+      <div class="street-window-view">
+        <div class="street-window-overlay"></div>
+
+        <!-- Neighborhood Queue Tracker -->
+        <div class="queue-tracker-hud">
+          ${customers.map(c => {
+            const isServed = state.served.includes(c.id);
+            const isCurrent = state.selected === c.id;
+            return `
+              <div class="queue-dot ${isServed ? 'served' : isCurrent ? 'current' : ''}">
+                ${isServed ? '✓' : isCurrent ? '⭐' : '⏳'} ${c.name}
+              </div>
+            `;
+          }).join('')}
+        </div>
+
+        <!-- Active Customer Standing in Front of Counter -->
+        ${currentCustomer ? `
+          <div class="active-customer-spot">
+            <div class="customer-avatar-box">
+              ${isBeti ? `<img id="beti-sprite-img" src="${BETI_SPRITES.order[0]}" alt="Bé Tí">` : ''}
+              ${isCoChin ? `<img src="${CO_CHIN_IMG}" alt="Cô Chín">` : ''}
+              ${isAnhTung ? `<img src="${ANH_TUNG_IMG}" alt="Anh Tùng">` : ''}
+            </div>
+          </div>
+
+          <!-- Floating Order Speech Bubble -->
+          <div class="customer-order-bubble">
+            <div class="order-bubble-left">
+              <div class="order-dish-badge">
+                ${isBanhMiOrder ? '🥖' : isCoChin ? '🍊' : '🥛'}
+              </div>
+              <div class="order-bubble-text">
+                <strong>${currentCustomer.name} gọi món: ${targetRecipe.name} (+${money(targetRecipe.price)})</strong>
+                ${isBeti ? `
+                  <p>"Chú ơi cho con ổ Bánh mì chả! ...Mà cho con xin thêm chả được hông chú?"</p>
+                  <div style="display:flex; gap:6px; margin-top:6px;">
+                    <button class="btn-mini-action ${state.extraCha === true ? 'btn-primary' : 'btn-secondary'}" data-type="EXTRA" data-payload="yes" style="padding:3px 8px; font-size:11px;">
+                      👍 Thêm chả cho con (+1 chả)
+                    </button>
+                    <button class="btn-mini-action ${state.extraCha === false ? 'btn-primary' : 'btn-secondary'}" data-type="EXTRA" data-payload="no" style="padding:3px 8px; font-size:11px;">
+                      Ăn phần thường nha (1 chả)
+                    </button>
+                  </div>
+                ` : isCoChin ? `
+                  <p>"Cho cô ly Trà tắc nhiều đá mát lạnh nghen con, đi chợ về khát quá!"</p>
+                ` : `
+                  <p>"Cho anh ly Sữa đậu đá uống cho mát em ơi, chuẩn bị chạy thêm cuốc xe!"</p>
+                `}
+              </div>
+            </div>
+            
+            ${isMissingStock ? `
+              <button class="btn-secondary" data-type="SKIP" style="font-size:11px; padding:6px 8px; color:#b91c1c; border-color:#fca5a5;">
+                Hết hàng<br>(Qua lượt)
+              </button>
+            ` : ''}
           </div>
         ` : ''}
-
-        <!-- Cô Chín -->
-        <div class="actor-queue-character co-chin ${coChinServed ? 'served' : ''} ${state.selected === 'co_chin' ? 'selected' : ''}" 
-             ${!coChinServed ? 'data-type="SELECT" data-payload="co_chin"' : ''}>
-          <img src="${CO_CHIN_IMG}" alt="Cô Chín">
-          <span class="actor-name-tag">${coChinServed ? 'Đã nhận nước' : 'Cô Chín'}</span>
-        </div>
-
-        <!-- Anh Tùng -->
-        <div class="actor-queue-character anh-tung ${anhTungServed ? 'served' : ''} ${state.selected === 'anh_tung' ? 'selected' : ''}" 
-             ${!anhTungServed ? 'data-type="SELECT" data-payload="anh_tung"' : ''}>
-          <img src="${ANH_TUNG_IMG}" alt="Anh Tùng">
-          <span class="actor-name-tag">${anhTungServed ? 'Đã nhận nước' : 'Anh Tùng'}</span>
-        </div>
       </div>
 
-      <!-- Dynamic Speech Bubble when Customer Selected -->
-      ${selectedCustomer ? `
-        <div class="speech-bubble">
-          <div class="speech-bubble-inner">
-            ${selectedCustomer.id === 'be_ti' ? `
-              <b>Bé Tí:</b> "Chú ơi cho con ổ Bánh mì chả! ...Mà cho con xin thêm chả được hông chú?"
-              <div class="speech-request-actions">
-                <button class="btn-mini-action ${state.extraCha === true ? 'btn-primary' : 'btn-secondary'}" data-type="EXTRA" data-payload="yes">
-                  👍 Thêm chả cho con (2 chả)
-                </button>
-                <button class="btn-mini-action ${state.extraCha === false ? 'btn-primary' : 'btn-secondary'}" data-type="EXTRA" data-payload="no">
-                  Ăn phần thường nha (1 chả)
-                </button>
-              </div>
-            ` : selectedCustomer.id === 'co_chin' ? `
-              <b>Cô Chín:</b> "Cho cô ly Trà tắc nhiều đá mát lạnh nghen con, đi chợ về khát quá!"
-            ` : `
-              <b>Anh Tùng:</b> "Cho anh ly Sữa đậu đá uống cho mát em ơi, chuẩn bị chạy thêm cuốc xe!"
-            `}
-          </div>
-        </div>
-      ` : `
-        <div class="speech-bubble">
-          <div class="speech-bubble-inner" style="font-weight: 500;">
-            👉 <b>Chạm vào Bé Tí, Cô Chín hoặc Anh Tùng</b> để nhận đơn và làm món!
-          </div>
-        </div>
-      `}
-    </div>
-
-    <!-- BÀN CHẾ BIẾN & LẮP RÁP MÓN ĂN (KITCHEN DOCK) -->
-    <div class="kitchen-dock">
-      <div class="kitchen-header">
-        <div class="recipe-target-name">
-          ${selectedCustomer ? `
-            <span>🍽️ Làm món: <b>${targetRecipe.name}</b></span>
-            <span class="recipe-target-badge">+${money(targetRecipe.price)}</span>
-          ` : `
-            <span>🍽️ Quầy Chế Biến & Pha Chế</span>
-          `}
-        </div>
-        <div style="font-size: 12px; color: var(--text-muted);">
-          Đã phục vụ: <b>${state.served.length}/3</b> khách
-        </div>
-      </div>
-
-      <!-- Hướng dẫn công thức chuẩn cho món đang chọn -->
-      ${selectedCustomer ? `
-        <div class="recipe-formula-card">
-          <div class="formula-title">📋 Thành phần cần cho vào đĩa:</div>
-          <div class="formula-pills">
-            ${recipeChecklist.map(item => `
-              <div class="pill-item ${item.isDone ? 'done' : item.isOver ? 'over' : ''} ${item.stockQty < item.reqQty ? 'no-stock' : ''}">
-                <span class="pill-icon">${item.meta.icon}</span>
-                <span class="pill-name">${item.meta.name}</span>
-                <span class="pill-count">${item.draftQty}/${item.reqQty}</span>
-                ${item.isDone ? '<span class="pill-check">✓</span>' : ''}
-              </div>
-            `).join('')}
-          </div>
-          ${isMissingStock ? `
-            <div class="stock-warning">
-              ⚠️ Quán không còn đủ nguyên liệu này trong kho! Bạn hãy chọn phục vụ khách khác hoặc bấm "Đóng Quán Nghỉ Ngơi".
+      <!-- 2. LOWER HALF: COOKING FEVER PREP COUNTER -->
+      <div class="counter-prep-deck">
+        <!-- Workstation Row: Cutting Board (Bánh mì) & Drink Station -->
+        <div class="workstation-row">
+          <!-- Workstation 1: Bàn Làm Bánh Mì -->
+          <div class="prep-workstation ${isBanhMiOrder ? 'active-target' : ''}">
+            <div class="workstation-title">
+              <span>🥖 Quầy Bánh Mì</span>
+              ${isBanhMiOrder ? `<span style="color:#c2410c; font-size:11px;">Món đang chuẩn bị</span>` : ''}
             </div>
-          ` : ''}
-        </div>
-      ` : ''}
 
-      <!-- Đĩa món đang chuẩn bị (Interactive Assembly Slot) -->
-      <div class="assembly-board">
-        ${selectedCustomer ? `
-          <div class="assembly-dish-preview">
-            ${Object.keys(state.draft).length === 0 ? `
-              <span class="assembly-prompt-empty">Chạm các ô nguyên liệu bên dưới để cho vào ${targetRecipe.name.toLowerCase()}...</span>
-            ` : Object.entries(state.draft).map(([id, qty]) => {
-              const meta = ingredientMeta[id] || { icon: '📦', name: id };
-              return `
-                <div class="ingredient-token">
-                  <span>${meta.icon}</span>
-                  <span>${meta.name} ×${qty}</span>
+            <div class="prep-visual-slot">
+              ${isBanhMiOrder && isReadyToCommit ? `
+                <div class="finished-dish-wrap">
+                  <img class="dish-preview-img" src="${DISH_IMAGES.BANH_MI_CHA}" alt="Bánh Mì Chả Hoàn Thành">
+                  <span class="dish-sparkle-badge">✨ Bánh mì nóng giòn!</span>
                 </div>
-              `;
-            }).join('')}
+              ` : isBanhMiOrder && Object.keys(state.draft).length > 0 ? `
+                <div class="assembly-cutting-board">
+                  <div class="board-layer bread-layer ${state.draft.bread ? 'has-item' : ''}">
+                    ${state.draft.bread ? '🥖 Ổ bánh mì vàng giòn đã mổ bụng' : '⚪ Chưa bỏ bánh mì'}
+                  </div>
+                  <div class="board-layer-row">
+                    ${state.draft.cha ? `<span class="board-token cha-token">🍖 Chả lụa x${state.draft.cha}</span>` : ''}
+                    ${state.draft.vegetable ? `<span class="board-token veg-token">🥒 Dưa ngò x${state.draft.vegetable}</span>` : ''}
+                  </div>
+                </div>
+              ` : `
+                <div class="prep-empty-hint">
+                  ${isBanhMiOrder ? 'Chạm vào khay Bánh mì, Chả lụa, Dưa ngò bên dưới để kẹp bánh!' : 'Khay chờ làm bánh mì'}
+                </div>
+              `}
+            </div>
+
+            <!-- Checklist cho Bánh Mì -->
+            ${isBanhMiOrder ? `
+              <div class="checklist-chips">
+                ${checklist.map(item => `
+                  <span class="checklist-chip ${item.isDone ? 'done' : item.isOver ? 'over' : ''}">
+                    ${item.meta.icon} ${item.meta.name}: ${item.draftQty}/${item.reqQty} ${item.isDone ? '✓' : ''}
+                  </span>
+                `).join('')}
+              </div>
+            ` : ''}
           </div>
-        ` : `
-          <div style="text-align: center; color: var(--text-light); font-size: 13px;">
-            Hãy chọn một vị khách ở trên quầy để bắt đầu làm món!
+
+          <!-- Workstation 2: Quầy Pha Nước Giải Khát -->
+          <div class="prep-workstation ${isDrinkOrder ? 'active-target' : ''}">
+            <div class="workstation-title">
+              <span>🥤 Quầy Nước Giải Khát</span>
+              ${isDrinkOrder ? `<span style="color:#0284c7; font-size:11px;">Món đang chuẩn bị</span>` : ''}
+            </div>
+
+            <div class="prep-visual-slot">
+              ${isDrinkOrder && isReadyToCommit ? `
+                <div class="finished-dish-wrap">
+                  <img class="dish-preview-img" src="${DISH_IMAGES[currentCustomer.recipe]}" alt="Nước Uống Hoàn Thành">
+                  <span class="dish-sparkle-badge">✨ Nước mát lạnh giải khát!</span>
+                </div>
+              ` : isDrinkOrder && Object.keys(state.draft).length > 0 ? `
+                <div class="assembly-drink-glass">
+                  <div class="drink-cup-icon">🥤</div>
+                  <div class="drink-layers-col">
+                    ${state.draft.ice ? `<span class="board-token ice-token">🧊 Đá bi x${state.draft.ice}</span>` : ''}
+                    ${state.draft.sugar_syrup ? `<span class="board-token syrup-token">🍯 Nước đường x${state.draft.sugar_syrup}</span>` : ''}
+                    ${state.draft.kumquat ? `<span class="board-token kumquat-token">🍊 Tắc tươi x${state.draft.kumquat}</span>` : ''}
+                    ${state.draft.soy_milk ? `<span class="board-token soy-token">🥛 Sữa đậu x${state.draft.soy_milk}</span>` : ''}
+                  </div>
+                </div>
+              ` : `
+                <div class="prep-empty-hint">
+                  ${isDrinkOrder ? 'Chạm Đá, Đường và Tắc / Sữa đậu bên dưới để pha nước!' : 'Khay chờ pha nước giải khát'}
+                </div>
+              `}
+            </div>
+
+            <!-- Checklist cho Nước -->
+            ${isDrinkOrder ? `
+              <div class="checklist-chips">
+                ${checklist.map(item => `
+                  <span class="checklist-chip ${item.isDone ? 'done' : item.isOver ? 'over' : ''}">
+                    ${item.meta.icon} ${item.meta.name}: ${item.draftQty}/${item.reqQty} ${item.isDone ? '✓' : ''}
+                  </span>
+                `).join('')}
+              </div>
+            ` : ''}
           </div>
-        `}
-      </div>
+        </div>
 
-      <!-- Khay 7 Nguyên liệu sẵn có -->
-      <div class="ingredient-shelf">
-        ${Object.entries(ingredients).map(([id, item]) => {
-          const meta = ingredientMeta[id];
-          const stockQty = state.stock[id] || 0;
-          const isNeeded = neededKeys.includes(id);
-          return `
-            <button class="btn-ingredient ${isNeeded ? 'highlight-needed' : ''}" data-type="TAP" data-payload="${id}" ${stockQty <= 0 || !selectedCustomer ? 'disabled' : ''}>
-              <span class="ing-icon">${meta.icon}</span>
-              <span class="ing-name">${meta.name}</span>
-              <span class="ing-stock">Còn: ${stockQty}</span>
-            </button>
-          `;
-        }).join('')}
-      </div>
+        <!-- 3. INGREDIENT TRAYS ON COUNTER (KHAY INOX NGUYÊN LIỆU) -->
+        <div class="ingredient-tray-rack">
+          ${Object.entries(ingredients).map(([id, item]) => {
+            const meta = ingredientMeta[id];
+            const stockQty = state.stock[id] || 0;
+            const isNeeded = neededKeys.includes(id);
+            return `
+              <button class="tray-button ${isNeeded ? 'needed' : ''}" data-type="TAP" data-payload="${id}" ${stockQty <= 0 ? 'disabled' : ''}>
+                <span class="tray-icon">${meta.icon}</span>
+                <span class="tray-name">${meta.name}</span>
+                <span class="tray-stock">Còn: ${stockQty}</span>
+              </button>
+            `;
+          }).join('')}
+        </div>
 
-      <!-- Thao tác Commit hoặc Clear -->
-      <div class="kitchen-actions">
-        <button class="btn-secondary" data-type="CLEAR" ${Object.keys(state.draft).length === 0 ? 'disabled' : ''}>
-          🗑️ Xóa Đĩa
-        </button>
-        <button class="btn-commit ${isReadyToCommit ? 'pulse-ready' : ''}" data-type="COMMIT" ${!isReadyToCommit ? 'disabled' : ''}>
-          ${isReadyToCommit ? '✨ GIAO MÓN CHO KHÁCH (+Tiền)' : '🥢 Đang chuẩn bị món...'}
-        </button>
-      </div>
-    </div>
+        <!-- 4. BOTTOM ACTION BAR: SERVE DISH OR TRASH -->
+        <div class="counter-actions-bar">
+          <button class="btn-secondary" data-type="CLEAR" ${Object.keys(state.draft).length === 0 ? 'disabled' : ''} style="padding:10px 14px; font-size:12.5px;">
+            🗑️ Làm Lại
+          </button>
+          
+          <button class="btn-serve ${isReadyToCommit ? 'pulse-ready' : ''}" data-type="COMMIT" ${!isReadyToCommit ? 'disabled' : ''}>
+            ${isReadyToCommit ? `✨ GIAO MÓN CHO ${currentCustomer.name.toUpperCase()} (+${money(targetRecipe.price)})` : '🥢 Đang chuẩn bị món...'}
+          </button>
 
-    <!-- Thanh đóng quán -->
-    <div style="display: flex; justify-content: space-between; align-items: center; padding: 4px 6px;">
-      <span style="font-size: 12.5px; color: var(--text-muted);">
-        ${remainingCustomers.length === 0 ? '🎉 Tất cả khách đã được phục vụ!' : `Còn ${remainingCustomers.length} khách đang đợi.`}
-      </span>
-      <button class="btn-secondary" data-type="CLOSE" style="font-size: 12.5px; padding: 6px 12px;">
-        Đóng Quán Nghỉ Ngơi
-      </button>
+          <button class="btn-secondary" data-type="CLOSE" style="font-size:12px; padding:10px 12px; white-space:nowrap;">
+            Đóng Quán
+          </button>
+        </div>
+      </div>
     </div>
   `;
 }
@@ -509,10 +592,10 @@ function renderDayResult() {
   const profit = state.revenue - state.spent;
 
   return `
-    <div class="notebook-card">
+    <div class="notebook-card" style="max-width: 680px; margin: 24px auto; width: calc(100% - 32px);">
       <div class="notebook-title">
         📖 SỔ GHI TIỀN QUÁN XÓM NHỎ<br>
-        <small style="font-size: 13px; font-weight: normal; color: #78350f;">Ngày 1 · Tổng kết kinh doanh</small>
+        <small style="font-size: 13px; font-weight: normal; color: #78350f;">Ngày 1 · Tổng kết kinh doanh buổi đầu</small>
       </div>
 
       <div class="ledger-line">
@@ -538,7 +621,7 @@ function renderDayResult() {
 
       <!-- Chuyện xóm ghi chép -->
       <div class="journal-section">
-        <strong style="color: #7c2d12; font-size: 13px;">📝 Chuyện Xóm Sau Giờ Bán:</strong>
+        <strong style="color: #7c2d12; font-size: 13.5px;">📝 Chuyện Xóm Sau Giờ Bán:</strong>
         <div class="journal-item">
           • <b>Bé Tí:</b> ${state.served.includes('be_ti') 
               ? (state.extraCha ? 'Cầm ổ bánh mì thêm chả cười tít mắt, tấm tắc khen chú làm ngon rồi hứa mai tan học ghé tiếp!' : 'Ăn ổ bánh mì chả ngon lành rồi chào chú chạy về học bài.') 
@@ -557,12 +640,12 @@ function renderDayResult() {
       </div>
 
       <!-- Hook ngày mai -->
-      <div style="background: #fef3c7; border: 1px dashed #d97706; padding: 10px; border-radius: 8px; margin-top: 14px; font-size: 12.5px; color: #92400e;">
+      <div style="background: #fef3c7; border: 1.5px dashed #d97706; padding: 12px; border-radius: 10px; margin-top: 16px; font-size: 13px; color: #92400e;">
         🌟 <b>Gợi ý ngày mai:</b> Nghe mấy cô đầu chợ đồn ngày mai có mối giao trứng gà tươi giá mềm. Quán mình sắp có thể bán thêm món <b>Bánh Mì Ốp-La</b> rồi đấy!
       </div>
 
-      <div style="display: flex; gap: 8px; margin-top: 18px;">
-        <button class="btn-primary btn-wide" data-type="REPLAY">
+      <div style="display: flex; gap: 10px; margin-top: 20px;">
+        <button class="btn-primary btn-wide" data-type="REPLAY" style="font-size: 15px;">
           🔄 Mở Quán Chơi Lại Ngày 1
         </button>
       </div>
@@ -574,6 +657,8 @@ function renderDayResult() {
 // RENDER CONTROLLER
 // -------------------------------------------------------------
 function render() {
+  ensureActiveCustomer();
+
   let content = '';
   if (state.screen === 'HOME') content = renderHome();
   else if (state.screen === 'XOM_OI') content = renderXomOi();
@@ -599,8 +684,8 @@ function render() {
     </div>
   `;
 
-  // Start Bé Tí animation if we are on SHOP screen
-  if (state.screen === 'SHOP' && !state.served.includes('be_ti')) {
+  // Start Bé Tí animation if Bé Tí is active customer in SHOP
+  if (state.screen === 'SHOP' && state.selected === 'be_ti') {
     startBetiAnimation();
   } else if (betiAnimationTimer) {
     clearTimeout(betiAnimationTimer);

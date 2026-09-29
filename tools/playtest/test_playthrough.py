@@ -5,8 +5,8 @@ from playwright.async_api import async_playwright
 async def play_through():
     async with async_playwright() as p:
         browser = await p.chromium.launch(executable_path=r'C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe', headless=True)
-        # Test in a desktop viewport (1000 x 850) to see both ambient coffee shop border and game stage
-        page = await browser.new_page(viewport={'width': 1000, 'height': 850})
+        # Desktop widescreen viewport matching Cooking Fever / Good Pizza Great Pizza
+        page = await browser.new_page(viewport={'width': 1050, 'height': 800})
         
         errors = []
         page.on('pageerror', lambda err: errors.append(str(err)))
@@ -17,21 +17,21 @@ async def play_through():
         # Reset storage to start fresh
         await page.evaluate("() => localStorage.clear()")
         await page.reload()
-        await page.wait_for_timeout(300)
+        await page.wait_for_timeout(400)
         
-        # 1. HOME -> Click start
+        # 1. HOME SCREEN (Grand animated poster)
         print('1. On HOME screen')
         await page.screenshot(path='home_screen.png')
         await page.click('button[data-type="NAVIGATE"]')
         await page.wait_for_timeout(400)
         
-        # 2. XOM_OI -> Click to market
+        # 2. XOM_OI SCREEN
         print('2. On XOM_OI screen')
         await page.screenshot(path='xom_oi_screen.png')
         await page.click('button[data-type="NAVIGATE"]')
         await page.wait_for_timeout(400)
         
-        # 3. MARKET -> Click BUNDLE_DAY1
+        # 3. MARKET SCREEN (Quick Bundle)
         print('3. On MARKET screen, clicking Quick Bundle button')
         await page.click('button[data-type="BUNDLE_DAY1"]')
         await page.wait_for_timeout(200)
@@ -42,69 +42,55 @@ async def play_through():
         await page.click('button[data-type="BUY"]')
         await page.wait_for_timeout(800)
         
-        # 4. SHOP SCREEN
-        print('4. On SHOP screen')
-        await page.screenshot(path='shop_initial.png')
+        # 4. FIRST-PERSON COOKING STAGE (SHOP)
+        print('4. On SHOP screen - Bé Tí arrives at the counter window')
+        await page.screenshot(path='shop_beti_arrived.png')
         
-        # Check Bé Tí sprite
-        beti_img = await page.locator('#beti-sprite-img').get_attribute('src')
-        print('Bé Tí initial sprite src:', beti_img)
-        
-        # Test selecting Bé Tí
-        print('Selecting Bé Tí...')
-        await page.click('.actor-beti')
-        await page.wait_for_timeout(500)
-        
-        beti_ordering_img = await page.locator('#beti-sprite-img').get_attribute('src')
-        print('Bé Tí ordering sprite src:', beti_ordering_img)
-        await page.screenshot(path='shop_beti_selected.png')
-        
-        # Accept extra chả
+        # Grant extra chả to Bé Tí
         print('Granting extra chả to Bé Tí...')
         await page.click('button[data-type="EXTRA"][data-payload="yes"]')
         await page.wait_for_timeout(300)
         
-        # Tap bread, cha, cha, vegetable
-        print('Assembling Bánh Mì (1 bread, 2 chả, 1 rau)...')
-        await page.click('button[data-type="TAP"][data-payload="bread"]')
-        await page.click('button[data-type="TAP"][data-payload="cha"]')
-        await page.click('button[data-type="TAP"][data-payload="cha"]')
-        await page.click('button[data-type="TAP"][data-payload="vegetable"]')
-        await page.wait_for_timeout(300)
-        await page.screenshot(path='shop_beti_assembled.png')
+        # Assemble Bánh Mì on the cutting board (1 bread, 2 chả, 1 rau)
+        print('Assembling Bánh Mì on the prep workstation...')
+        await page.click('button.tray-button[data-payload="bread"]')
+        await page.click('button.tray-button[data-payload="cha"]')
+        await page.click('button.tray-button[data-payload="cha"]')
+        await page.click('button.tray-button[data-payload="vegetable"]')
+        await page.wait_for_timeout(400)
+        await page.screenshot(path='shop_beti_ready.png')
         
-        # Commit order
-        print('Committing Bé Tí order...')
+        # Commit Bé Tí order
+        print('Serving completed Bánh Mì to Bé Tí...')
         await page.click('button[data-type="COMMIT"]', force=True)
-        await page.wait_for_timeout(600)
+        await page.wait_for_timeout(700)
         
-        # Serve Cô Chín
-        print('Selecting and serving Cô Chín (Trà tắc: đá, đường, tắc)...')
-        await page.click('.actor-queue-character.co-chin')
-        await page.wait_for_timeout(300)
-        await page.click('button[data-type="TAP"][data-payload="ice"]')
-        await page.click('button[data-type="TAP"][data-payload="sugar_syrup"]')
-        await page.click('button[data-type="TAP"][data-payload="kumquat"]')
-        await page.wait_for_timeout(300)
+        # Customer 2: Cô Chín
+        print('Customer 2 (Cô Chín) is now at the counter! Preparing Trà Tắc Đá...')
+        await page.screenshot(path='shop_co_chin.png')
+        await page.click('button.tray-button[data-payload="ice"]')
+        await page.click('button.tray-button[data-payload="sugar_syrup"]')
+        await page.click('button.tray-button[data-payload="kumquat"]')
+        await page.wait_for_timeout(400)
         await page.click('button[data-type="COMMIT"]', force=True)
-        await page.wait_for_timeout(600)
+        await page.wait_for_timeout(700)
         
-        # Serve Anh Tùng
-        print('Selecting and serving Anh Tùng (Sữa đậu đá: đá, đường, sữa đậu)...')
-        await page.click('.actor-queue-character.anh-tung')
-        await page.wait_for_timeout(300)
-        await page.click('button[data-type="TAP"][data-payload="ice"]')
-        await page.click('button[data-type="TAP"][data-payload="sugar_syrup"]')
-        await page.click('button[data-type="TAP"][data-payload="soy_milk"]')
-        await page.wait_for_timeout(300)
+        # Customer 3: Anh Tùng
+        print('Customer 3 (Anh Tùng) is now at the counter! Preparing Sữa Đậu Đá...')
+        await page.screenshot(path='shop_anh_tung.png')
+        await page.click('button.tray-button[data-payload="ice"]')
+        await page.click('button.tray-button[data-payload="sugar_syrup"]')
+        await page.click('button.tray-button[data-payload="soy_milk"]')
+        await page.wait_for_timeout(400)
         await page.click('button[data-type="COMMIT"]', force=True)
-        await page.wait_for_timeout(600)
+        await page.wait_for_timeout(800)
         
-        await page.screenshot(path='shop_all_served.png')
-        
-        # Close shop
+        # All served -> Closing shop or auto transition
         print('Closing shop for day result...')
-        await page.click('button[data-type="CLOSE"]')
+        try:
+            await page.click('button[data-type="CLOSE"]', timeout=1000)
+        except:
+            pass
         await page.wait_for_timeout(600)
         
         await page.screenshot(path='day_result.png')

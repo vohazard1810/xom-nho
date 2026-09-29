@@ -62,7 +62,15 @@ export function action(state,type,payload){
     for(const [k,qty] of Object.entries(need))s.stock[k]-=qty;
     const npc=customers.find(c=>c.id===s.selected);const price=recipes[npc.recipe].price;
     s.cash+=price;s.revenue+=price;s.served.push(npc.id);s.knownRecipeIds=[...new Set([...s.knownRecipeIds,npc.recipe])];
-    s.facts[npc.id]={successful_orders:1,missed_orders:0,times_given_extra:npc.id==='be_ti'&&s.extraCha?1:0};s.selected=null;s.draft={};
+  }else if(type==='SKIP'){
+    if(s.screen!=='SHOP'||!s.selected)return fail('Chưa chọn khách.');
+    const npc=customers.find(c=>c.id===s.selected);
+    s.missed.push(npc.id);
+    s.facts[npc.id]={successful_orders:0,missed_orders:1,times_given_extra:0};
+    s.selected=null;s.draft={};
+    if(s.served.length + s.missed.length >= customers.length){
+      s.screen='DAY_RESULT';
+    }
   }else if(type==='CLOSE'){
     if(s.screen!=='SHOP')return fail('Quán chưa mở.');
     s.missed=customers.filter(c=>!s.served.includes(c.id)).map(c=>c.id);
