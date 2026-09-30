@@ -124,6 +124,7 @@ let prepTimer1 = null;
 let prepTimer2 = null;
 let prepTimer3 = null;
 let leaveTimer = null;
+let simulationSpeed = null;
 
 const money = n => new Intl.NumberFormat('vi-VN').format(n) + 'đ';
 
@@ -134,6 +135,7 @@ function persist() {
 
 function clearAllTimers() {
   if (simInterval) { clearInterval(simInterval); simInterval = null; }
+  simulationSpeed = null;
   if (betiAnimTimer) { clearInterval(betiAnimTimer); betiAnimTimer = null; }
   if (prepTimer1) { clearTimeout(prepTimer1); prepTimer1 = null; }
   if (prepTimer2) { clearTimeout(prepTimer2); prepTimer2 = null; }
@@ -168,7 +170,8 @@ function send(type, payload) {
 
   // Handle simulation lifecycle when entering/leaving SHOP
   if (state.screen === 'SHOP') {
-    startSimulationLoop();
+    if (!simInterval) startSimulationLoop();
+    else if (simulationSpeed !== state.speed) restartSimulationClock();
   } else {
     clearAllTimers();
   }
@@ -177,21 +180,27 @@ function send(type, payload) {
 }
 
 function startSimulationLoop() {
-  if (simInterval) clearInterval(simInterval);
-  const intervalMs = state.speed === 2 ? 140 : 280;
-  
-  // Hydration recovery: if customer was already served/handled before reload, schedule departure
+  if (simInterval) return;
+  // Recover one unfinished customer once on boot; ordinary state updates must
+  // not schedule a second departure for the same order.
   if (state.activeCustomer) {
     const custStatus = state.activeCustomer.status;
     if (['SERVED', 'OUT_OF_STOCK', 'MENU_DISABLED', 'PRICE_REJECTED'].includes(custStatus)) {
       leaveTimer = setTimeout(() => {
+        leaveTimer = null;
         send('CUSTOMER_LEAVE');
-        render();
       }, 600);
     } else if (custStatus === 'ARRIVED' && !state.isPaused && !autoPrepState) {
       runAutoPrepSequence();
     }
   }
+  restartSimulationClock();
+}
+
+function restartSimulationClock() {
+  if (simInterval) clearInterval(simInterval);
+  simulationSpeed = state.speed;
+  const intervalMs = state.speed === 2 ? 140 : 280;
   
   simInterval = setInterval(() => {
     if (state.screen !== 'SHOP') {
@@ -508,6 +517,7 @@ function renderMenuSetup() {
               <div class="menu-margin-preview">
                 Lãi gộp dự kiến: <strong>+${money(margin)} / phần</strong>
               </div>
+              ${cfg.sellPrice > recipeData.basePrice ? `<div class="price-demand-hint">Giá cao: một số khách nhạy giá có thể bỏ mua.</div>` : ''}
             </div>
           `;
         }).join('')}
@@ -630,13 +640,7 @@ function renderShop() {
         <div class="prep-visual-dock">
           ${autoPrepState && autoPrepState.item === 'BANH_MI_CHA' ? `
             <div class="watercolor-prep-stage banh-mi-stage">
-              ${autoPrepState.stage === 'done' ? `
-                <div class="art-layer-finish">
-                  <img src="../assets/dishes/banh_mi_cha.png" class="dish-finish-img popIn" alt="Bánh mì chả hoàn chỉnh">
-                  <div class="finish-label">Ổ Bánh Mì Chả Nóng Giòn</div>
-                </div>
-              ` : `
-                <div class="art-layers-stack">
+                <div class="art-layers-stack ${autoPrepState.stage === 'done' ? 'is-finished' : ''}">
                   <img src="../assets/ingredients/bread.png" class="art-layer art-bread ${autoPrepState.stage === 'layer1' ? 'layer-enter' : ''}" alt="Bánh mì">
                   ${['layer2', 'done'].includes(autoPrepState.stage) ? `
                     <img src="../assets/ingredients/cha.png" class="art-layer art-cha-slice slice-1 dropIn" alt="Chả lụa">
@@ -645,50 +649,38 @@ function renderShop() {
                     ` : ''}
                     <img src="../assets/ingredients/vegetable.png" class="art-layer art-veg dropIn" alt="Dưa ngò">
                   ` : ''}
+                  ${autoPrepState.stage === 'done' ? `<img src="../assets/dishes/banh_mi_cha.png" class="art-layer completed-dish" alt="Bánh mì chả hoàn chỉnh">` : ''}
                 </div>
                 <div class="prep-layer-caption">
-                  ${autoPrepState.stage === 'layer1' ? 'Vỏ bánh mì nướng giòn rụm' : (autoPrepState.isExtra ? 'Xếp 2 khoanh chả lụa dày đặc + dưa ngò' : 'Xếp chả lụa thơm ngậy + dưa ngò')}
+                  ${autoPrepState.stage === 'layer1' ? 'Vỏ bánh mì nướng giòn rụm' : autoPrepState.stage === 'done' ? 'Ổ bánh mì chả nóng giòn' : (autoPrepState.isExtra ? 'Xếp 2 khoanh chả lụa dày đặc + dưa ngò' : 'Xếp chả lụa thơm ngậy + dưa ngò')}
                 </div>
-              `}
             </div>
           ` : autoPrepState && autoPrepState.item === 'TRA_TAC' ? `
             <div class="watercolor-prep-stage drink-stage">
-              ${autoPrepState.stage === 'done' ? `
-                <div class="art-layer-finish">
-                  <img src="../assets/dishes/tra_tac.png" class="dish-finish-img popIn" alt="Trà tắc hoàn chỉnh">
-                  <div class="finish-label">Ly Trà Tắc Chua Ngọt Mát Lạnh</div>
-                </div>
-              ` : `
-                <div class="art-layers-stack drink-stack">
+                <div class="art-layers-stack drink-stack ${autoPrepState.stage === 'done' ? 'is-finished' : ''}">
                   <img src="../assets/ingredients/ice.png" class="art-layer art-ice ${autoPrepState.stage === 'layer1' ? 'layer-enter' : ''}" alt="Đá bi">
                   ${['layer2', 'done'].includes(autoPrepState.stage) ? `
                     <img src="../assets/ingredients/sugar_syrup.png" class="art-layer art-syrup dropIn" alt="Nước đường">
                     <img src="../assets/ingredients/kumquat.png" class="art-layer art-kumquat dropIn" alt="Tắc tươi">
                   ` : ''}
+                  ${autoPrepState.stage === 'done' ? `<img src="../assets/dishes/tra_tac.png" class="art-layer completed-dish" alt="Trà tắc hoàn chỉnh">` : ''}
                 </div>
                 <div class="prep-layer-caption">
-                  ${autoPrepState.stage === 'layer1' ? 'Ly thủy tinh đầy ắp đá bi' : 'Vắt tắc tươi mọng nước + chan nước đường'}
+                  ${autoPrepState.stage === 'layer1' ? 'Ly thủy tinh đầy ắp đá bi' : autoPrepState.stage === 'done' ? 'Ly trà tắc mát lạnh' : 'Vắt tắc tươi mọng nước + chan nước đường'}
                 </div>
-              `}
             </div>
           ` : autoPrepState && autoPrepState.item === 'SUA_DAU_DA' ? `
             <div class="watercolor-prep-stage drink-stage">
-              ${autoPrepState.stage === 'done' ? `
-                <div class="art-layer-finish">
-                  <img src="../assets/dishes/sua_dau.png" class="dish-finish-img popIn" alt="Sữa đậu hoàn chỉnh">
-                  <div class="finish-label">Ly Sữa Đậu Nành Béo Mát</div>
-                </div>
-              ` : `
-                <div class="art-layers-stack drink-stack">
+                <div class="art-layers-stack drink-stack ${autoPrepState.stage === 'done' ? 'is-finished' : ''}">
                   <img src="../assets/ingredients/ice.png" class="art-layer art-ice ${autoPrepState.stage === 'layer1' ? 'layer-enter' : ''}" alt="Đá bi">
                   ${['layer2', 'done'].includes(autoPrepState.stage) ? `
                     <img src="../assets/ingredients/soy_milk.png" class="art-layer art-soymilk dropIn" alt="Sữa đậu">
                   ` : ''}
+                  ${autoPrepState.stage === 'done' ? `<img src="../assets/dishes/sua_dau.png" class="art-layer completed-dish" alt="Sữa đậu hoàn chỉnh">` : ''}
                 </div>
                 <div class="prep-layer-caption">
-                  ${autoPrepState.stage === 'layer1' ? 'Ly thủy tinh đầy ắp đá bi' : 'Rót sữa đậu nành béo thơm'}
+                  ${autoPrepState.stage === 'layer1' ? 'Ly thủy tinh đầy ắp đá bi' : autoPrepState.stage === 'done' ? 'Ly sữa đậu đá béo mát' : 'Rót sữa đậu nành béo thơm'}
                 </div>
-              `}
             </div>
           ` : `
             <div class="prep-idle-platter">
@@ -949,7 +941,6 @@ $.addEventListener('click', e => {
 
   if (t === 'SPEED') {
     send('SET_SPEED', Number(p));
-    startSimulationLoop();
     return;
   }
 
