@@ -172,15 +172,6 @@ let speechBubbleHidden = false;
 let bubbleFadeTimer = null;
 let customerReaction = null; // { name, reaction, earned }
 
-// Legacy cleanup variables (features removed but cleanup refs remain)
-let autoServiceTimer = null;
-let patienceTimer = null;
-let pourInterval = null;
-let isAutoServing = false;
-let isHoldingPour = false;
-let pourProgress = 0;
-let skillResult = null;
-
 const money = n => new Intl.NumberFormat('vi-VN').format(n) + 'đ';
 
 const ingredientMeta = {
@@ -263,21 +254,14 @@ function send(type, payload) {
     if (type === 'REPLAY') {
       localStorage.removeItem(SAVE_KEY + ':0');
       localStorage.removeItem(SAVE_KEY + ':1');
-      if (autoServiceTimer) clearTimeout(autoServiceTimer);
-      if (patienceTimer) { clearInterval(patienceTimer); patienceTimer = null; }
-      if (pourInterval) { clearInterval(pourInterval); pourInterval = null; }
       customerTransitionState = 'idle';
-      isAutoServing = false;
-      isHoldingPour = false;
-      pourProgress = 0;
-      skillResult = null;
+      customerReaction = null;
+      floatingCash = null;
+      showParticles = false;
+      if (betiAnimationTimer) { clearTimeout(betiAnimationTimer); betiAnimationTimer = null; }
+      if (bubbleFadeTimer) { clearTimeout(bubbleFadeTimer); bubbleFadeTimer = null; }
     }
     if (type === 'TAP') {
-      if (autoServiceTimer) {
-        clearTimeout(autoServiceTimer);
-        autoServiceTimer = null;
-      }
-      isAutoServing = false;
       playTap(payload);
     }
     if (type === 'SELECT') {
