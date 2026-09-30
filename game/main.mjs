@@ -937,24 +937,6 @@ function renderDayResult() {
           <h4 class="ledger-block-title">📝 5. CHUYỆN XÓM SAU GIỜ BÁN</h4>
           <ul class="journal-list">
             ${(state.lastDayReport?.feedback || []).map(f => `<li><b>${escapeHtml(f.name)}:</b> ${escapeHtml(f.text)}</li>`).join('')}
-            ${state.servedOrders.some(o => o.personId === 'be_ti') ? `
-              <li>👧 <b>Bé Tí:</b> Cầm ổ bánh mì thơm phức cười tít mắt, tấm tắc khen chú làm ngon rồi hứa mai tan học ghé tiếp!</li>
-            ` : ''}
-            ${state.servedOrders.some(o => o.personId === 'co_chin') ? `
-              <li>👵 <b>Cô Chín:</b> Uống ly trà tắc mát lạnh, khen quán pha thanh mát vừa miệng, bảo trưa mai sẽ ghé ủng hộ.</li>
-            ` : ''}
-            ${state.servedOrders.some(o => o.personId === 'anh_tung') ? `
-              <li>🛵 <b>Anh Tùng:</b> Uống ực một hơi ly sữa đậu mát rượi, khen quán chu đáo rồi nổ máy chạy cuốc xe trưa.</li>
-            ` : ''}
-            ${ledger.missedOrders.map(o => `
-              <li>👤 <b>${o.name}:</b> ${
-                o.reason === 'MENU_DISABLED' ? 'Tiếc vì quán không bán món hôm nay, hẹn mai ghé lại.' :
-                o.reason === 'PRICE_TOO_HIGH' ? 'Chê giá hôm nay đắt hơn mức bình dân trong xóm.' :
-                o.reason === 'MISSED_LATE_OPENING' ? 'Ghé lúc sáng sớm khi quán chưa mở cửa.' :
-                o.reason === 'MISSED_EARLY_CLOSING' ? 'Định ghé mua nhưng quán đã đóng sớm.' :
-                'Tiếc vì quán hết hàng sớm, hẹn mai ghé sớm hơn.'
-              }</li>
-            `).join('')}
           </ul>
         </div>
 
