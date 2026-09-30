@@ -146,6 +146,7 @@ export function fresh() {
     
     // Non-pausing news ticker
     newsTicker: null, // null or { id: string, text: string, endMinute: number }
+    newsSeen: false,
     
     // Transaction history
     servedOrders: [], // Array of { ticketId, personId, name, recipe, sellPrice, cogs, ingredientsUsed }
@@ -185,10 +186,7 @@ export function action(state, type, payload) {
   if (type === 'NAVIGATE') {
     const nextMap = {
       HOME: 'XOM_OI',
-      XOM_OI: 'MARKET',
-      MARKET: 'MENU',
-      MENU: 'SHOP',
-      SHOP: 'DAY_RESULT'
+      XOM_OI: 'MARKET'
     };
     const next = nextMap[s.screen];
     if (!next) return fail('Không có bước tiếp theo ở màn này.');
@@ -196,7 +194,7 @@ export function action(state, type, payload) {
   } else if (type === 'REPLAY') {
     return { state: fresh() };
   } else if (type === 'BASKET') {
-    if (s.screen !== 'MARKET' || !ingredients[payload.id] || !Number.isInteger(payload.qty) || payload.qty < 0) {
+    if (s.screen !== 'MARKET' || !payload || !Object.hasOwn(ingredients, payload.id) || !Number.isInteger(payload.qty) || payload.qty < 0) {
       return fail('Số lượng nguyên liệu không hợp lệ.');
     }
     const tentative = { ...s.basket, [payload.id]: payload.qty };
@@ -234,7 +232,7 @@ export function action(state, type, payload) {
     s.screen = 'MENU';
   } else if (type === 'CONFIG_MENU') {
     // payload: { recipeId, enabled?: boolean, sellPrice?: number }
-    if (s.screen !== 'MENU' || !recipes[payload.recipeId]) return fail('Món không hợp lệ.');
+    if (s.screen !== 'MENU' || !payload || !Object.hasOwn(recipes, payload.recipeId)) return fail('Món không hợp lệ.');
     if (payload.enabled !== undefined) s.menu[payload.recipeId].enabled = Boolean(payload.enabled);
     if (payload.sellPrice !== undefined) {
       if (!recipes[payload.recipeId].priceTiers.includes(payload.sellPrice)) {
@@ -257,6 +255,8 @@ export function action(state, type, payload) {
     s.extraCha = null;
     s.servedOrders = [];
     s.missedOrders = [];
+    s.newsTicker = null;
+    s.newsSeen = false;
 
     if (s.openingTime === 'late_10am') {
       // Quán mở muộn 10:00: Khách ghé trước 10:00 (minute 120) bị bỏ lỡ
@@ -281,20 +281,23 @@ export function action(state, type, payload) {
       }
       s.customerIndex = idx; // Starts with Bé Tí (index 2)
     } else {
-      // ontime_8am
-      s.clock = 0;
+      // Clock stores minutes relative to 08:00, including the early 06:00 opening.
+      s.clock = s.openingTime === 'early_6am' ? -120 : 0;
       s.customerIndex = 0;
     }
   } else if (type === 'SET_SPEED') {
     if (s.screen !== 'SHOP') return fail('Chỉ đổi tốc độ trong giờ bán.');
-    s.speed = payload === 2 ? 2 : 1;
+    if (![1, 2].includes(payload)) return fail('Tốc độ không hợp lệ.');
+    s.speed = payload;
   } else if (type === 'TICK') {
     // Simulation step: deltaMinutes (typically 1 to 5 in-game minutes)
     if (s.screen !== 'SHOP') return fail('Quán chưa mở.');
     if (s.isPaused) return { state: s }; // Paused when decision is active
     
-    const delta = Number(payload) || 2;
-    s.clock = Math.min(360, s.clock + delta * s.speed);
+    const delta = Number(payload);
+    if (!Number.isFinite(delta) || delta <= 0 || delta > 60) return fail('Bước thời gian không hợp lệ.');
+    // The UI controls x2 through its interval. Simulation minutes per tick stay fixed.
+    s.clock = Math.min(360, s.clock + delta);
 
     // Self-healing customer departure recovery:
     // If customer finished serving/rejecting and UI timer was lost (e.g. page reload),
@@ -308,7 +311,8 @@ export function action(state, type, payload) {
     }
     
     // Check Market News Ticker at minute 195 (11:15 AM)
-    if (s.clock >= 195 && !s.newsTicker && s.clock < 240) {
+    if (s.clock >= 195 && !s.newsSeen) {
+      s.newsSeen = true;
       s.newsTicker = {
         id: 'KUMQUAT_PRICE_RUMOR',
         text: 'Bà Sáu chợ đầu ngõ: "Tắc chiều gom ép nước giá lên 3.000đ rồi đó nghen!"',
@@ -343,9 +347,10 @@ export function action(state, type, payload) {
     }
   } else if (type === 'DECIDE') {
     // Resolves a pending decision, e.g. payload: { choice: 'yes' | 'no' }
-    if (s.screen !== 'SHOP' || !s.activeDecision) return fail('Không có quyết định đang chờ.');
+    if (s.screen !== 'SHOP' || !s.activeDecision || !s.isPaused) return fail('Không có quyết định đang chờ.');
     if (!['yes', 'no'].includes(payload?.choice)) return fail('Lựa chọn không hợp lệ.');
     if (s.activeDecision.id === 'EXTRA_CHA') {
+      if (payload.choice === 'yes' && (s.stock.cha || 0) < 2) return fail('Không đủ 2 phần chả để thêm cho Bé Tí. Chọn phần thường hoặc nhập nhiều hơn ngày sau.');
       s.extraCha = payload.choice === 'yes';
       s.activeDecision = null;
       s.isPaused = false;
@@ -377,6 +382,7 @@ export function action(state, type, payload) {
         missed_orders: ((s.facts[cust.id]?.missed_orders) || 0) + 1
       };
       s.activeCustomer.status = 'MENU_DISABLED';
+      s.revision = state.revision + 1;
       return { state: s };
     }
 
@@ -397,6 +403,7 @@ export function action(state, type, payload) {
         missed_orders: ((s.facts[cust.id]?.missed_orders) || 0) + 1
       };
       s.activeCustomer.status = 'PRICE_REJECTED';
+      s.revision = state.revision + 1;
       return { state: s };
     }
 
@@ -416,6 +423,7 @@ export function action(state, type, payload) {
         missed_orders: ((s.facts[cust.id]?.missed_orders) || 0) + 1
       };
       s.activeCustomer.status = 'OUT_OF_STOCK';
+      s.revision = state.revision + 1;
       return { state: s };
     }
 
@@ -447,11 +455,36 @@ export function action(state, type, payload) {
     s.activeCustomer.status = 'SERVED';
   } else if (type === 'CUSTOMER_LEAVE') {
     if (s.screen !== 'SHOP' || !s.activeCustomer) return fail('Không có khách đang rời.');
+    if (!['SERVED', 'OUT_OF_STOCK', 'MENU_DISABLED', 'PRICE_REJECTED'].includes(s.activeCustomer.status)) return fail('Khách chưa được xử lý.');
     s.activeCustomer = null;
     s.customerIndex += 1;
     // If all customers processed, ca ban hoan tat
   } else if (type === 'CLOSE') {
     if (s.screen !== 'SHOP') return fail('Quán chưa mở.');
+    // Closing early is a management decision: everyone not yet served is a
+    // missed customer, while an already completed transaction remains recorded.
+    const completed = s.activeCustomer && ['SERVED', 'OUT_OF_STOCK', 'MENU_DISABLED', 'PRICE_REJECTED'].includes(s.activeCustomer.status);
+    const fromIndex = s.customerIndex + (completed ? 1 : 0);
+    for (let i = fromIndex; i < fixtureCustomers.length; i++) {
+      const customer = fixtureCustomers[i];
+      s.missedOrders.push({
+        ticketId: customer.id + '_early_close',
+        personId: customer.id,
+        name: customer.name,
+        recipe: customer.recipe,
+        reason: 'MISSED_EARLY_CLOSING',
+        note: 'Quán đã đóng trước khi khách được phục vụ.',
+        timestampMinute: customer.arrivalMinute
+      });
+      s.facts[customer.id] = {
+        ...(s.facts[customer.id] || {}),
+        missed_orders: (s.facts[customer.id]?.missed_orders || 0) + 1
+      };
+    }
+    s.customerIndex = fixtureCustomers.length;
+    s.activeCustomer = null;
+    s.activeDecision = null;
+    s.isPaused = false;
     s.screen = 'DAY_RESULT';
   } else {
     return fail('Lệnh không hợp lệ.');
@@ -504,7 +537,8 @@ export function calculateLedger(state) {
     OUT_OF_STOCK: missedOrders.filter(o => o.reason === 'OUT_OF_STOCK'),
     MENU_DISABLED: missedOrders.filter(o => o.reason === 'MENU_DISABLED'),
     PRICE_TOO_HIGH: missedOrders.filter(o => o.reason === 'PRICE_TOO_HIGH'),
-    MISSED_LATE_OPENING: missedOrders.filter(o => o.reason === 'MISSED_LATE_OPENING')
+    MISSED_LATE_OPENING: missedOrders.filter(o => o.reason === 'MISSED_LATE_OPENING'),
+    MISSED_EARLY_CLOSING: missedOrders.filter(o => o.reason === 'MISSED_EARLY_CLOSING')
   };
   
   return {
