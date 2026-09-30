@@ -196,8 +196,8 @@ body {
 
 /* Upper Half: Counter Window & Street Alley View */
 .street-window-view {
-  height: 270px;
-  background: url('../assets/environment/cooking_counter_bg.jpg') no-repeat center 25%;
+  height: 250px;
+  background: url('../assets/environment/alley_counter_clean.jpg') no-repeat center 35%;
   background-size: cover;
   position: relative;
   border-bottom: 4px solid #4a3424;
@@ -207,7 +207,7 @@ body {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background: linear-gradient(180deg, rgba(0, 0, 0, 0.05) 0%, rgba(0, 0, 0, 0.25) 100%);
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.02) 0%, rgba(0, 0, 0, 0.18) 100%);
 }
 
 /* Counter Sill Bar: foreground edge providing 3D depth in front of customer */
@@ -216,10 +216,10 @@ body {
   bottom: 0;
   left: 0;
   right: 0;
-  height: 16px;
-  background: linear-gradient(180deg, rgba(80, 50, 30, 0.35) 0%, rgba(45, 25, 15, 0.9) 100%);
-  border-top: 1.5px solid rgba(255, 255, 255, 0.25);
-  box-shadow: 0 -2px 6px rgba(0, 0, 0, 0.35);
+  height: 18px;
+  background: linear-gradient(180deg, rgba(95, 60, 35, 0.5) 0%, rgba(45, 25, 15, 0.95) 100%);
+  border-top: 2px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 -3px 8px rgba(0, 0, 0, 0.4);
   z-index: 22;
   pointer-events: none;
 }
@@ -247,19 +247,31 @@ body {
   transition: transform 0.4s cubic-bezier(0.7, 0, 0.84, 0), opacity 0.35s ease-in;
 }
 
+.customer-contact-shadow {
+  position: absolute;
+  bottom: 2px;
+  width: 120px;
+  height: 14px;
+  background: radial-gradient(ellipse at center, rgba(15, 10, 5, 0.6) 0%, rgba(15, 10, 5, 0) 72%);
+  border-radius: 50%;
+  z-index: 19;
+}
+
 .customer-avatar-box {
-  width: 110px;
-  height: 155px;
+  width: 170px;
+  height: 230px;
   display: flex;
   justify-content: center;
   align-items: flex-end;
+  position: relative;
+  z-index: 20;
 }
 .customer-avatar-box img {
   width: 100%;
   height: 100%;
   object-fit: contain;
   object-position: bottom center;
-  filter: drop-shadow(0 8px 12px rgba(0, 0, 0, 0.4));
+  filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.45));
 }
 
 /* Floating Order Thought Bubble - Sleek & Compact with Auto-Fade */
@@ -482,163 +494,231 @@ body {
   box-shadow: inset 0 4px 10px rgba(0, 0, 0, 0.08);
 }
 
-/* Workstation Layout (Cutting Board + Drink Station) */
+/* Workstation Layout */
 .workstation-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-}
-@media (max-width: 550px) {
-  .workstation-row {
-    grid-template-columns: 1fr;
-  }
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
 }
 
 .prep-workstation {
   background: #ffffff;
   border: 2px solid var(--border-color);
   border-radius: var(--radius-md);
-  padding: 10px 12px;
+  padding: 10px 14px;
   display: flex;
   flex-direction: column;
   gap: 8px;
   position: relative;
   box-shadow: var(--shadow-sm);
+  width: 100%;
 }
 .prep-workstation.active-target {
   border-color: #ea580c;
   box-shadow: 0 0 0 2px rgba(234, 88, 12, 0.25), var(--shadow-sm);
 }
 .workstation-title {
-  font-size: 12.5px;
+  font-size: 13px;
   font-weight: 800;
   color: #7c2d12;
   display: flex;
   justify-content: space-between;
   align-items: center;
   border-bottom: 1px dashed #e5d3bc;
-  padding-bottom: 4px;
+  padding-bottom: 5px;
 }
 
-/* Platter / Cutting Board Visual Slot */
+/* Platter / Cutting Board Visual Slot: Generous 145px height for real assembly */
 .prep-visual-slot {
-  height: 105px;
-  background: #fdfaf4;
-  border: 1.5px dashed #dbc2a4;
-  border-radius: 10px;
+  height: 145px;
+  background: #fdfbf7;
+  border: 1.5px solid #d5bc9d;
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
   position: relative;
   overflow: hidden;
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.05);
 }
+
+/* 1. BÁNH MÌ CHẢ DYNAMIC LAYERED ASSEMBLY */
+.assembly-banh-mi-stage {
+  position: relative;
+  width: 250px;
+  height: 130px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.assembly-bread-base {
+  width: 220px;
+  height: auto;
+  max-height: 100px;
+  object-fit: contain;
+  filter: drop-shadow(0 4px 8px rgba(74, 44, 23, 0.35));
+  animation: popIn 0.22s ease-out;
+}
+.assembly-cha-layer {
+  position: absolute;
+  top: 40%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  width: 160px;
+}
+.assembly-cha-slice {
+  width: 80px;
+  height: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.25));
+  animation: popIn 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.assembly-cha-slice.cha-2 {
+  margin-left: -40px;
+  transform: rotate(8deg);
+}
+.assembly-veg-layer {
+  position: absolute;
+  top: 36%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  width: 150px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.assembly-veg-sprig {
+  width: 125px;
+  height: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.2));
+  animation: popIn 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* 2. DRINK DYNAMIC LAYERED ASSEMBLY */
+.assembly-drink-stage {
+  position: relative;
+  width: 160px;
+  height: 135px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.assembly-cup-base {
+  width: 85px;
+  height: 120px;
+  background: rgba(255, 255, 255, 0.55);
+  border: 2px solid rgba(160, 200, 230, 0.9);
+  border-radius: 6px 6px 16px 16px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+  overflow: hidden;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08), inset 0 -4px 10px rgba(0, 0, 0, 0.05);
+}
+.assembly-cup-rim {
+  position: absolute;
+  top: 0;
+  left: -2px;
+  right: -2px;
+  height: 8px;
+  background: rgba(180, 220, 245, 0.95);
+  border-radius: 4px;
+}
+.assembly-drink-ice {
+  width: 65px;
+  height: auto;
+  object-fit: contain;
+  position: absolute;
+  top: 25px;
+  animation: popIn 0.2s ease-out;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.15));
+}
+.assembly-drink-syrup {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 25px;
+  background: linear-gradient(180deg, rgba(234, 179, 8, 0.7) 0%, rgba(202, 138, 4, 0.9) 100%);
+  animation: fillUp 0.3s ease-out;
+}
+.assembly-drink-flavor {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 80px;
+  transition: height 0.3s ease-out;
+}
+.assembly-drink-flavor.tra-tac {
+  background: linear-gradient(180deg, rgba(251, 146, 60, 0.75) 0%, rgba(234, 88, 12, 0.9) 100%);
+}
+.assembly-drink-flavor.sua-dau {
+  background: linear-gradient(180deg, rgba(254, 252, 232, 0.9) 0%, rgba(254, 240, 138, 0.95) 100%);
+}
+.assembly-drink-kumquat-slice {
+  position: absolute;
+  top: 15px;
+  width: 45px;
+  height: auto;
+  object-fit: contain;
+  animation: popIn 0.2s ease-out;
+}
+
+/* Finished Complete Dish Overlay */
 .finished-dish-wrap {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 3px;
-  animation: dishBounceJuice 0.22s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-}
-@keyframes dishBounceJuice {
-  0% { transform: scale(0.8); opacity: 0; }
-  65% { transform: scale(1.06); opacity: 1; }
-  100% { transform: scale(1.0); opacity: 1; }
+  gap: 4px;
+  animation: dishBounceJuice 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
 }
 .finished-dish-wrap img.dish-preview-img {
-  max-height: 72px;
-  max-width: 85%;
+  max-height: 95px;
+  max-width: 90%;
   object-fit: contain;
-  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
+  filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.25));
 }
 .dish-sparkle-badge {
-  font-size: 10.5px;
+  font-size: 11px;
   font-weight: 800;
   color: #15803d;
   background: #dcfce7;
   border: 1px solid #86efac;
   border-radius: 12px;
-  padding: 1px 8px;
+  padding: 2px 10px;
 }
-
-/* Assembly Live Visualization */
-.assembly-cutting-board, .assembly-drink-glass {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  height: 100%;
-  padding: 4px;
-  gap: 5px;
-}
-.assembly-drink-glass {
-  flex-direction: row;
-  gap: 8px;
-}
-.drink-cup-icon {
-  font-size: 32px;
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.12));
-}
-.board-layer {
-  font-size: 11px;
-  font-weight: 700;
-  color: #92400e;
-  background: #fef3c7;
-  border: 1px dashed #d97706;
-  border-radius: 8px;
-  padding: 3px 8px;
-  width: 90%;
-  text-align: center;
-}
-.board-layer.has-item {
-  background: #fef08a;
-  border-color: #ca8a04;
-  color: #854d0e;
-}
-.board-layer-row, .drink-layers-col {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 4px;
-}
-.board-token {
-  font-size: 10.5px;
-  font-weight: 700;
-  border-radius: 10px;
-  padding: 2px 6px;
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-  animation: popIn 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
-}
-.cha-token { background: #fee2e2; border: 1px solid #f87171; color: #991b1b; }
-.veg-token { background: #dcfce7; border: 1px solid #4ade80; color: #166534; }
-.ice-token { background: #e0f2fe; border: 1px solid #38bdf8; color: #075985; }
-.syrup-token { background: #fef9c3; border: 1px solid #facc15; color: #854d0e; }
-.kumquat-token { background: #ffedd5; border: 1px solid #fb923c; color: #9a3412; }
-.soy-token { background: #f3f4f6; border: 1px solid #cbd5e1; color: #334155; }
 
 .prep-empty-hint {
-  font-size: 11.5px;
+  font-size: 12px;
   color: var(--text-light);
   font-style: italic;
   text-align: center;
-  padding: 0 10px;
+  padding: 0 16px;
+  line-height: 1.4;
 }
 
 /* Live Ingredient Recipe Checklist */
 .checklist-chips {
   display: flex;
   flex-wrap: wrap;
-  gap: 5px;
+  gap: 6px;
 }
 .checklist-chip {
   background: #f5eae0;
   border: 1px solid #dcc6af;
   border-radius: 12px;
-  padding: 2px 7px;
-  font-size: 11px;
+  padding: 3px 8px;
+  font-size: 11.5px;
   font-weight: 700;
   color: #4a2c17;
   display: flex;
@@ -659,12 +739,12 @@ body {
 /* Ingredient Trays on Counter (Khay Inox) */
 .ingredient-tray-rack {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 6px;
 }
-@media (max-width: 550px) {
+@media (min-width: 600px) {
   .ingredient-tray-rack {
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(7, 1fr);
   }
 }
 
@@ -672,12 +752,15 @@ body {
   background: #ffffff;
   border: 1.5px solid #d8bfa3;
   border-radius: var(--radius-md);
-  padding: 7px 4px;
+  padding: 6px 4px;
+  min-height: 64px;
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   gap: 2px;
   cursor: pointer;
+  touch-action: manipulation;
   transition: all 0.12s ease;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
 }
@@ -687,31 +770,35 @@ body {
   background: #fff7ed;
 }
 .tray-button.needed {
-  border-color: #f59e0b;
-  background: #fefce8;
-  box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.35);
+  border-color: #ea580c;
+  background: #fffbeb;
+  box-shadow: 0 0 0 2px rgba(234, 88, 12, 0.35);
 }
-.tray-button:disabled {
-  opacity: 0.45;
+.tray-button.out-of-stock, .tray-button:disabled {
+  opacity: 0.4;
   cursor: not-allowed;
   transform: none;
+  filter: grayscale(0.5);
 }
-.tray-icon {
-  font-size: 20px;
-  line-height: 1;
+.tray-sprite-img {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+  filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.15));
 }
 .tray-name {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
   color: #4a2c17;
   white-space: nowrap;
 }
 .tray-stock {
-  font-size: 9.5px;
+  font-size: 10px;
   color: #78350f;
   background: #f4eae0;
-  padding: 1px 4px;
+  padding: 1px 6px;
   border-radius: 8px;
+  font-weight: 600;
 }
 
 /* Bottom Action Bar */
