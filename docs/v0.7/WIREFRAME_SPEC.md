@@ -1,7 +1,8 @@
 # ĐẶC TẢ WIREFRAME (WIREFRAME_SPEC.md) — Xóm Nhỏ v0.7 Mobile Portrait
 
-> **Trạng thái**: REVIEW DRAFT v0.7.2 — Thiết kế màn hình dọc điện thoại (Mobile Portrait 390×844).  
-> **Nguyên tắc**: Thao tác một tay thuận tiện, touch target tối thiểu 44×44px, không kéo thả phức tạp, giữ trọn visual storybook ấm áp của con hẻm Sài Gòn.
+> **Trạng thái**: REVIEW DRAFT v0.7.3 — Thiết kế màn hình dọc điện thoại (Mobile Portrait 390×844).  
+> **Nguyên tắc**: Thao tác một tay thuận tiện, touch target tối thiểu 44×44px, không kéo thả phức tạp, giữ trọn visual storybook ấm áp của con hẻm Sài Gòn.  
+> **Ghi chú bằng chứng**: Các ảnh chụp hiện tại trong repo nằm ở thư mục [`docs/v0.6_baseline_screenshots/`](https://github.com/vohazard1810/xom-nho/tree/docs/be-ti-static-production/docs/v0.6_baseline_screenshots) thuộc bản v0.6 manual baseline. Storyboard dưới đây là **đặc tả thiết kế đã duyệt định hướng**; việc triển khai hình ảnh chuyển động watercolor thực tế sẽ được thực hiện và kiểm tra khi code prototype v0.7.
 
 ---
 
@@ -20,7 +21,7 @@
 [Màn 4: MENU & GIÁ (Mở Bán 3 Slots Khởi Đầu & Đặt Giá)]
       │
       ▼
-[Màn 5: QUÁN BÁN (Cảnh Quán Tự Động + Storyboard Bếp + Modal Pause Khi Có Tình Huống)]
+[Màn 5: QUÁN BÁN (Cảnh Quán Tự Động + Storyboard Bếp + Modal Pause Khi Bé Tí Xin Chả + Banner Tin Tức)]
       │
       ▼
 [Màn 6: SỔ TỔNG KẾT (Đối Soát Kế Toán Minh Bạch + Nhận Xét + Preview Nâng Cấp Day 2)]
@@ -43,7 +44,7 @@
 - **Nội dung thẻ câu chuyện**:
   - Đoạn văn mô tả không khí buổi sớm (tiếng chổi tre, hoa giấy, nắng oi ả).
   - Khung tin xóm: Lịch ghé của Bé Tí, Cô Chín, Anh Tùng.
-  - **Khung tin tức thị trường (Quyết định 2 & 3)**: Lời dặn của bà Sáu về giá tắc chiều có thể khan hàng, chuẩn bị tinh thần cho Day 2.
+  - **Khung tin đồn thị trường**: Lời dặn của bà Sáu về giá tắc chiều có thể khan hàng, chuẩn bị tinh thần cho Day 2.
 - **Nút hành động cố định dưới đáy**: `[ 🛒 Ra Chợ Đầu Ngõ Nhập Hàng ]`.
 
 ---
@@ -78,39 +79,40 @@
 Layout màn hình dọc kết hợp hài hòa giữa không gian phố và quầy chế biến:
 
 ```
-┌──────────────────────────────────────┐
-│ [XÓM NHỎ | ⏰ 10:00 · Trưa | 💵 80k]  │  ← Thanh trạng thái & Đồng hồ in-game
-├──────────────────────────────────────┤
-│ ╔══════════════════════════════════╗ │
-│ ║  CẢNH PHỐ & CỬA SỔ QUÁN (50%)    ║ │  ← Nền alley_counter_clean.jpg
-│ ║                                  ║ │
-│ ║   [Hàng chờ: 👤 👤 👤]            ║ │  ← Khách đang chờ ngoài hẻm
-│ ║                                  ║ │
-│ ║          [ 👧 Bé Tí ]            ║ │  ← Khách đang đứng ở quầy (có bóng đổ)
-│ ║    ┌──────────────────────────┐  ║ │
-│ ║    │ "Cho con ổ thêm chả nha!"│  ║ │  ← Bong bóng thoại
-│ ║    └──────────────────────────┘  ║ │
-│ ║ ════════════════════════════════ ║ │  ← Bậu gỗ cửa sổ (counter-sill-bar)
-│ ╚══════════════════════════════════╝ │
-│                                      │
-│ ╔══════════════════════════════════╗ │
-│ ║  QUẦY BẾP TỰ ĐỘNG CHẾ BIẾN (32%) ║ │  ← STORYBOARD VẬT LÝ ĐỒNG BỘ ART STYLE
-│ ║  [ Thớt Gỗ / Ly Thủy Tinh Mờ ]   ║ │
-│ ║                                  ║ │
-│ ║  (Quá trình tự làm diễn ra 1.5s  ║ │
-│ ║   với animation vật lý từng lớp, ║ │
-│ ║   không dùng icon trôi nổi)      ║ │
-│ ╚══════════════════════════════════╝ │
-│                                      │
-│ ┌── TỒN KHO & ĐIỀU KHIỂN (18%) ────┐ │
-│ │ 🥖:1  🍖:1  🥒:1  🧊:2  🍯:2  🍊:1│ │  ← Số lượng nguyên liệu giảm dần
-│ │ [ ▶ x1 ]  [ ⏩ x2 ]   [ Đóng Quán]│ │  ← Điều khiển tốc độ & kết thúc ca
-│ └──────────────────────────────────┘ │
-└──────────────────────────────────────┘
+┌──────────────────────────────────────────────┐
+│ [XÓM NHỎ | ⏰ 10:00 · Trưa | 💵 80.000đ]       │  ← Thanh trạng thái & Đồng hồ
+├──────────────────────────────────────────────┤
+│ ╔══════════════════════════════════════════╗ │
+│ ║  CẢNH PHỐ & CỬA SỔ QUÁN (50%)            ║ │  ← Nền alley_counter_clean.jpg
+│ ║                                          ║ │
+│ ║   [📢 Banner: Tắc chợ chiều lên 3k...]   ║ │  ← Tin tức lướt qua (KHÔNG PAUSE)
+│ ║   [Hàng chờ: 👤 👤 👤]                    ║ │  ← Khách đang chờ ngoài hẻm
+│ ║                                          ║ │
+│ ║          [ 👧 Bé Tí ]                    ║ │  ← Khách đứng trước quầy
+│ ║    ┌──────────────────────────────────┐  ║ │
+│ ║    │ "Cho con ổ thêm chả nha chú!"    │  ║ │  ← Bong bóng thoại
+│ ║    └──────────────────────────────────┘  ║ │
+│ ║ ════════════════════════════════════════ ║ │  ← Bậu gỗ cửa sổ (counter-sill-bar)
+│ ╚══════════════════════════════════════════╝ │
+│                                              │
+│ ╔══════════════════════════════════════════╗ │
+│ ║  QUẦY BẾP TỰ ĐỘNG CHẾ BIẾN (32%)         ║ │  ← STORYBOARD VẬT LÝ ĐỒNG BỘ ART STYLE
+│ ║  [ Thớt Gỗ / Ly Thủy Tinh Mờ ]           ║ │
+│ ║                                          ║ │
+│ ║  (Quá trình tự làm diễn ra 1.5s          ║ │
+│ ║   với animation vật lý từng lớp,         ║ │
+│ ║   không dùng icon trôi nổi)              ║ │
+│ ╚══════════════════════════════════════════╝ │
+│                                              │
+│ ┌── TỒN KHO & ĐIỀU KHIỂN (18%) ────────────┐ │
+│ │ 🥖:1  🍖:1  🥒:1  🧊:2  🍯:2  🍊:1  🥛:1 │ │  ← Số lượng kho trừ dần
+│ │ [ ▶ x1 ]    [ ⏩ x2 ]       [ Đóng Quán] │ │  ← Điều khiển tốc độ & kết thúc ca
+│ └──────────────────────────────────────────┘ │
+└──────────────────────────────────────────────┘
 ```
 
 #### STORYBOARD QUÁ TRÌNH TỰ PHỤC VỤ (AUTO-PREP STORYBOARD)
-Thay vì dùng icon lướt vào món ăn, quá trình tự phục vụ thể hiện bằng **hình ảnh quầy bếp thực tế đồng bộ phong cách Watercolor Storybook Việt Nam**:
+Quá trình tự phục vụ 1.5s được đặc tả bằng **hình ảnh quầy bếp vật lý đồng bộ phong cách Watercolor Storybook Việt Nam**:
 
 1. **Đơn Bánh Mì Chả (1.5 giây)**:
    - *0.0s – 0.4s*: Ổ bánh mì vàng ươm, nóng giòn tự động mở sẵn trên thớt gỗ sồi mộc mạc.
@@ -129,7 +131,7 @@ Thay vì dùng icon lướt vào món ăn, quá trình tự phục vụ thể hi
 ### Màn 6: Sổ Ghi Tiền & Đối Soát Cuối Ngày (DAY RESULT)
 - **Giao diện**: Trang sổ kẻ ngang mộc mạc.
 - **Nội dung hạch toán minh bạch**:
-  1. *Dòng tiền mặt*: Vốn đầu ngày (60k) - Mua chợ (55k) + Thu bán hàng (122k) = **127.000đ trong két** (+67.000đ chênh lệch).
+  1. *Dòng tiền mặt*: Vốn đầu ngày (60k) - Mua chợ (55k) + Thu bán hàng tiền mặt (122k) = **127.000đ trong két** (+67.000đ chênh lệch).
   2. *Kết quả kinh doanh (P&L)*: Doanh thu (122k) - COGS (55k) = **Lợi nhuận gộp +67.000đ**. Tồn kho: 0đ.
   3. *Lãi gộp theo món*: Bánh mì chả (+37k), Trà tắc (+20k), Sữa đậu đá (+10k).
   4. *Đơn bỏ lỡ*: 2 đơn (Cô Bảy, Chú Tư hết hàng).

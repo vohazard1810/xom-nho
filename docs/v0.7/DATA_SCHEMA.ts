@@ -1,6 +1,7 @@
 // DATA_SCHEMA.ts — Xóm Nhỏ v0.7 Data Models & Type Contracts
-// Updated: 2026-09-30 (v0.7.2)
-// Strict JSON-serializable schema: Zero functions in state, complete cost-basis inventory tracking
+// Updated: 2026-09-30 (v0.7.3)
+// Strict JSON-serializable schema: Zero functions in state, complete cost-basis inventory tracking,
+// unified cash reconciliation (no double-subtraction), 1 pause decision + non-pausing news ticker.
 //
 // Owner annotations:
 //   [P] = Persistent across days (saved to storage)
@@ -30,7 +31,7 @@ export interface GameState {
   teasedRecipeIds: string[];            // [P] Recipes teased in stories (e.g. BANH_MI_TRUNG)
   npcFacts: Record<string, NPCFactSheet>; // [P] Factual memory keyed by personId
   
-  // Storage carry-over with exact Cost Basis (Blocker 3 fix)
+  // Storage carry-over with exact Cost Basis
   pantryInventory: Record<string, PantryStockLine>; // [P] Carried overnight with cost basis
   
   // Active Day Simulation (null if player is on Day Transition screen)
@@ -47,7 +48,7 @@ export interface DayState {
   
   // ── PREPARE Decisions ──
   chosenOpeningTime: 'EARLY_6AM' | 'ON_TIME_8AM' | 'LATE_10AM'; // [D]
-  dailyMenu: Record<string, DailyMenuItem>;                    // [D] Keyed by recipeId
+  dailyMenu: Record<string, DailyMenuItem>;                    // [D] Keyed by recipeId (3 starter slots)
   purchasesToday: Record<string, BatchPurchase>;               // [D] Keyed by ingredientId
   
   // ── SERVICE Simulation ──
@@ -57,14 +58,19 @@ export interface DayState {
   completedOrders: FulfilledOrder[];    // [D] Successfully served orders
   missedOrders: AbandonedOrder[];       // [D] Lost orders (out of stock, walk-outs)
   livePantry: Record<string, PantryStockLine>; // [D] Live inventory with cost basis during service
+  
+  // Single active pause decision (only for true choices like Bé Tí extra chả)
   activeDecision: PendingDecision | null; // [D] If non-null, CLOCK IS PAUSED
+  
+  // Ambient news banners (does NOT pause clock)
+  activeNewsTicker: MarketNewsTicker | null; // [D] Non-blocking market chatter
   
   // ── WRAP_UP Accounting ──
   dayLedger: TransparentLedger | null;  // [D] Reconciled at end of day
 }
 
 // ═══════════════════════════════════════════════════════════════════════
-// 3. INVENTORY & COST BASIS TRACKING (Blocker 3 Fix)
+// 3. INVENTORY & COST BASIS TRACKING
 // ═══════════════════════════════════════════════════════════════════════
 
 export interface PantryStockLine {
@@ -89,7 +95,7 @@ export interface BatchPurchase {
 }
 
 // ═══════════════════════════════════════════════════════════════════════
-// 4. MENU & PRICING (Clarified: 3 starter slots, upgradeable to 4+)
+// 4. MENU & PRICING (3 Starter Slots, Upgradeable to 4+)
 // ═══════════════════════════════════════════════════════════════════════
 
 export interface DailyMenuItem {
@@ -147,7 +153,7 @@ export interface NPCFactSheet {
 }
 
 // ═══════════════════════════════════════════════════════════════════════
-// 7. SIMULATION CLOCK & SERIALIZABLE DECISIONS (Blocker 3 Fix)
+// 7. SIMULATION CLOCK, DECISIONS (PAUSE) & NEWS (NO PAUSE)
 // ═══════════════════════════════════════════════════════════════════════
 
 export interface SimulationClock {
@@ -158,9 +164,9 @@ export interface SimulationClock {
   timeSlotName: 'SÁNG SỚM' | 'GIỜ ĐI HỌC / ĐI LÀM' | 'TRƯA' | 'CHIỀU';
 }
 
-/** Strictly JSON-serializable decision state (Zero function references) */
+/** Strictly JSON-serializable decision state (Only for genuine choices, pauses clock) */
 export interface PendingDecision {
-  decisionId: string;                   // e.g. 'BETI_EXTRA_CHA_REQUEST', 'KUMQUAT_MARKET_NEWS_DAY2'
+  decisionId: string;                   // e.g. 'BETI_EXTRA_CHA_REQUEST'
   title: string;
   description: string;
   speakerName?: string;
@@ -168,15 +174,23 @@ export interface PendingDecision {
 }
 
 export interface DecisionOptionData {
-  optionKey: string;                   // e.g. 'GRANT_EXTRA', 'DENY_EXTRA', 'ACKNOWLEDGE_NEWS'
+  optionKey: string;                   // e.g. 'GRANT_EXTRA', 'DENY_EXTRA'
   buttonLabel: string;
   narrativeConsequence: string;
   actionKey: string;                   // Pure string ID processed by engine reducer
   actionPayload?: Record<string, string | number | boolean>; // Pure JSON parameters
 }
 
+/** Ambient news notification (Does NOT pause clock) */
+export interface MarketNewsTicker {
+  newsId: string;                       // e.g. 'KUMQUAT_CHIEU_SPIKE_RUMOR'
+  headline: string;                     // Short banner text: "Bà Sáu: Tắc chợ chiều bị gom giá lên 3k!"
+  displayDurationSeconds: number;       // How long banner floats before disappearing
+  dayTwoImpactHint: string;             // Stored for journal hint at wrap-up
+}
+
 // ═══════════════════════════════════════════════════════════════════════
-// 8. REPUTATION & UPGRADES (Clarified: 3 starter slots, upgradeable)
+// 8. REPUTATION & UPGRADES
 // ═══════════════════════════════════════════════════════════════════════
 
 export interface ShopReputation {
@@ -193,7 +207,7 @@ export interface ShopUpgrades {
 }
 
 // ═══════════════════════════════════════════════════════════════════════
-// 9. ORDERS & RECONCILED ACCOUNTING LEDGER
+// 9. ORDERS & RECONCILED ACCOUNTING LEDGER (Strict Standard Formula)
 // ═══════════════════════════════════════════════════════════════════════
 
 export interface FulfilledOrder {
@@ -201,6 +215,7 @@ export interface FulfilledOrder {
   personId: string;
   recipeId: string;
   billedRevenue: number;                // Actual price charged to customer
+  isPaidCash: boolean;                  // true = paid cash immediately; false = ghi sổ
   actualCOGS: number;                   // Cost of exact ingredients consumed from batch entries
   ingredientsDeducted: Record<string, number>;
   tipEarned: number;
@@ -216,21 +231,27 @@ export interface AbandonedOrder {
 }
 
 export interface TransparentLedger {
-  // Cash Flow in Drawer (Cash In - Cash Out)
-  startingCash: number;                 // Cash at 6:00 AM (e.g. 60.000đ)
-  spentOnMorningStock: number;          // Cash Outflow at Morning Market (e.g. -55.000đ)
-  cashCollectedFromSales: number;       // Cash Inflow from fulfilled orders (e.g. +122.000đ)
-  uncollectedCreditSales: number;       // Bán ghi sổ chưa thu (0đ for Day 1)
-  tipsCollected: number;                // Tips Inflow (0đ for Day 1)
-  finalCashInDrawer: number;            // startingCash - spentOnMorningStock + cashCollectedFromSales + tipsCollected - uncollectedCreditSales (127.000đ)
+  // ── Cash Flow in Drawer (Cash Inflows - Cash Outflows) ──
+  startingCash: number;                 // Cash in drawer at 6:00 AM (60.000đ)
+  spentOnMorningStock: number;          // Cash Outflow at Morning Market (-55.000đ)
+  cashSalesCollected: number;           // Actual Cash Inflow collected from cash-paying customers (+122.000đ)
+  tipsCollected: number;                // Tips Inflow (+0đ)
+  
+  // Standard Cash Formula:
+  // finalCashInDrawer = startingCash - spentOnMorningStock + cashSalesCollected + tipsCollected
+  // NOTE: uncollectedCreditSales is NOT subtracted here because cashSalesCollected ONLY counts actual cash received!
+  finalCashInDrawer: number;            // 60k - 55k + 122k + 0k = 127.000đ
   netCashDifferenceToday: number;       // finalCashInDrawer - startingCash (+67.000đ)
 
-  // P&L Accounting (Standard Terminology: Gross Operating Profit)
-  totalSalesRevenue: number;            // Gross sales billed (122.000đ)
+  // ── Accrual Accounts & Receivables ──
+  totalSalesRevenue: number;            // Total Billed Revenue = cashSalesCollected + uncollectedCreditSales (122.000đ)
+  uncollectedCreditSales: number;       // Unpaid tabs / Ghi sổ (0đ for Day 1)
+
+  // ── P&L Accounting (Standard Terminology: Gross Operating Profit) ──
   cogsSoldItemsOnly: number;            // Exact purchase cost of ingredients in fulfilled orders (55.000đ)
   grossOperatingProfit: number;         // totalSalesRevenue - cogsSoldItemsOnly (+67.000đ)
 
-  // Inventory Reconciliation (Pantry stock does not inflate COGS)
+  // ── Inventory Reconciliation (Pantry stock does not inflate COGS) ──
   retainedStockQuantity: Record<string, number>;
   retainedStockValueAtCost: number;     // Value of unsold items sitting in pantry (0đ)
   spoilageLoss: number;                 // Separate line item, never mixed into COGS (0đ)

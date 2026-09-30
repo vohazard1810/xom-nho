@@ -171,6 +171,9 @@ let showParticles = false;
 let speechBubbleHidden = false;
 let bubbleFadeTimer = null;
 let customerReaction = null; // { name, reaction, earned }
+let reactionDisplayTimer = null;
+let reactionLeaveTimer = null;
+let reactionIdleTimer = null;
 
 const money = n => new Intl.NumberFormat('vi-VN').format(n) + 'đ';
 
@@ -224,21 +227,23 @@ function send(type, payload) {
     state = r.state;
     message = '';
     persist();
-    render();
+    if (reactionDisplayTimer) clearTimeout(reactionDisplayTimer);
+    if (reactionLeaveTimer) clearTimeout(reactionLeaveTimer);
+    if (reactionIdleTimer) clearTimeout(reactionIdleTimer);
 
-    setTimeout(() => {
+    reactionDisplayTimer = setTimeout(() => {
       floatingCash = null;
       showParticles = false;
       customerReaction = null;
       customerTransitionState = 'leaving';
       render();
 
-      setTimeout(() => {
+      reactionLeaveTimer = setTimeout(() => {
         ensureActiveCustomer();
         customerTransitionState = 'entering';
         render();
 
-        setTimeout(() => {
+        reactionIdleTimer = setTimeout(() => {
           customerTransitionState = 'idle';
           render();
         }, 300);
@@ -254,6 +259,9 @@ function send(type, payload) {
     if (type === 'REPLAY') {
       localStorage.removeItem(SAVE_KEY + ':0');
       localStorage.removeItem(SAVE_KEY + ':1');
+      if (reactionDisplayTimer) { clearTimeout(reactionDisplayTimer); reactionDisplayTimer = null; }
+      if (reactionLeaveTimer) { clearTimeout(reactionLeaveTimer); reactionLeaveTimer = null; }
+      if (reactionIdleTimer) { clearTimeout(reactionIdleTimer); reactionIdleTimer = null; }
       customerTransitionState = 'idle';
       customerReaction = null;
       floatingCash = null;
