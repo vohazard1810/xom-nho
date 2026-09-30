@@ -1,5 +1,7 @@
 // DATA_SCHEMA.ts — Xóm Nhỏ v0.7 Data Models & Type Contracts
-// Updated: 2026-09-30 — Incorporating Owner Decisions 1–5
+// Updated: 2026-09-30 (v0.7.2)
+// Strict JSON-serializable schema: Zero functions in state, complete cost-basis inventory tracking
+//
 // Owner annotations:
 //   [P] = Persistent across days (saved to storage)
 //   [D] = Day-scoped (reset/re-calculated each day)
@@ -14,10 +16,10 @@ export interface GameState {
   currentDay: number;                   // [P] 1-indexed (Day 1, Day 2...)
   
   // Economy accounts
-  cashInDrawer: number;                 // [P] Actual cash in hand (VND integer)
-  totalHistoricalRevenue: number;       // [P] Cumulative revenue across days
-  totalHistoricalCOGS: number;          // [P] Cumulative COGS across days
-  outstandingReceivables: number;       // [P] Ghi sổ / debts owed to the shop
+  cashInDrawer: number;                 // [P] Actual physical cash in drawer (VND integer)
+  totalHistoricalRevenue: number;       // [P] Cumulative revenue across all days
+  totalHistoricalCOGS: number;          // [P] Cumulative COGS across all days
+  outstandingReceivables: number;       // [P] Unpaid customer tabs / ghi sổ
   
   // Progression & Reputation
   reputation: ShopReputation;           // [P] Rating & neighborhood knowledge
@@ -28,10 +30,10 @@ export interface GameState {
   teasedRecipeIds: string[];            // [P] Recipes teased in stories (e.g. BANH_MI_TRUNG)
   npcFacts: Record<string, NPCFactSheet>; // [P] Factual memory keyed by personId
   
-  // Storage carry-over
-  pantryInventory: Record<string, number>; // [P] Quantity of ingredients carried overnight
+  // Storage carry-over with exact Cost Basis (Blocker 3 fix)
+  pantryInventory: Record<string, PantryStockLine>; // [P] Carried overnight with cost basis
   
-  // Active Day Simulation (null if player is on Day Transition)
+  // Active Day Simulation (null if player is on Day Transition screen)
   activeDay: DayState | null;           // [D] Current active day data
 }
 
@@ -54,7 +56,7 @@ export interface DayState {
   activeCustomerSlots: (ActiveCustomer | null)[]; // [D] Customers visible at counter (max 3)
   completedOrders: FulfilledOrder[];    // [D] Successfully served orders
   missedOrders: AbandonedOrder[];       // [D] Lost orders (out of stock, walk-outs)
-  livePantry: Record<string, number>;   // [D] Live inventory counts during service
+  livePantry: Record<string, PantryStockLine>; // [D] Live inventory with cost basis during service
   activeDecision: PendingDecision | null; // [D] If non-null, CLOCK IS PAUSED
   
   // ── WRAP_UP Accounting ──
@@ -62,7 +64,32 @@ export interface DayState {
 }
 
 // ═══════════════════════════════════════════════════════════════════════
-// 3. MENU & PRICING (Owner Decision 2 & 3)
+// 3. INVENTORY & COST BASIS TRACKING (Blocker 3 Fix)
+// ═══════════════════════════════════════════════════════════════════════
+
+export interface PantryStockLine {
+  ingredientId: string;
+  totalQuantity: number;                // Total units in pantry
+  averageUnitCost: number;              // Weighted cost basis (VND)
+  batches: StockBatchEntry[];           // Individual purchase batches for exact COGS
+}
+
+export interface StockBatchEntry {
+  batchId: string;                      // e.g. 'batch_day1_morning'
+  dayAcquired: number;
+  unitCost: number;                     // Exact price paid when purchased
+  quantityRemaining: number;            // Decrements as items are consumed
+}
+
+export interface BatchPurchase {
+  ingredientId: string;
+  quantityPurchased: number;
+  unitCostAtPurchase: number;           // Actual price paid at morning market
+  totalCostPaid: number;                // quantityPurchased × unitCostAtPurchase
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// 4. MENU & PRICING (Clarified: 3 starter slots, upgradeable to 4+)
 // ═══════════════════════════════════════════════════════════════════════
 
 export interface DailyMenuItem {
@@ -74,15 +101,8 @@ export interface DailyMenuItem {
   isTemporarilySuspended?: boolean;     // Can be paused mid-day if supply shocks occur
 }
 
-export interface BatchPurchase {
-  ingredientId: string;
-  quantityPurchased: number;
-  unitCostAtPurchase: number;           // Actual price paid at morning market
-  totalCostPaid: number;                // quantityPurchased × unitCostAtPurchase
-}
-
 // ═══════════════════════════════════════════════════════════════════════
-// 4. CUSTOMERS & EMOTIONS (Owner Decision 1)
+// 5. CUSTOMERS & EMOTIONS
 // ═══════════════════════════════════════════════════════════════════════
 
 export type EmotionState = 'normal' | 'happy' | 'impatient';
@@ -111,7 +131,7 @@ export interface ActiveCustomer {
 }
 
 // ═══════════════════════════════════════════════════════════════════════
-// 5. NPC FACT SHEET (Fact-Based Memory, No Abstract Scores)
+// 6. NPC FACT SHEET (Fact-Based Memory, No Abstract Scores)
 // ═══════════════════════════════════════════════════════════════════════
 
 export interface NPCFactSheet {
@@ -127,7 +147,7 @@ export interface NPCFactSheet {
 }
 
 // ═══════════════════════════════════════════════════════════════════════
-// 6. SIMULATION CLOCK & DECISIONS (Pause On Event)
+// 7. SIMULATION CLOCK & SERIALIZABLE DECISIONS (Blocker 3 Fix)
 // ═══════════════════════════════════════════════════════════════════════
 
 export interface SimulationClock {
@@ -138,48 +158,50 @@ export interface SimulationClock {
   timeSlotName: 'SÁNG SỚM' | 'GIỜ ĐI HỌC / ĐI LÀM' | 'TRƯA' | 'CHIỀU';
 }
 
+/** Strictly JSON-serializable decision state (Zero function references) */
 export interface PendingDecision {
-  decisionId: string;                   // e.g. 'BETI_EXTRA_CHA_REQUEST', 'KUMQUAT_PRICE_SPIKE_MIDDAY'
+  decisionId: string;                   // e.g. 'BETI_EXTRA_CHA_REQUEST', 'KUMQUAT_MARKET_NEWS_DAY2'
   title: string;
   description: string;
   speakerName?: string;
-  options: DecisionOption[];
+  options: DecisionOptionData[];
 }
 
-export interface DecisionOption {
-  optionKey: string;
+export interface DecisionOptionData {
+  optionKey: string;                   // e.g. 'GRANT_EXTRA', 'DENY_EXTRA', 'ACKNOWLEDGE_NEWS'
   buttonLabel: string;
   narrativeConsequence: string;
-  immediateEffect: (state: DayState) => void;
+  actionKey: string;                   // Pure string ID processed by engine reducer
+  actionPayload?: Record<string, string | number | boolean>; // Pure JSON parameters
 }
 
 // ═══════════════════════════════════════════════════════════════════════
-// 7. REPUTATION & UPGRADES (Owner Decisions 4 & 5)
+// 8. REPUTATION & UPGRADES (Clarified: 3 starter slots, upgradeable)
 // ═══════════════════════════════════════════════════════════════════════
 
 export interface ShopReputation {
   ratingStatus: 'UNRATED_NEW_SHOP' | 'CALIBRATED';
   currentStarDisplay: string;           // "Chưa đủ đánh giá" during Day 1
-  firstDayReviewSummary: string | null; // Generated at end of Day 1
+  firstDayReviewSummary: string | null; // Generated at end of Day 1 based on actual service facts
 }
 
 export interface ShopUpgrades {
-  vehicleCapacityUnits: number;         // 15 units (Xe đạp) initially
-  counterDisplaySlots: number;          // 2 slots initially
+  vehicleCapacityUnits: number;         // 20 units (Xe đạp chở hàng) initially
+  counterDisplaySlots: number;          // 3 slots initially (bán đủ 3 món khởi đầu; nâng cấp mở slot thứ 4)
   seatingStools: number;                // 2 plastic stools initially
-  previewedNextUpgrade: string | null;  // Owner Decision 5: Preview only, no charge
+  previewedNextUpgrade: string | null;  // Preview only for Day 2 plan, no money deducted Day 1
 }
 
 // ═══════════════════════════════════════════════════════════════════════
-// 8. ORDERS & ACCOUNTING LEDGER
+// 9. ORDERS & RECONCILED ACCOUNTING LEDGER
 // ═══════════════════════════════════════════════════════════════════════
 
 export interface FulfilledOrder {
   ticketId: string;
   personId: string;
   recipeId: string;
-  billedRevenue: number;                // Price charged to customer
-  actualCOGS: number;                   // Cost of exact ingredients used based on batch unitCost
+  billedRevenue: number;                // Actual price charged to customer
+  actualCOGS: number;                   // Cost of exact ingredients consumed from batch entries
   ingredientsDeducted: Record<string, number>;
   tipEarned: number;
   timestampMinute: number;
@@ -194,30 +216,32 @@ export interface AbandonedOrder {
 }
 
 export interface TransparentLedger {
-  // Cash Flow in Drawer
+  // Cash Flow in Drawer (Cash In - Cash Out)
   startingCash: number;                 // Cash at 6:00 AM (e.g. 60.000đ)
-  spentOnMorningStock: number;          // Outflow at Market (e.g. -28.000đ)
-  cashCollectedFromSales: number;       // Inflow from fulfilled orders (e.g. +57.000đ)
-  tipsCollected: number;                // Inflow from tips (e.g. 0đ)
-  finalCashInDrawer: number;            // startingCash - spentOnMorningStock + cashCollectedFromSales + tipsCollected
-  netCashDifferenceToday: number;       // finalCashInDrawer - startingCash
+  spentOnMorningStock: number;          // Cash Outflow at Morning Market (e.g. -55.000đ)
+  cashCollectedFromSales: number;       // Cash Inflow from fulfilled orders (e.g. +122.000đ)
+  uncollectedCreditSales: number;       // Bán ghi sổ chưa thu (0đ for Day 1)
+  tipsCollected: number;                // Tips Inflow (0đ for Day 1)
+  finalCashInDrawer: number;            // startingCash - spentOnMorningStock + cashCollectedFromSales + tipsCollected - uncollectedCreditSales (127.000đ)
+  netCashDifferenceToday: number;       // finalCashInDrawer - startingCash (+67.000đ)
 
-  // P&L Accounting
-  totalSalesRevenue: number;            // Gross sales
-  cogsSoldItemsOnly: number;            // Exact purchase cost of ingredients that were actually sold
-  grossOperatingProfit: number;         // totalSalesRevenue - cogsSoldItemsOnly
+  // P&L Accounting (Standard Terminology: Gross Operating Profit)
+  totalSalesRevenue: number;            // Gross sales billed (122.000đ)
+  cogsSoldItemsOnly: number;            // Exact purchase cost of ingredients in fulfilled orders (55.000đ)
+  grossOperatingProfit: number;         // totalSalesRevenue - cogsSoldItemsOnly (+67.000đ)
 
-  // Inventory Reconciliation (Owner Decision 3: Pantry items do not inflate COGS)
+  // Inventory Reconciliation (Pantry stock does not inflate COGS)
   retainedStockQuantity: Record<string, number>;
-  retainedStockValueAtCost: number;     // Value of unsold items sitting in pantry
-  unrecordedSpoilageLoss: number;       // 0 for Day 1
+  retainedStockValueAtCost: number;     // Value of unsold items sitting in pantry (0đ)
+  spoilageLoss: number;                 // Separate line item, never mixed into COGS (0đ)
+  operatingExpenses: number;            // Tiền thuê/điện nước nếu có (0đ for Day 1)
 
   // Breakdown by Dish
   dishBreakdown: Record<string, {
     servingsSold: number;
     subtotalRevenue: number;
     subtotalCOGS: number;
-    subtotalMargin: number;
+    subtotalMargin: number;             // subtotalRevenue - subtotalCOGS
   }>;
 
   // Unserved Summary

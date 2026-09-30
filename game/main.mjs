@@ -298,6 +298,7 @@ function send(type, payload) {
 // Automatically advance queue in SHOP
 function ensureActiveCustomer() {
   if (state.screen !== 'SHOP') return;
+  if (customerReaction) return; // Do not switch or close while reaction is being displayed
   
   const remaining = customers.filter(c => !state.served.includes(c.id) && !state.missed.includes(c.id));
   if (remaining.length === 0) {
@@ -833,7 +834,7 @@ function renderDayResult() {
         <strong>${money(ledger.endingStockValue)}</strong>
       </div>
       <div class="ledger-line ledger-profit">
-        <span>LỢI NHUẬN RÒNG NGÀY 1:</span>
+        <span>LỢI NHUẬN GỘP NGÀY 1:</span>
         <span>+${money(ledger.netProfit)}</span>
       </div>
       <div class="ledger-line" style="font-size: 12px; color: #735946;">
