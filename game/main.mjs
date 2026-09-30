@@ -180,6 +180,19 @@ function startSimulationLoop() {
   if (simInterval) clearInterval(simInterval);
   const intervalMs = state.speed === 2 ? 140 : 280;
   
+  // Hydration recovery: if customer was already served/handled before reload, schedule departure
+  if (state.activeCustomer) {
+    const custStatus = state.activeCustomer.status;
+    if (['SERVED', 'OUT_OF_STOCK', 'MENU_DISABLED', 'PRICE_REJECTED'].includes(custStatus)) {
+      leaveTimer = setTimeout(() => {
+        send('CUSTOMER_LEAVE');
+        render();
+      }, 600);
+    } else if (custStatus === 'ARRIVED' && !state.isPaused && !autoPrepState) {
+      runAutoPrepSequence();
+    }
+  }
+  
   simInterval = setInterval(() => {
     if (state.screen !== 'SHOP') {
       clearInterval(simInterval);
@@ -209,10 +222,56 @@ function runAutoPrepSequence() {
   const isExtra = cust.id === 'be_ti' && state.extraCha === true;
   const needs = recipeNeeds(recipeId, isExtra);
   const menuItem = state.menu[recipeId];
-  const canServe = menuItem && menuItem.enabled && hasEnoughStock(state.stock, needs);
+  const recipeDef = recipes[recipeId];
 
-  if (!canServe) {
-    // Out of stock flow
+  // 1. Check if recipe is disabled on today's menu
+  if (!menuItem || !menuItem.enabled) {
+    autoPrepState = { stage: 'menudisabled', progress: 100, item: recipeId, isExtra };
+    render();
+
+    prepTimer1 = setTimeout(() => {
+      send('SERVE_AUTO');
+      customerReaction = {
+        quote: `Ủa nay quán không bán ${recipeDef?.name || 'món này'} hả chú? Tiếc ghê, để bữa khác con ghé lại nha!`,
+        status: 'disappointed'
+      };
+      render();
+
+      leaveTimer = setTimeout(() => {
+        customerReaction = null;
+        autoPrepState = null;
+        send('CUSTOMER_LEAVE');
+        render();
+      }, 1500);
+    }, 700);
+    return;
+  }
+
+  // 2. Check customer price sensitivity (HIGH sensitivity vs Tier 3 High Price)
+  if (menuItem.sellPrice > recipeDef.basePrice && cust.priceSensitivity === 'HIGH') {
+    autoPrepState = { stage: 'pricerejected', progress: 100, item: recipeId, isExtra };
+    render();
+
+    prepTimer1 = setTimeout(() => {
+      send('SERVE_AUTO');
+      customerReaction = {
+        quote: `Ủa nay ${recipeDef?.name || 'món này'} lên tới ${money(menuItem.sellPrice)} dữ vậy chú? Mắc quá, thôi để bác đi chỗ khác!`,
+        status: 'angry'
+      };
+      render();
+
+      leaveTimer = setTimeout(() => {
+        customerReaction = null;
+        autoPrepState = null;
+        send('CUSTOMER_LEAVE');
+        render();
+      }, 1500);
+    }, 700);
+    return;
+  }
+
+  // 3. Check inventory stock
+  if (!hasEnoughStock(state.stock, needs)) {
     autoPrepState = { stage: 'outofstock', progress: 100, item: recipeId, isExtra };
     render();
 
@@ -230,28 +289,31 @@ function runAutoPrepSequence() {
         send('CUSTOMER_LEAVE');
         render();
       }, 1500);
-    }, 800);
+    }, 700);
     return;
   }
 
-  // Auto-prep animation sequence (1.2 - 1.5s total)
-  autoPrepState = { stage: 'layer1', progress: 25, item: recipeId, isExtra };
+  // 4. Watercolor 3-Stage Auto-Prep Animation Sequence (1.4s total)
+  // Stage 1 (0ms): Base layer (bread base / ice cup)
+  autoPrepState = { stage: 'layer1', progress: 33, item: recipeId, isExtra };
   playTap('bread');
   render();
 
+  // Stage 2 (450ms): Middle filling/juice layer (cha slices / kumquat syrup / soy milk)
   prepTimer1 = setTimeout(() => {
-    autoPrepState = { stage: 'layer2', progress: 65, item: recipeId, isExtra };
+    autoPrepState = { stage: 'layer2', progress: 70, item: recipeId, isExtra };
     playTap('cha');
     render();
 
+    // Stage 3 (900ms): Complete dish with herbs / chill / garnish
     prepTimer2 = setTimeout(() => {
       autoPrepState = { stage: 'done', progress: 100, item: recipeId, isExtra };
       playChime();
       playCoins();
       render();
 
+      // Transaction commit (1350ms)
       prepTimer3 = setTimeout(() => {
-        // Complete transaction
         const earned = menuItem.sellPrice;
         floatingCash = '+' + money(earned);
         send('SERVE_AUTO');
@@ -265,6 +327,10 @@ function runAutoPrepSequence() {
           quote = 'Trà tắc mát rượi thanh tao, đã khát thiệt đó con ơi!';
         } else if (cust.id === 'anh_tung') {
           quote = 'Sữa đậu béo bùi mát lạnh, tỉnh cả người em ơi! Anh chạy cuốc trưa đây!';
+        } else if (cust.priceSensitivity === 'LOW' && menuItem.sellPrice > recipeDef.basePrice) {
+          quote = 'Giá nay hơi nhỉnh xíu ha chú, mà thèm quá nên mua luôn nè!';
+        } else if (menuItem.sellPrice < recipeDef.basePrice) {
+          quote = 'Quán bán giá mềm mà chất lượng ghê, để bác rủ thêm người ủng hộ!';
         }
 
         customerReaction = { quote, status: 'happy' };
@@ -546,49 +612,87 @@ function renderShop() {
         ${floatingCash ? `<div class="floating-cash-burst">${floatingCash}</div>` : ''}
       </div>
 
-      <!-- Auto-Prep Physical Workstation -->
+      <!-- Auto-Prep Watercolor Workstation -->
       <div class="auto-prep-bench">
         <div class="prep-bench-header">
-          <span>🍳 Bàn Chế Biến Quán Phố</span>
+          <span class="prep-bench-title">🔪 Bàn Chế Biến Quán Phố</span>
           <span class="prep-status-text">
             ${autoPrepState ? (
-              autoPrepState.stage === 'layer1' ? 'Đang chuẩn bị vỏ bánh / ly đá...' :
-              autoPrepState.stage === 'layer2' ? 'Thêm nhân đậm đà / rót nước...' :
-              autoPrepState.stage === 'done' ? '✨ Đã hoàn thành món!' : 'Hết nguyên liệu!'
-            ) : 'Sẵn sàng phục vụ'}
+              autoPrepState.stage === 'layer1' ? 'Lớp 1/3: Vỏ bánh / Ly đá...' :
+              autoPrepState.stage === 'layer2' ? 'Lớp 2/3: Thêm nhân / Rót nước...' :
+              autoPrepState.stage === 'done' ? '✨ Món hoàn thành vàng ruộm!' :
+              autoPrepState.stage === 'menudisabled' ? 'Món không bán hôm nay!' :
+              autoPrepState.stage === 'pricerejected' ? 'Khách chê giá đắt!' : 'Hết nguyên liệu!'
+            ) : 'Bàn thớt sạch sẽ · Dao thớt sẵn sàng'}
           </span>
         </div>
 
         <div class="prep-visual-dock">
           ${autoPrepState && autoPrepState.item === 'BANH_MI_CHA' ? `
-            <div class="banh-mi-assembly-visual">
-              <div class="assembly-bread-base">🥖 Bánh mì giòn rụm</div>
-              ${['layer2', 'done'].includes(autoPrepState.stage) ? `
-                <div class="assembly-cha-layer">
-                  🍖 ${autoPrepState.isExtra ? 'Chả lụa dày đặc (2 khoanh)' : 'Chả lụa thơm ngậy (1 khoanh)'}
-                </div>
-                <div class="assembly-veg-layer">🥒 Dưa leo & Ngò rí xanh mướt</div>
-              ` : ''}
+            <div class="watercolor-prep-stage banh-mi-stage">
               ${autoPrepState.stage === 'done' ? `
-                <div class="assembly-wrap-layer">🗞️ Bọc giấy báo thơm lừng!</div>
-              ` : ''}
+                <div class="art-layer-finish">
+                  <img src="../assets/dishes/banh_mi_cha.png" class="dish-finish-img popIn" alt="Bánh mì chả hoàn chỉnh">
+                  <div class="finish-label">Ổ Bánh Mì Chả Nóng Giòn</div>
+                </div>
+              ` : `
+                <div class="art-layers-stack">
+                  <img src="../assets/ingredients/bread.png" class="art-layer art-bread ${autoPrepState.stage === 'layer1' ? 'layer-enter' : ''}" alt="Bánh mì">
+                  ${['layer2', 'done'].includes(autoPrepState.stage) ? `
+                    <img src="../assets/ingredients/cha.png" class="art-layer art-cha-slice slice-1 dropIn" alt="Chả lụa">
+                    ${autoPrepState.isExtra ? `
+                      <img src="../assets/ingredients/cha.png" class="art-layer art-cha-slice slice-2 dropIn" alt="Chả lụa thêm">
+                    ` : ''}
+                    <img src="../assets/ingredients/vegetable.png" class="art-layer art-veg dropIn" alt="Dưa ngò">
+                  ` : ''}
+                </div>
+                <div class="prep-layer-caption">
+                  ${autoPrepState.stage === 'layer1' ? 'Vỏ bánh mì nướng giòn rụm' : (autoPrepState.isExtra ? 'Xếp 2 khoanh chả lụa dày đặc + dưa ngò' : 'Xếp chả lụa thơm ngậy + dưa ngò')}
+                </div>
+              `}
             </div>
-          ` : autoPrepState && ['TRA_TAC', 'SUA_DAU_DA'].includes(autoPrepState.item) ? `
-            <div class="drink-assembly-visual">
-              <div class="assembly-ice-layer">🧊 Đá bi lách cách rơi vào ly</div>
-              ${['layer2', 'done'].includes(autoPrepState.stage) ? `
-                <div class="assembly-syrup-layer">🍯 Nước đường mật ong sánh mịn</div>
-                <div class="assembly-flavor-layer">
-                  ${autoPrepState.item === 'TRA_TAC' ? '🍊 Tắc tươi vắt nhẹ nước cốt' : '🥛 Sữa đậu nành nguyên chất béo bùi'}
-                </div>
-              ` : ''}
+          ` : autoPrepState && autoPrepState.item === 'TRA_TAC' ? `
+            <div class="watercolor-prep-stage drink-stage">
               ${autoPrepState.stage === 'done' ? `
-                <div class="assembly-cold-layer">❄️ Ly nước lạnh buốt thơm lành!</div>
-              ` : ''}
+                <div class="art-layer-finish">
+                  <img src="../assets/dishes/tra_tac.png" class="dish-finish-img popIn" alt="Trà tắc hoàn chỉnh">
+                  <div class="finish-label">Ly Trà Tắc Chua Ngọt Mát Lạnh</div>
+                </div>
+              ` : `
+                <div class="art-layers-stack drink-stack">
+                  <img src="../assets/ingredients/ice.png" class="art-layer art-ice ${autoPrepState.stage === 'layer1' ? 'layer-enter' : ''}" alt="Đá bi">
+                  ${['layer2', 'done'].includes(autoPrepState.stage) ? `
+                    <img src="../assets/ingredients/sugar_syrup.png" class="art-layer art-syrup dropIn" alt="Nước đường">
+                    <img src="../assets/ingredients/kumquat.png" class="art-layer art-kumquat dropIn" alt="Tắc tươi">
+                  ` : ''}
+                </div>
+                <div class="prep-layer-caption">
+                  ${autoPrepState.stage === 'layer1' ? 'Ly thủy tinh đầy ắp đá bi' : 'Vắt tắc tươi mọng nước + chan nước đường'}
+                </div>
+              `}
+            </div>
+          ` : autoPrepState && autoPrepState.item === 'SUA_DAU_DA' ? `
+            <div class="watercolor-prep-stage drink-stage">
+              ${autoPrepState.stage === 'done' ? `
+                <div class="art-layer-finish">
+                  <img src="../assets/dishes/sua_dau.png" class="dish-finish-img popIn" alt="Sữa đậu hoàn chỉnh">
+                  <div class="finish-label">Ly Sữa Đậu Nành Béo Mát</div>
+                </div>
+              ` : `
+                <div class="art-layers-stack drink-stack">
+                  <img src="../assets/ingredients/ice.png" class="art-layer art-ice ${autoPrepState.stage === 'layer1' ? 'layer-enter' : ''}" alt="Đá bi">
+                  ${['layer2', 'done'].includes(autoPrepState.stage) ? `
+                    <img src="../assets/ingredients/soy_milk.png" class="art-layer art-soymilk dropIn" alt="Sữa đậu">
+                  ` : ''}
+                </div>
+                <div class="prep-layer-caption">
+                  ${autoPrepState.stage === 'layer1' ? 'Ly thủy tinh đầy ắp đá bi' : 'Rót sữa đậu nành béo thơm'}
+                </div>
+              `}
             </div>
           ` : `
             <div class="prep-idle-platter">
-              <span>Dao thớt sẵn sàng · Ly cốc sạch sẽ</span>
+              <span class="idle-desc">Thớt gỗ sạch sẽ · Dao thớt sẵn sàng · Ly cốc ngay ngắn</span>
             </div>
           `}
         </div>
@@ -728,9 +832,20 @@ function renderDayResult() {
             <strong>${ledger.servedCount} / ${ledger.servedCount + ledger.missedCount} khách</strong>
           </div>
           ${ledger.missedCount > 0 ? `
-            <div class="ledger-row text-red">
-              <span>Đơn bỏ lỡ do hết hàng:</span>
-              <strong>${ledger.missedCount} đơn (${ledger.missedOrders.map(o => o.name).join(', ')})</strong>
+            <div class="missed-details-box">
+              <div class="missed-header text-red">Tổng số đơn bỏ lỡ: <strong>${ledger.missedCount} đơn</strong></div>
+              ${ledger.missedByReason?.OUT_OF_STOCK?.length ? `
+                <div class="missed-subline">• Hết nguyên liệu: <b>${ledger.missedByReason.OUT_OF_STOCK.map(o => o.name).join(', ')}</b></div>
+              ` : ''}
+              ${ledger.missedByReason?.MENU_DISABLED?.length ? `
+                <div class="missed-subline">• Món không bán: <b>${ledger.missedByReason.MENU_DISABLED.map(o => o.name).join(', ')}</b></div>
+              ` : ''}
+              ${ledger.missedByReason?.PRICE_TOO_HIGH?.length ? `
+                <div class="missed-subline">• Khách chê giá đắt: <b>${ledger.missedByReason.PRICE_TOO_HIGH.map(o => o.name).join(', ')}</b></div>
+              ` : ''}
+              ${ledger.missedByReason?.MISSED_LATE_OPENING?.length ? `
+                <div class="missed-subline">• Mở quán muộn (lúc 10h): <b>${ledger.missedByReason.MISSED_LATE_OPENING.map(o => o.name).join(', ')}</b></div>
+              ` : ''}
             </div>
           ` : `
             <div class="ledger-row text-green">
@@ -753,7 +868,12 @@ function renderDayResult() {
               <li>🛵 <b>Anh Tùng:</b> Uống ực một hơi ly sữa đậu mát rượi, khen quán chu đáo rồi nổ máy chạy cuốc xe trưa.</li>
             ` : ''}
             ${ledger.missedOrders.map(o => `
-              <li>👤 <b>${o.name}:</b> Tiếc vì quán hết hàng sớm, hẹn mai ghé sớm hơn.</li>
+              <li>👤 <b>${o.name}:</b> ${
+                o.reason === 'MENU_DISABLED' ? 'Tiếc vì quán không bán món hôm nay, hẹn mai ghé lại.' :
+                o.reason === 'PRICE_TOO_HIGH' ? 'Chê giá hôm nay đắt hơn mức bình dân trong xóm.' :
+                o.reason === 'MISSED_LATE_OPENING' ? 'Ghé lúc sáng sớm khi quán chưa mở cửa.' :
+                'Tiếc vì quán hết hàng sớm, hẹn mai ghé sớm hơn.'
+              }</li>
             `).join('')}
           </ul>
         </div>

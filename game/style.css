@@ -30,7 +30,7 @@ button {
   touch-action: manipulation;
   font-family: inherit;
 }
-button:not(.speed-btn) {
+button {
   min-height: 44px;
 }
 
@@ -909,13 +909,15 @@ body {
   gap: 6px;
 }
 .btn-stepper {
-  width: 34px;
-  height: 34px;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
   padding: 0;
-  border-radius: 8px;
+  border-radius: 10px;
   background: #f4eae0;
   color: #4a2c17;
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 700;
 }
 .stepper-val {
@@ -1402,14 +1404,15 @@ button:disabled {
   gap: 6px;
 }
 .step-btn {
-  width: 36px;
-  height: 36px;
-  min-height: 36px;
-  border-radius: 8px;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  border-radius: 10px;
   border: 1px solid #dcc8b1;
   background: #fbf5ee;
   color: #2b1c13;
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 700;
   cursor: pointer;
   display: flex;
@@ -1587,22 +1590,27 @@ button:disabled {
 }
 .speed-toggle {
   display: flex;
-  gap: 3px;
+  align-items: center;
+  gap: 4px;
   background: #18100b;
-  padding: 2px;
-  border-radius: 6px;
+  padding: 2px 4px;
+  border-radius: 8px;
   border: 1px solid #4a3424;
 }
 .speed-btn {
-  padding: 2px 7px;
-  min-height: 28px;
+  padding: 0 12px;
+  min-height: 44px;
+  min-width: 44px;
   border: none;
   background: transparent;
   color: #a89485;
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 800;
-  border-radius: 4px;
+  border-radius: 6px;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 .speed-btn.active {
   background: #c2410c;
@@ -1743,23 +1751,29 @@ button:disabled {
   100% { transform: translateY(-40px) scale(1); opacity: 0; }
 }
 
-/* 6. Physical Watercolor Auto-Prep Bench */
+/* 6. Watercolor Art Auto-Prep Workstation */
 .auto-prep-bench {
-  background: #fbf5eb;
-  border-top: 2px solid #5c3a21;
-  border-bottom: 2px solid #dcc8b1;
+  background: linear-gradient(180deg, #f7efe4 0%, #ebe0d0 100%);
+  border-top: 2.5px solid #8c6239;
+  border-bottom: 2.5px solid #bfa084;
   padding: 10px 14px;
   display: flex;
   flex-direction: column;
   gap: 8px;
-  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.08);
+  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.08), 0 4px 12px rgba(0, 0, 0, 0.05);
 }
 .prep-bench-header {
   display: flex;
   justify-content: space-between;
-  font-size: 12px;
+  align-items: center;
+  font-size: 12.5px;
   font-weight: 700;
-  color: #5c3a21;
+  color: #4a2c17;
+}
+.prep-bench-title {
+  display: flex;
+  align-items: center;
+  gap: 5px;
 }
 .prep-status-text {
   color: #c2410c;
@@ -1767,55 +1781,162 @@ button:disabled {
 }
 
 .prep-visual-dock {
-  min-height: 68px;
-  background: #ffffff;
-  border: 1.5px dashed #dcc8b1;
-  border-radius: 10px;
+  min-height: 110px;
+  background: #fffdfa;
+  border: 1.5px solid #dcc8b1;
+  border-radius: 14px;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 6px;
+  padding: 8px 12px;
   position: relative;
+  overflow: hidden;
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.04);
 }
 
-.banh-mi-assembly-visual, .drink-assembly-visual {
+.watercolor-prep-stage {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 3px;
+  justify-content: center;
   width: 100%;
+  position: relative;
 }
-.assembly-bread-base, .assembly-ice-layer {
-  font-size: 13px;
+
+.art-layers-stack {
+  position: relative;
+  width: 170px;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.art-layers-stack.drink-stack {
+  width: 120px;
+  height: 80px;
+}
+
+.art-layer {
+  position: absolute;
+  pointer-events: none;
+  filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.18));
+}
+
+.art-bread {
+  width: 135px;
+  height: 60px;
+  object-fit: contain;
+  bottom: 5px;
+}
+.art-bread.layer-enter {
+  animation: popIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.art-cha-slice {
+  width: 52px;
+  height: 52px;
+  object-fit: contain;
+}
+.art-cha-slice.slice-1 {
+  left: 45px;
+  bottom: 12px;
+  z-index: 2;
+}
+.art-cha-slice.slice-2 {
+  left: 72px;
+  bottom: 16px;
+  z-index: 3;
+}
+
+.art-veg {
+  width: 65px;
+  height: 65px;
+  object-fit: contain;
+  right: 28px;
+  bottom: 10px;
+  z-index: 4;
+}
+
+.art-ice {
+  width: 75px;
+  height: 75px;
+  object-fit: contain;
+  bottom: 2px;
+}
+.art-ice.layer-enter {
+  animation: popIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.art-kumquat {
+  width: 46px;
+  height: 46px;
+  object-fit: contain;
+  right: 12px;
+  top: 6px;
+  z-index: 3;
+}
+
+.art-syrup {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+  left: 10px;
+  top: 8px;
+  z-index: 2;
+}
+
+.art-soymilk {
+  width: 58px;
+  height: 58px;
+  object-fit: contain;
+  right: 12px;
+  top: 8px;
+  z-index: 3;
+}
+
+.art-layer-finish {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.dish-finish-img {
+  width: 105px;
+  height: 70px;
+  object-fit: contain;
+  filter: drop-shadow(0 4px 10px rgba(194, 65, 12, 0.35));
+}
+
+.finish-label {
+  font-size: 11.5px;
   font-weight: 800;
+  color: #9a3412;
+  background: rgba(254, 243, 199, 0.95);
+  border: 1px solid #f59e0b;
+  padding: 2px 10px;
+  border-radius: 12px;
+  box-shadow: 0 1px 4px rgba(245, 158, 11, 0.2);
+}
+
+.prep-layer-caption {
+  font-size: 11.5px;
+  font-weight: 700;
   color: #78350f;
-  animation: dropIn 0.25s ease-out;
+  margin-top: 4px;
+  font-style: italic;
+  text-align: center;
 }
-.assembly-cha-layer, .assembly-syrup-layer {
-  font-size: 12.5px;
-  font-weight: 700;
-  color: #991b1b;
-  animation: dropIn 0.25s ease-out;
-}
-.assembly-veg-layer, .assembly-flavor-layer {
-  font-size: 12px;
-  font-weight: 700;
-  color: #166534;
-  animation: dropIn 0.25s ease-out;
-}
-.assembly-wrap-layer, .assembly-cold-layer {
-  font-size: 13px;
-  font-weight: 900;
-  color: #c2410c;
-  animation: popIn 0.2s ease-out;
-}
+
 .prep-idle-platter {
   font-size: 12px;
-  color: #a89485;
+  color: #8c735d;
+  font-style: italic;
+  text-align: center;
 }
 
 @keyframes dropIn {
-  0% { transform: translateY(-12px) scale(0.9); opacity: 0; }
+  0% { transform: translateY(-16px) scale(0.9); opacity: 0; }
   100% { transform: translateY(0) scale(1); opacity: 1; }
 }
 
@@ -1830,6 +1951,26 @@ button:disabled {
   background: linear-gradient(90deg, #f97316, #16a34a);
   border-radius: 3px;
   transition: width 0.3s ease;
+}
+
+.missed-details-box {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 10px;
+  padding: 8px 10px;
+  margin-top: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.missed-header {
+  font-weight: 800;
+  font-size: 12.5px;
+}
+.missed-subline {
+  font-size: 12px;
+  color: #991b1b;
+  margin-left: 4px;
 }
 
 /* 7. Live Stock Dock */

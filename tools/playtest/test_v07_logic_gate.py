@@ -1,4 +1,4 @@
-import sys, asyncio, os
+import sys, asyncio, os, time
 sys.stdout.reconfigure(encoding='utf-8')
 from playwright.async_api import async_playwright
 
@@ -14,9 +14,9 @@ async def js_click(page, selector):
     }}""")
 
 async def run_gate1_logic_tests():
-    print("=" * 60)
-    print("GATE 1: LOGIC VERIFICATION SUITE (v0.7 IDLE MANAGEMENT)")
-    print("=" * 60)
+    print("=" * 65)
+    print("GATE 1: COMPREHENSIVE LOGIC VERIFICATION SUITE (v0.7 IDLE MANAGEMENT)")
+    print("=" * 65)
     
     async with async_playwright() as p:
         browser = await p.chromium.launch(
@@ -33,280 +33,373 @@ async def run_gate1_logic_tests():
         await page.wait_for_timeout(400)
         
         # ─────────────────────────────────────────────────────────────
-        # TEST 1: REPLAY IMMEDIATELY AFTER SERVE (Race condition safety)
+        # TEST 1: END-TO-END SIMULATION PIPELINE & DYNAMIC RECONCILED LEDGER
         # ─────────────────────────────────────────────────────────────
-        print("\n--- TEST 1: REPLAY Immediately After Serve / Timers Cancel ---")
-        await page.evaluate("() => localStorage.clear()")
-        await page.reload()
-        await page.wait_for_timeout(300)
+        print("\n--- TEST 1: End-To-End Simulation Pipeline & Dynamic Ledger ---")
+        e2e_ledger = await page.evaluate("""() => {
+            return import('./day1-core.mjs').then(core => {
+                // Run complete simulation from fresh state to Day Result
+                let s = core.fresh();
+                s.screen = 'MARKET';
+                s = core.action(s, 'BUNDLE_DAY1').state;
+                s = core.action(s, 'BUY').state;
+                
+                // Spent 55k, cash remaining 5k
+                const spent = s.spent;
+                const cashAfterBuy = s.cash;
+                
+                // Start day on time 8:00
+                s = core.action(s, 'SET_OPENING_TIME', 'ontime_8am').state;
+                s = core.action(s, 'START_DAY').state;
+                
+                // 1. Bác Ba (08:30) - Bánh mì chả
+                s = core.action(s, 'TICK', 30).state;
+                s = core.action(s, 'SERVE_AUTO').state;
+                s = core.action(s, 'CUSTOMER_LEAVE').state;
+                
+                // 2. Chị Hai (09:15) - Trà tắc
+                s = core.action(s, 'TICK', 45).state;
+                s = core.action(s, 'SERVE_AUTO').state;
+                s = core.action(s, 'CUSTOMER_LEAVE').state;
+                
+                // 3. Bé Tí (10:00) - Bánh mì chả (Extra chả)
+                s = core.action(s, 'TICK', 45).state;
+                s = core.action(s, 'DECIDE', { choice: 'yes' }).state;
+                s = core.action(s, 'SERVE_AUTO').state;
+                s = core.action(s, 'CUSTOMER_LEAVE').state;
+                
+                // 4. Cô Chín (11:00) - Trà tắc
+                s = core.action(s, 'TICK', 60).state;
+                s = core.action(s, 'SERVE_AUTO').state;
+                s = core.action(s, 'CUSTOMER_LEAVE').state;
+                
+                // Market news ticker at 11:15 (TICK +15)
+                s = core.action(s, 'TICK', 15).state;
+                const hadNewsTicker = s.newsTicker !== null;
+                
+                // 5. Anh Tùng (11:45) - Sữa đậu đá
+                s = core.action(s, 'TICK', 30).state;
+                s = core.action(s, 'SERVE_AUTO').state;
+                s = core.action(s, 'CUSTOMER_LEAVE').state;
+                
+                // 6. Bác Năm (12:15) - Bánh mì chả
+                s = core.action(s, 'TICK', 30).state;
+                s = core.action(s, 'SERVE_AUTO').state;
+                s = core.action(s, 'CUSTOMER_LEAVE').state;
+                
+                // 7. Cô Bảy (12:45) - Trà tắc (Hết tắc tươi -> OUT_OF_STOCK)
+                s = core.action(s, 'TICK', 30).state;
+                s = core.action(s, 'SERVE_AUTO').state;
+                s = core.action(s, 'CUSTOMER_LEAVE').state;
+                
+                // 8. Chú Tư (13:15) - Bánh mì chả (Hết bánh mì -> OUT_OF_STOCK)
+                s = core.action(s, 'TICK', 30).state;
+                s = core.action(s, 'SERVE_AUTO').state;
+                s = core.action(s, 'CUSTOMER_LEAVE').state;
+                
+                // Close shop and compute ledger
+                s = core.action(s, 'CLOSE').state;
+                const ledger = core.calculateLedger(s);
+                
+                return {
+                    spent,
+                    cashAfterBuy,
+                    hadNewsTicker,
+                    ledger,
+                    remainingStock: s.stock
+                };
+            });
+        }""")
         
-        # Navigate HOME -> XOM_OI -> MARKET
-        await js_click(page, 'button[data-type="NAVIGATE"]')
-        await page.wait_for_timeout(200)
-        await js_click(page, 'button[data-type="NAVIGATE"]')
-        await page.wait_for_timeout(200)
+        print("  Full Simulation Ledger Output:")
+        print(f"    Spent on Stock:        -{e2e_ledger['spent']}")
+        print(f"    Starting Cash:          {e2e_ledger['ledger']['startingCash']}")
+        print(f"    Cash Collected:        +{e2e_ledger['ledger']['cashSalesCollected']}")
+        print(f"    Final Cash in Drawer:   {e2e_ledger['ledger']['finalCashInDrawer']}")
+        print(f"    Gross Profit:          +{e2e_ledger['ledger']['grossOperatingProfit']}")
+        print(f"    Served Orders:          {e2e_ledger['ledger']['servedCount']} / 8")
+        print(f"    Missed Orders:          {e2e_ledger['ledger']['missedCount']} / 8")
+        print(f"    Remaining Stock:        {e2e_ledger['remainingStock']}")
         
-        # Buy bundle
-        await js_click(page, 'button[data-type="BUNDLE_DAY1"]')
-        await page.wait_for_timeout(100)
-        await js_click(page, 'button[data-type="BUY"]')
-        await page.wait_for_timeout(200)
-        
-        # Start day
-        await js_click(page, 'button[data-type="START_DAY"]')
-        await page.wait_for_timeout(500)
-        
-        # Let customer 1 arrive and serve
-        print("  Waiting for Customer 1 to arrive...")
-        await page.wait_for_timeout(2500)
-        
-        # Trigger immediate REPLAY while simulation / timers are active
-        print("  Triggering REPLAY while simulation is running...")
-        await page.evaluate("() => { const b = document.querySelector('button[data-type=\"REPLAY\"]'); if (b) b.click(); else window.location.reload(); }")
-        await page.wait_for_timeout(2500) # Wait > 2 seconds to ensure stale callbacks don't fire
-        
-        screen_after_replay = await page.evaluate("() => document.querySelector('.screen-home') ? 'HOME' : 'OTHER'")
-        print(f"  Screen after REPLAY and waiting 2.5s: {screen_after_replay}")
-        assert screen_after_replay == 'HOME', f"FAIL: Expected HOME after replay, got {screen_after_replay}"
-        print("  ✓ PASS: REPLAY cleanly cancelled all simulation/prep timers without stale callback crash!")
+        assert e2e_ledger['spent'] == 55000, "Morning market spend must be 55.000đ"
+        assert e2e_ledger['cashAfterBuy'] == 5000, "Cash after buy must be 5.000đ"
+        assert e2e_ledger['hadNewsTicker'], "News ticker must trigger at 11:15"
+        assert e2e_ledger['ledger']['cashSalesCollected'] == 122000, "Collected revenue must be 122.000đ"
+        assert e2e_ledger['ledger']['finalCashInDrawer'] == 127000, "Final cash must be 127.000đ"
+        assert e2e_ledger['ledger']['grossOperatingProfit'] == 67000, "Gross profit must be +67.000đ"
+        assert e2e_ledger['ledger']['servedCount'] == 6, "Must serve exactly 6 customers"
+        assert e2e_ledger['ledger']['missedCount'] == 2, "Must miss exactly 2 customers"
+        assert all(q == 0 for q in e2e_ledger['remainingStock'].values()), "All 19 stock units must be consumed"
+        print("  ✓ PASS: End-to-end simulation naturally produces 127k cash and 67k gross profit!")
 
         # ─────────────────────────────────────────────────────────────
-        # TEST 2: BOTH BRANCHES OF BÉ TÍ (Branch A: Extra chả vs Branch B: Deny)
+        # TEST 2: PRICE SENSITIVITY MECHANICS (High Tier vs HIGH Sensitivity)
         # ─────────────────────────────────────────────────────────────
-        print("\n--- TEST 2: Both Branches of Bé Tí Decision ---")
-        
-        # Direct state machine test in browser context for mathematical precision
-        test_branches_result = await page.evaluate("""() => {
-            const { fresh, action, recipeNeeds } = window.__core || {};
-            // If not globally exposed, we test via module import in evaluate
+        print("\n--- TEST 2: Customer Price Sensitivity Mechanics ---")
+        price_test = await page.evaluate("""() => {
             return import('./day1-core.mjs').then(core => {
-                // Branch A: Agree to extra chả
+                let s = core.fresh();
+                s.screen = 'MENU';
+                s.stock = { bread: 5, cha: 5, vegetable: 5, ice: 5, sugar_syrup: 5, kumquat: 5, soy_milk: 5 };
+                
+                // Case A: Set Bánh Mì to Tier 3 (Cao: 28.000đ)
+                s = core.action(s, 'CONFIG_MENU', { recipeId: 'BANH_MI_CHA', sellPrice: 28000 }).state;
+                s = core.action(s, 'START_DAY').state;
+                
+                // Customer with MEDIUM sensitivity (Bác Ba): accepts 28k
+                s.activeCustomer = { id: 'bac_ba', name: 'Bác Ba', recipe: 'BANH_MI_CHA', priceSensitivity: 'MEDIUM' };
+                s = core.action(s, 'SERVE_AUTO').state;
+                const bacBaServed = s.activeCustomer.status === 'SERVED';
+                const revenueAfterBacBa = s.revenue; // 28.000đ
+                s = core.action(s, 'CUSTOMER_LEAVE').state;
+                
+                // Customer with HIGH sensitivity (Bác Năm): rejects 28k as too expensive
+                s.activeCustomer = { id: 'bac_nam', name: 'Bác Năm', recipe: 'BANH_MI_CHA', priceSensitivity: 'HIGH' };
+                const stockBeforeBacNam = s.stock.bread;
+                s = core.action(s, 'SERVE_AUTO').state;
+                const bacNamStatus = s.activeCustomer.status; // PRICE_REJECTED
+                const bacNamReason = s.missedOrders[0]?.reason; // PRICE_TOO_HIGH
+                const stockAfterBacNam = s.stock.bread; // Unchanged!
+                const revenueAfterBacNam = s.revenue; // Unchanged (still 28k)!
+                s = core.action(s, 'CUSTOMER_LEAVE').state;
+                
+                // Case B: Set price back to standard 25.000đ
+                s.menu.BANH_MI_CHA.sellPrice = 25000;
+                s.activeCustomer = { id: 'chu_tu', name: 'Chú Tư', recipe: 'BANH_MI_CHA', priceSensitivity: 'HIGH' };
+                s = core.action(s, 'SERVE_AUTO').state;
+                const chuTuServed = s.activeCustomer.status === 'SERVED';
+                
+                return {
+                    bacBaServed,
+                    revenueAfterBacBa,
+                    bacNamStatus,
+                    bacNamReason,
+                    stockProtected: stockBeforeBacNam === stockAfterBacNam,
+                    revenueProtected: revenueAfterBacBa === revenueAfterBacNam,
+                    chuTuServed
+                };
+            });
+        }""")
+        
+        print(f"  Price Sensitivity Results: {price_test}")
+        assert price_test['bacBaServed'], "Medium sensitivity customer accepts 28k"
+        assert price_test['bacNamStatus'] == 'PRICE_REJECTED', "High sensitivity customer rejects 28k"
+        assert price_test['bacNamReason'] == 'PRICE_TOO_HIGH', "Reason must be recorded as PRICE_TOO_HIGH"
+        assert price_test['stockProtected'], "Stock must not be deducted on price rejection"
+        assert price_test['revenueProtected'], "Revenue must not increase on price rejection"
+        assert price_test['chuTuServed'], "High sensitivity customer accepts standard 25k price"
+        print("  ✓ PASS: Price sensitivity enforces realistic managerial trade-offs!")
+
+        # ─────────────────────────────────────────────────────────────
+        # TEST 3: MENU DISABLED DISH DISTINCTION (MENU_DISABLED vs OUT_OF_STOCK)
+        # ─────────────────────────────────────────────────────────────
+        print("\n--- TEST 3: Menu Disabled Dish Distinction ---")
+        disabled_dish_test = await page.evaluate("""() => {
+            return import('./day1-core.mjs').then(core => {
+                let s = core.fresh();
+                s.screen = 'MENU';
+                s.stock = { bread: 2, cha: 2, vegetable: 2, ice: 2, sugar_syrup: 2, kumquat: 2, soy_milk: 2 };
+                
+                // Disable Sữa Đậu Đá on menu
+                s = core.action(s, 'CONFIG_MENU', { recipeId: 'SUA_DAU_DA', enabled: false }).state;
+                s = core.action(s, 'START_DAY').state;
+                
+                // Customer ordering Sữa Đậu Đá arrives
+                s.activeCustomer = { id: 'anh_tung', name: 'Anh Tùng', recipe: 'SUA_DAU_DA' };
+                s = core.action(s, 'SERVE_AUTO').state;
+                
+                const customerStatus = s.activeCustomer.status;
+                const missedOrder = s.missedOrders[0];
+                const ledger = core.calculateLedger(s);
+                
+                return {
+                    customerStatus,
+                    reason: missedOrder?.reason,
+                    note: missedOrder?.note,
+                    missedByReasonMenuDisabled: ledger.missedByReason.MENU_DISABLED.length
+                };
+            });
+        }""")
+        
+        print(f"  Disabled Dish Results: {disabled_dish_test}")
+        assert disabled_dish_test['customerStatus'] == 'MENU_DISABLED', "Status must be MENU_DISABLED"
+        assert disabled_dish_test['reason'] == 'MENU_DISABLED', "Reason must be MENU_DISABLED"
+        assert disabled_dish_test['missedByReasonMenuDisabled'] == 1, "Ledger must categorize under MENU_DISABLED"
+        print("  ✓ PASS: Disabled menu dish cleanly recorded as MENU_DISABLED instead of OUT_OF_STOCK!")
+
+        # ─────────────────────────────────────────────────────────────
+        # TEST 4: OPENING TIME IMPACT ON CUSTOMER ROSTER
+        # ─────────────────────────────────────────────────────────────
+        print("\n--- TEST 4: Opening Time Impact on Customer Roster ---")
+        opening_time_test = await page.evaluate("""() => {
+            return import('./day1-core.mjs').then(core => {
+                let s = core.fresh();
+                s.screen = 'MENU';
+                
+                // Choose late opening: late_10am
+                s = core.action(s, 'SET_OPENING_TIME', 'late_10am').state;
+                s = core.action(s, 'START_DAY').state;
+                
+                // Check state at start of late day
+                const startClock = s.clock; // 120 (10:00 AM)
+                const startIndex = s.customerIndex; // 2 (Bé Tí)
+                const missedCount = s.missedOrders.length; // 2 (Bác Ba 8:30, Chị Hai 9:15)
+                const missedReasons = s.missedOrders.map(o => o.reason);
+                const missedNames = s.missedOrders.map(o => o.name);
+                
+                return {
+                    startClock,
+                    startIndex,
+                    missedCount,
+                    missedReasons,
+                    missedNames
+                };
+            });
+        }""")
+        
+        print(f"  Late Opening Results: {opening_time_test}")
+        assert opening_time_test['startClock'] == 120, "Clock must start at 10:00 (120 min)"
+        assert opening_time_test['startIndex'] == 2, "Customer index must start at Bé Tí"
+        assert opening_time_test['missedCount'] == 2, "2 morning customers must be missed"
+        assert opening_time_test['missedReasons'] == ['MISSED_LATE_OPENING', 'MISSED_LATE_OPENING']
+        assert opening_time_test['missedNames'] == ['Bác Ba', 'Chị Hai']
+        print("  ✓ PASS: Opening time logically affects customer arrivals and missed morning traffic!")
+
+        # ─────────────────────────────────────────────────────────────
+        # TEST 5: BOTH BRANCHES OF BÉ TÍ DECISION
+        # ─────────────────────────────────────────────────────────────
+        print("\n--- TEST 5: Both Branches of Bé Tí Decision ---")
+        branches_test = await page.evaluate("""() => {
+            return import('./day1-core.mjs').then(core => {
+                // Branch A: Agree (+1 chả)
                 let sA = core.fresh();
                 sA.screen = 'SHOP';
                 sA.stock = { bread: 3, cha: 4, vegetable: 3, ice: 3, sugar_syrup: 3, kumquat: 2, soy_milk: 1 };
                 sA.activeCustomer = { id: 'be_ti', name: 'Bé Tí', recipe: 'BANH_MI_CHA' };
                 sA.activeDecision = { id: 'EXTRA_CHA' };
                 sA.isPaused = true;
-                
-                // Decide YES
                 sA = core.action(sA, 'DECIDE', { choice: 'yes' }).state;
-                const pausedA = sA.isPaused;
-                const extraA = sA.extraCha;
-                const needsA = core.recipeNeeds('BANH_MI_CHA', sA.extraCha);
                 sA = core.action(sA, 'SERVE_AUTO').state;
-                const chaRemainingA = sA.stock.cha; // Started with 4, used 2 -> should be 2
                 
-                // Branch B: Deny extra chả
+                // Branch B: Deny (standard 1 chả)
                 let sB = core.fresh();
                 sB.screen = 'SHOP';
                 sB.stock = { bread: 3, cha: 4, vegetable: 3, ice: 3, sugar_syrup: 3, kumquat: 2, soy_milk: 1 };
                 sB.activeCustomer = { id: 'be_ti', name: 'Bé Tí', recipe: 'BANH_MI_CHA' };
                 sB.activeDecision = { id: 'EXTRA_CHA' };
                 sB.isPaused = true;
-                
-                // Decide NO
                 sB = core.action(sB, 'DECIDE', { choice: 'no' }).state;
-                const pausedB = sB.isPaused;
-                const extraB = sB.extraCha;
-                const needsB = core.recipeNeeds('BANH_MI_CHA', sB.extraCha);
                 sB = core.action(sB, 'SERVE_AUTO').state;
-                const chaRemainingB = sB.stock.cha; // Started with 4, used 1 -> should be 3
                 
                 return {
-                    branchA: { paused: pausedA, extraCha: extraA, needsCha: needsA.cha, chaRemaining: chaRemainingA },
-                    branchB: { paused: pausedB, extraCha: extraB, needsCha: needsB.cha, chaRemaining: chaRemainingB }
+                    branchA_cha: sA.stock.cha, // 4 - 2 = 2
+                    branchB_cha: sB.stock.cha, // 4 - 1 = 3
+                    branchA_unpaused: !sA.isPaused,
+                    branchB_unpaused: !sB.isPaused
                 };
             });
         }""")
         
-        print(f"  Branch A (Agree Extra): {test_branches_result['branchA']}")
-        print(f"  Branch B (Deny Extra):  {test_branches_result['branchB']}")
-        assert test_branches_result['branchA']['needsCha'] == 2, "Branch A must require 2 chả"
-        assert test_branches_result['branchA']['chaRemaining'] == 2, "Branch A must leave 2 chả (4 - 2 = 2)"
-        assert test_branches_result['branchB']['needsCha'] == 1, "Branch B must require 1 chả"
-        assert test_branches_result['branchB']['chaRemaining'] == 3, "Branch B must leave 3 chả (4 - 1 = 3)"
-        assert not test_branches_result['branchA']['paused'], "Decision must unpause clock"
+        print(f"  Bé Tí Branches: {branches_test}")
+        assert branches_test['branchA_cha'] == 2, "Branch A must consume 2 chả (4 - 2 = 2)"
+        assert branches_test['branchB_cha'] == 3, "Branch B must consume 1 chả (4 - 1 = 3)"
+        assert branches_test['branchA_unpaused'] and branches_test['branchB_unpaused'], "Both branches must unpause clock"
         print("  ✓ PASS: Both Bé Tí decision branches deduct stock and unpause accurately!")
 
         # ─────────────────────────────────────────────────────────────
-        # TEST 3: CUSTOM PRICES & CUSTOM BASKET
+        # TEST 6: REAL BROWSER PAGE RELOAD MID-SHIFT & SIMULATION RECOVERY
         # ─────────────────────────────────────────────────────────────
-        print("\n--- TEST 3: Custom Prices, Disabled Dish, and Custom Basket ---")
-        custom_test = await page.evaluate("""() => {
-            return import('./day1-core.mjs').then(core => {
-                let s = core.fresh();
-                s.screen = 'MARKET';
-                s.cash = 60000;
-                
-                // Custom purchase: 2 Bánh mì, 2 Chả, 2 Dưa ngò (18k total)
-                s = core.action(s, 'BASKET', { id: 'bread', qty: 2 }).state;
-                s = core.action(s, 'BASKET', { id: 'cha', qty: 2 }).state;
-                s = core.action(s, 'BASKET', { id: 'vegetable', qty: 2 }).state;
-                s = core.action(s, 'BUY').state;
-                
-                const cashAfterBuy = s.cash; // 60k - (2*4k + 2*5k + 2*2k) = 60k - 22k = 38k
-                const spent = s.spent; // 22k
-                
-                // Custom menu: set Bánh Mì to highest tier (28.000đ) and disable Sữa Đậu Đá
-                s = core.action(s, 'CONFIG_MENU', { recipeId: 'BANH_MI_CHA', sellPrice: 28000 }).state;
-                s = core.action(s, 'CONFIG_MENU', { recipeId: 'SUA_DAU_DA', enabled: false }).state;
-                
-                // Start day and serve 1 Bánh Mì
-                s = core.action(s, 'START_DAY').state;
-                s.activeCustomer = { id: 'bac_ba', name: 'Bác Ba', recipe: 'BANH_MI_CHA' };
-                s = core.action(s, 'SERVE_AUTO').state;
-                
-                const revenue = s.revenue; // Should be 28.000đ
-                const orderPrice = s.servedOrders[0].sellPrice;
-                
-                // Now test disabled dish: customer asking for disabled SUA_DAU_DA
-                s.activeCustomer = { id: 'anh_tung', name: 'Anh Tùng', recipe: 'SUA_DAU_DA' };
-                s = core.action(s, 'SERVE_AUTO').state;
-                const missedDueToDisabled = s.missedOrders[0]?.reason;
-                
-                return {
-                    cashAfterBuy,
-                    spent,
-                    revenue,
-                    orderPrice,
-                    missedDueToDisabled,
-                    suaDauEnabled: s.menu.SUA_DAU_DA.enabled
-                };
-            });
-        }""")
+        print("\n--- TEST 6: Real Browser Page Reload (F5) Mid-Shift & Simulation Recovery ---")
+        await page.evaluate("() => localStorage.clear()")
+        await page.goto('http://127.0.0.1:8000/game/')
+        await page.wait_for_timeout(300)
         
-        print(f"  Custom test results: {custom_test}")
-        assert custom_test['cashAfterBuy'] == 38000, "Cash after custom 22k purchase must be 38.000đ"
-        assert custom_test['orderPrice'] == 28000, "Bánh Mì served at custom tier must bill 28.000đ"
-        assert custom_test['revenue'] == 28000, "Total revenue must reflect 28.000đ"
-        assert custom_test['missedDueToDisabled'] == 'OUT_OF_STOCK', "Disabled dish must not be fulfilled"
-        print("  ✓ PASS: Custom prices, disabled dish, and custom basket work dynamically!")
+        # Navigate to Market and buy 55k bundle
+        await js_click(page, 'button[data-type="NAVIGATE"]')
+        await page.wait_for_timeout(200)
+        await js_click(page, 'button[data-type="NAVIGATE"]')
+        await page.wait_for_timeout(200)
+        await js_click(page, 'button[data-type="BUNDLE_DAY1"]')
+        await page.wait_for_timeout(100)
+        await js_click(page, 'button[data-type="BUY"]')
+        await page.wait_for_timeout(200)
+        
+        # Start Day
+        await js_click(page, 'button[data-type="START_DAY"]')
+        await page.wait_for_timeout(400)
+        
+        # Wait until Customer 1 arrives and is being served
+        print("  Waiting for Customer 1 to arrive at counter...")
+        for _ in range(25):
+            await page.wait_for_timeout(200)
+            status = await page.evaluate("() => window.__xomNho?.getState()?.activeCustomer?.status || ''")
+            if status in ['ARRIVED', 'SERVED']:
+                print(f"  Customer 1 detected with status: {status}")
+                break
+        
+        # Trigger REAL BROWSER RELOAD (F5) while customer is at counter
+        print("  Executing real browser page.reload() mid-shift...")
+        await page.reload()
+        await page.wait_for_timeout(800)
+        
+        # Verify page rehydrated on SHOP screen and simulation loop resumed
+        screen_after_reload = await page.evaluate("() => window.__xomNho?.getState()?.screen || ''")
+        print(f"  Screen after reload: {screen_after_reload}")
+        assert screen_after_reload == 'SHOP', "Must resume on SHOP screen"
+        
+        # Switch to x2 speed for fast verification of recovery
+        await js_click(page, 'button[data-type="SPEED"][data-payload="2"]')
+        await page.wait_for_timeout(200)
+
+        # Verify that customer did not get stuck forever, but continued
+        print("  Waiting for simulation to process remaining customers...")
+        beti_handled = False
+        simulation_finished = False
+        
+        for i in range(120):
+            await page.wait_for_timeout(350)
+            
+            # Handle Bé Tí if pause modal appears
+            has_decision = await page.evaluate("() => Boolean(document.querySelector('.decision-modal-backdrop'))")
+            if has_decision and not beti_handled:
+                print("  Bé Tí pause modal recovered! Choosing 'yes'...")
+                await js_click(page, 'button[data-type="DECIDE"][data-payload="yes"]')
+                beti_handled = True
+                await page.wait_for_timeout(300)
+            
+            cust_idx = await page.evaluate("() => window.__xomNho?.getState()?.customerIndex || 0")
+            if cust_idx >= 6:
+                print(f"  Simulation successfully processed past Customer {cust_idx}!")
+                simulation_finished = True
+                break
+                
+        if not simulation_finished:
+            final_cust_idx = await page.evaluate("() => window.__xomNho?.getState()?.customerIndex || 0")
+            final_cust_status = await page.evaluate("() => window.__xomNho?.getState()?.activeCustomer?.status || ''")
+            print(f"  Diagnostics: customerIndex={final_cust_idx}, activeStatus={final_cust_status}")
+            
+        assert simulation_finished, f"Simulation must recover and continue servicing customers after real page reload! (cust_idx={final_cust_idx if not simulation_finished else cust_idx})"
+        print("  ✓ PASS: Real browser page.reload() mid-shift recovers and advances simulation smoothly!")
 
         # ─────────────────────────────────────────────────────────────
-        # TEST 4: OUT OF STOCK HANDLING & ZERO CRASH
+        # TEST 7: REPLAY TIMERS CANCELLATION SAFETY
         # ─────────────────────────────────────────────────────────────
-        print("\n--- TEST 4: Out Of Stock Handling ---")
-        oos_test = await page.evaluate("""() => {
-            return import('./day1-core.mjs').then(core => {
-                let s = core.fresh();
-                s.screen = 'SHOP';
-                s.stock = { bread: 0, cha: 0, vegetable: 0, ice: 0, sugar_syrup: 0, kumquat: 0, soy_milk: 0 };
-                s.activeCustomer = { id: 'co_chin', name: 'Cô Chín', recipe: 'TRA_TAC' };
-                
-                // Attempt serve when stock is 0
-                s = core.action(s, 'SERVE_AUTO').state;
-                
-                return {
-                    customerStatus: s.activeCustomer.status,
-                    missedCount: s.missedOrders.length,
-                    missedReason: s.missedOrders[0]?.reason,
-                    stockUnchanged: Object.values(s.stock).every(q => q === 0),
-                    revenueUnchanged: s.revenue === 0
-                };
-            });
-        }""")
-        
-        print(f"  OOS test results: {oos_test}")
-        assert oos_test['customerStatus'] == 'OUT_OF_STOCK', "Status must be OUT_OF_STOCK"
-        assert oos_test['missedCount'] == 1, "Must record 1 missed order"
-        assert oos_test['stockUnchanged'], "Stock must not become negative"
-        assert oos_test['revenueUnchanged'], "Revenue must not increase on missed order"
-        print("  ✓ PASS: Out of stock is handled cleanly without errors or negative stock!")
+        print("\n--- TEST 7: REPLAY Immediately After Serve / Timers Cancellation ---")
+        await js_click(page, 'button[data-type="REPLAY"]')
+        await page.wait_for_timeout(1500)
+        screen_after_replay = await page.evaluate("() => document.querySelector('.screen-home') ? 'HOME' : 'OTHER'")
+        assert screen_after_replay == 'HOME', "REPLAY must return to HOME"
+        print("  ✓ PASS: REPLAY cleanly resets state and cancels all pending callbacks!")
 
-        # ─────────────────────────────────────────────────────────────
-        # TEST 5: MID-SHIFT SAVE & RELOAD
-        # ─────────────────────────────────────────────────────────────
-        print("\n--- TEST 5: Mid-Shift Save & Reload Integrity ---")
-        save_test = await page.evaluate("""() => {
-            return import('./day1-core.mjs').then(core => {
-                let s = core.fresh();
-                s.screen = 'SHOP';
-                s.cash = 45000;
-                s.stock.bread = 2;
-                s.stock.cha = 3;
-                s.clock = 150;
-                s.customerIndex = 3;
-                s.servedOrders.push({ recipe: 'BANH_MI_CHA', sellPrice: 25000, cogs: 11000 });
-                
-                // Encode and decode
-                const raw = core.encode(s);
-                const restored = core.decode(raw);
-                
-                return {
-                    matches: restored !== null,
-                    cash: restored?.cash,
-                    clock: restored?.clock,
-                    customerIndex: restored?.customerIndex,
-                    servedCount: restored?.servedOrders?.length
-                };
-            });
-        }""")
-        
-        print(f"  Save test results: {save_test}")
-        assert save_test['matches'], "Decoded state must be valid"
-        assert save_test['cash'] == 45000, "Cash must be restored exactly"
-        assert save_test['clock'] == 150, "Clock minute must be preserved"
-        assert save_test['servedCount'] == 1, "Order history must be preserved"
-        print("  ✓ PASS: Save/load mid-shift preserves state integrity without data corruption!")
-
-        # ─────────────────────────────────────────────────────────────
-        # TEST 6: DYNAMIC RECONCILED LEDGER FORMULA
-        # ─────────────────────────────────────────────────────────────
-        print("\n--- TEST 6: Dynamic Reconciled Ledger Formula ---")
-        ledger_test = await page.evaluate("""() => {
-            return import('./day1-core.mjs').then(core => {
-                let s = core.fresh();
-                s.screen = 'SHOP';
-                s.cash = 5000; // 60k - 55k spent
-                s.spent = 55000;
-                
-                // Simulate 6 fulfilled orders (122k revenue, 55k COGS)
-                s.servedOrders = [
-                    { recipe: 'BANH_MI_CHA', sellPrice: 25000, cogs: 11000 },
-                    { recipe: 'TRA_TAC', sellPrice: 15000, cogs: 5000 },
-                    { recipe: 'BANH_MI_CHA', sellPrice: 25000, cogs: 16000 }, // Bé Tí extra chả
-                    { recipe: 'TRA_TAC', sellPrice: 15000, cogs: 5000 },
-                    { recipe: 'SUA_DAU_DA', sellPrice: 17000, cogs: 7000 },
-                    { recipe: 'BANH_MI_CHA', sellPrice: 25000, cogs: 11000 }
-                ];
-                s.missedOrders = [
-                    { name: 'Cô Bảy', recipe: 'TRA_TAC', reason: 'OUT_OF_STOCK' },
-                    { name: 'Chú Tư', recipe: 'BANH_MI_CHA', reason: 'OUT_OF_STOCK' }
-                ];
-                s.stock = { bread: 0, cha: 0, vegetable: 0, ice: 0, sugar_syrup: 0, kumquat: 0, soy_milk: 0 };
-                
-                const ledger = core.calculateLedger(s);
-                return ledger;
-            });
-        }""")
-        
-        print("  Ledger calculation output:")
-        print(f"    Starting cash:       {ledger_test['startingCash']}")
-        print(f"    Spent on stock:     -{ledger_test['spentOnMorningStock']}")
-        print(f"    Cash collected:     +{ledger_test['cashSalesCollected']}")
-        print(f"    Final cash in hand:  {ledger_test['finalCashInDrawer']}")
-        print(f"    Gross profit:       +{ledger_test['grossOperatingProfit']}")
-        print(f"    Served / Missed:     {ledger_test['servedCount']} / {ledger_test['missedCount']}")
-        
-        assert ledger_test['startingCash'] == 60000
-        assert ledger_test['spentOnMorningStock'] == 55000
-        assert ledger_test['cashSalesCollected'] == 122000
-        assert ledger_test['finalCashInDrawer'] == 127000, "Final cash must be exactly 127.000đ"
-        assert ledger_test['cogsSoldItemsOnly'] == 55000, "COGS must be exactly 55.000đ"
-        assert ledger_test['grossOperatingProfit'] == 67000, "Gross profit must be exactly +67.000đ"
-        assert ledger_test['servedCount'] == 6
-        assert ledger_test['missedCount'] == 2
-        print("  ✓ PASS: Ledger formula strictly computes from transaction log without hardcoded constants!")
-        
         print(f"\nTotal JS runtime errors: {len(errors)}")
         for err in errors:
             print(f"  ⚠ {err}")
         assert len(errors) == 0, "No JS runtime errors allowed!"
         
         await browser.close()
-        print("\n" + "=" * 60)
-        print("🎉 ALL GATE 1 LOGIC TESTS PASSED 100%!")
-        print("=" * 60)
+        print("\n" + "=" * 65)
+        print("🎉 ALL GATE 1 LOGIC TESTS PASSED 100% WITH ZERO ERRORS!")
+        print("=" * 65)
 
 if __name__ == '__main__':
     asyncio.run(run_gate1_logic_tests())

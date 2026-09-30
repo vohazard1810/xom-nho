@@ -4,6 +4,8 @@ from playwright.async_api import async_playwright
 
 EVIDENCE_DIR = os.path.abspath(r"docs\v0.7_mobile_evidence")
 VIDEO_DIR = os.path.abspath(r"docs\v0.7_playtest_videos")
+os.makedirs(EVIDENCE_DIR, exist_ok=True)
+os.makedirs(VIDEO_DIR, exist_ok=True)
 
 async def js_click(page, selector):
     return await page.evaluate(f"""() => {{
@@ -13,14 +15,33 @@ async def js_click(page, selector):
         return true;
     }}""")
 
+async def assert_all_buttons_touch_target(page, screen_name):
+    details = await page.evaluate("""() => {
+        const btns = Array.from(document.querySelectorAll('button'));
+        return btns.map(b => ({
+            text: b.textContent.trim().replace(/\\s+/g, ' ').slice(0, 30),
+            className: b.className,
+            height: Math.round(b.getBoundingClientRect().height),
+            width: Math.round(b.getBoundingClientRect().width)
+        }));
+    }""")
+    print(f"  Touch targets inspection on {screen_name} ({len(details)} buttons):")
+    all_valid = True
+    for b in details:
+        valid = b['height'] >= 44
+        if not valid:
+            all_valid = False
+        print(f"    - [{b['text']}]: {b['height']}×{b['width']}px (pass: {valid})")
+    assert all_valid, f"Every button on {screen_name} must have touch target height >= 44px"
+
 async def run_gate2_mobile_experience():
-    print("=" * 60)
-    print("GATE 2: MOBILE EXPERIENCE & VISUAL SUITE (390×844)")
-    print("=" * 60)
+    print("=" * 65)
+    print("GATE 2: COMPREHENSIVE MOBILE EXPERIENCE & WATERCOLOR ART SUITE (390×844)")
+    print("=" * 65)
     
     async with async_playwright() as p:
         browser = await p.chromium.launch(
-            executable_path=r'C:\Program Files\WindowsApps\Microsoft.Edge_*\msedge.exe' if False else r'C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe',
+            executable_path=r'C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe',
             headless=True
         )
         
@@ -43,29 +64,32 @@ async def run_gate2_mobile_experience():
         await page.wait_for_timeout(400)
         
         # 1. HOME SCREEN
-        print("2. HOME Screen...")
+        print("\n2. HOME Screen...")
         await page.screenshot(path=os.path.join(EVIDENCE_DIR, "01_home_screen.png"))
+        await assert_all_buttons_touch_target(page, "HOME")
         await js_click(page, 'button[data-type="NAVIGATE"]')
         await page.wait_for_timeout(300)
         
         # 2. XOM_OI SCREEN
-        print("3. XÓM ƠI Screen (Morning News)...")
+        print("\n3. XÓM ƠI Screen (Morning News)...")
         await page.screenshot(path=os.path.join(EVIDENCE_DIR, "02_xom_oi_morning_news.png"))
+        await assert_all_buttons_touch_target(page, "XOM_OI")
         await js_click(page, 'button[data-type="NAVIGATE"]')
         await page.wait_for_timeout(300)
         
         # 3. MARKET SCREEN
-        print("4. MARKET Screen (Select 55k Bundle & Capacity Bar)...")
+        print("\n4. MARKET Screen (Select 55k Bundle & Capacity Bar)...")
         await js_click(page, 'button[data-type="BUNDLE_DAY1"]')
         await page.wait_for_timeout(200)
         await page.screenshot(path=os.path.join(EVIDENCE_DIR, "03_market_bundle_capacity.png"))
+        await assert_all_buttons_touch_target(page, "MARKET")
         await js_click(page, 'button[data-type="BUY"]')
         await page.wait_for_timeout(400)
         
         # 4. MENU & PRICING SETUP
-        print("5. MENU & PRICING SETUP Screen...")
+        print("\n5. MENU & PRICING SETUP Screen...")
         await page.screenshot(path=os.path.join(EVIDENCE_DIR, "04_menu_pricing_setup.png"))
-        # Verify opening time buttons exist
+        await assert_all_buttons_touch_target(page, "MENU_SETUP")
         await js_click(page, 'button[data-type="SET_TIME"][data-payload="ontime_8am"]')
         await page.wait_for_timeout(150)
         await js_click(page, 'button[data-type="START_DAY"]')
@@ -74,46 +98,73 @@ async def run_gate2_mobile_experience():
         # 5. SHOP SCREEN — IDLE SERVICE RUN
         print("\n6. SHOP Screen — Starting Idle Service Simulation...")
         await page.screenshot(path=os.path.join(EVIDENCE_DIR, "05_shop_open_idle.png"))
+        await assert_all_buttons_touch_target(page, "SHOP (Open Idle)")
         
         start_service_time = time.time()
         beti_decision_handled = False
         captured_auto_prep = False
+        captured_stage1 = False
+        captured_stage2 = False
+        captured_stage3 = False
         captured_news_ticker = False
         
-        # Loop to monitor simulation progress
         max_wait_seconds = 80
-        poll_interval = 0.35
+        poll_interval = 0.25
         elapsed = 0
         
         while elapsed < max_wait_seconds:
             await page.wait_for_timeout(int(poll_interval * 1000))
             elapsed = time.time() - start_service_time
             
+            # Check auto prep stages for real watercolor art evidence
+            prep_info = await page.evaluate("""() => {
+                const bench = document.querySelector('.auto-prep-bench');
+                if (!bench) return null;
+                const stage = document.querySelector('.watercolor-prep-stage');
+                const hasBread = Boolean(document.querySelector('.art-bread'));
+                const hasCha = Boolean(document.querySelector('.art-cha-slice'));
+                const hasFinish = Boolean(document.querySelector('.dish-finish-img'));
+                return {
+                    hasBench: true,
+                    hasBread,
+                    hasCha,
+                    hasFinish
+                };
+            }""")
+            
+            if prep_info:
+                if prep_info['hasBread'] and not prep_info['hasCha'] and not captured_stage1:
+                    print(f"  [T+{elapsed:.1f}s] 🎨 Stage 1 Art Captured: Base bread layer!")
+                    await page.screenshot(path=os.path.join(EVIDENCE_DIR, "07a_prep_stage1_bread.png"))
+                    captured_stage1 = True
+                elif prep_info['hasCha'] and not prep_info['hasFinish'] and not captured_stage2:
+                    print(f"  [T+{elapsed:.1f}s] 🎨 Stage 2 Art Captured: Chả slice + vegetable layers!")
+                    await page.screenshot(path=os.path.join(EVIDENCE_DIR, "07b_prep_stage2_cha.png"))
+                    captured_stage2 = True
+                elif prep_info['hasFinish'] and not captured_stage3:
+                    print(f"  [T+{elapsed:.1f}s] 🎨 Stage 3 Art Captured: Complete watercolor dish art!")
+                    await page.screenshot(path=os.path.join(EVIDENCE_DIR, "07c_prep_stage3_complete.png"))
+                    bench_el = await page.query_selector('.auto-prep-bench')
+                    if bench_el:
+                        await bench_el.screenshot(path=os.path.join(EVIDENCE_DIR, "auto_prep_workbench_closeup.png"))
+                    captured_stage3 = True
+            
             # Check if decision modal is open (Bé Tí extra chả)
             has_decision = await page.evaluate("() => Boolean(document.querySelector('.decision-modal-backdrop'))")
             if has_decision and not beti_decision_handled:
                 print(f"  [T+{elapsed:.1f}s] ⏸ DECISION MODAL ACTIVE: Clock is Paused for Bé Tí!")
-                await page.wait_for_timeout(350) # Allow entrance animation to settle
+                await page.wait_for_timeout(350)
                 await page.screenshot(path=os.path.join(EVIDENCE_DIR, "06_beti_decision_modal_pause.png"))
                 
-                # Check decision buttons min-height
-                btn_height = await page.evaluate("() => document.querySelector('.btn-decision')?.getBoundingClientRect().height || 0")
-                print(f"  Decision button height: {btn_height}px (Requirement: >= 44px)")
-                assert btn_height >= 44, f"Touch target too small: {btn_height}px"
+                # Check touch target of decision buttons
+                await assert_all_buttons_touch_target(page, "BÉ TÍ DECISION MODAL")
                 
-                await page.wait_for_timeout(600) # Give player time to read
+                await page.wait_for_timeout(500)
                 print("  Choosing: '👍 Thêm chả cho con (+1 chả)'...")
                 await js_click(page, 'button[data-type="DECIDE"][data-payload="yes"]')
                 beti_decision_handled = True
                 await page.wait_for_timeout(300)
                 continue
-            
-            # Capture auto-prep in action
-            has_auto_prep = await page.evaluate("() => Boolean(document.querySelector('.auto-prep-bench .banh-mi-assembly-visual') || document.querySelector('.auto-prep-bench .drink-assembly-visual'))")
-            if has_auto_prep and not captured_auto_prep:
-                print(f"  [T+{elapsed:.1f}s] ✨ Captured live auto-prep workstation animation!")
-                await page.screenshot(path=os.path.join(EVIDENCE_DIR, "07_auto_prep_workstation.png"))
-                captured_auto_prep = True
             
             # Capture news ticker
             has_news = await page.evaluate("() => Boolean(document.querySelector('.news-ticker-banner'))")
@@ -147,54 +198,40 @@ async def run_gate2_mobile_experience():
         # 6. DAY_RESULT SCREEN
         print("\n7. DAY_RESULT Screen (Reconciled Notebook Ledger)...")
         await page.screenshot(path=os.path.join(EVIDENCE_DIR, "10_day_result_ledger.png"))
+        await assert_all_buttons_touch_target(page, "DAY_RESULT")
         
         ledger_text = await page.evaluate("() => document.querySelector('.notebook-ledger-card')?.innerText || ''")
-        print("\n" + "=" * 50)
+        print("\n" + "=" * 55)
         print("SỔ GHI TIỀN ĐỐI SOÁT CUỐI NGÀY:")
-        print("=" * 50)
+        print("=" * 55)
         print(ledger_text)
-        print("=" * 50)
+        print("=" * 55)
         
         # Verify key ledger amounts in text
         for expected in ["60.000đ", "-55.000đ", "+122.000đ", "127.000đ", "+67.000đ"]:
             assert expected in ledger_text, f"Missing '{expected}' in final ledger!"
             print(f"  ✓ Found '{expected}' in ledger")
             
-        # Check touch targets on buttons
-        button_check = await page.evaluate("""() => {
-            const btns = Array.from(document.querySelectorAll('button:not(.speed-btn)'));
-            const details = btns.map(b => ({
-                text: b.textContent.trim().slice(0, 25),
-                className: b.className,
-                height: Math.round(b.getBoundingClientRect().height)
-            }));
-            return {
-                allValid: details.every(d => d.height >= 40),
-                details
-            };
-        }""")
-        print(f"  Touch targets inspection:")
-        for b in button_check['details']:
-            print(f"    - [{b['text']}]: {b['height']}px (pass: {b['height'] >= 40})")
-        assert button_check['allValid'], "All primary interactive buttons must have adequate touch target height"
-
         print(f"\nTotal JS runtime errors: {len(errors)}")
         for err in errors:
             print(f"  ⚠ {err}")
         assert len(errors) == 0, "No JS runtime errors allowed!"
-        
-        # Close context and page to flush video recording
-        await page.close()
-        await context.close()
+
         await browser.close()
         
-        # Find recorded video file
-        video_files = os.listdir(VIDEO_DIR)
-        print(f"\n🎥 Playtest video recorded in {VIDEO_DIR}: {video_files}")
-        
-        print("\n" + "=" * 60)
-        print("🎉 ALL GATE 2 MOBILE EXPERIENCE REQUIREMENTS MET 100%!")
-        print("=" * 60)
+        # Rename newest video
+        video_files = [f for f in os.listdir(VIDEO_DIR) if f.startswith('page@') and f.endswith('.webm')]
+        if video_files:
+            latest_vid = max(video_files, key=lambda f: os.path.getmtime(os.path.join(VIDEO_DIR, f)))
+            dest_vid = os.path.join(VIDEO_DIR, "v0.7_day1_mobile_playtest.webm")
+            if os.path.exists(dest_vid):
+                os.remove(dest_vid)
+            os.rename(os.path.join(VIDEO_DIR, latest_vid), dest_vid)
+            print(f"\n🎥 Playtest video successfully saved to: {dest_vid}")
+
+        print("\n" + "=" * 65)
+        print("🎉 ALL GATE 2 MOBILE EXPERIENCE & TOUCH TARGET TESTS PASSED 100%!")
+        print("=" * 65)
 
 if __name__ == '__main__':
     asyncio.run(run_gate2_mobile_experience())

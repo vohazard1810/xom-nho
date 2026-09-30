@@ -40,6 +40,7 @@ export const fixtureCustomers = Object.freeze([
     isRegular: false,
     recipe: 'BANH_MI_CHA',
     arrivalMinute: 30, // 08:30
+    priceSensitivity: 'MEDIUM',
     dialogue: 'Bán cho tui ổ bánh mì chả ăn sáng nha chú!'
   },
   {
@@ -48,6 +49,7 @@ export const fixtureCustomers = Object.freeze([
     isRegular: false,
     recipe: 'TRA_TAC',
     arrivalMinute: 75, // 09:15
+    priceSensitivity: 'MEDIUM',
     dialogue: 'Cho chị một ly trà tắc nhiều đá mát lạnh nghen!'
   },
   {
@@ -56,6 +58,7 @@ export const fixtureCustomers = Object.freeze([
     isRegular: true,
     recipe: 'BANH_MI_CHA',
     arrivalMinute: 120, // 10:00
+    priceSensitivity: 'LOW',
     specialRequest: 'EXTRA_CHA',
     dialogue: 'Chú ơi cho con ổ Bánh mì chả, chú cho con xin thêm chả nghen!'
   },
@@ -65,6 +68,7 @@ export const fixtureCustomers = Object.freeze([
     isRegular: true,
     recipe: 'TRA_TAC',
     arrivalMinute: 180, // 11:00
+    priceSensitivity: 'MEDIUM',
     dialogue: 'Cô đi chợ về ngang, làm cô ly trà tắc chua ngọt thanh mát nghe con!'
   },
   {
@@ -73,6 +77,7 @@ export const fixtureCustomers = Object.freeze([
     isRegular: true,
     recipe: 'SUA_DAU_DA',
     arrivalMinute: 225, // 11:45
+    priceSensitivity: 'LOW',
     dialogue: 'Cho anh ly Sữa đậu đá mát rượi em ơi! Đang vội chạy cuốc khách trưa!'
   },
   {
@@ -81,6 +86,7 @@ export const fixtureCustomers = Object.freeze([
     isRegular: false,
     recipe: 'BANH_MI_CHA',
     arrivalMinute: 255, // 12:15
+    priceSensitivity: 'HIGH',
     dialogue: 'Làm bác ổ bánh mì dằn bụng buổi trưa chú em ơi.'
   },
   {
@@ -89,6 +95,7 @@ export const fixtureCustomers = Object.freeze([
     isRegular: false,
     recipe: 'TRA_TAC',
     arrivalMinute: 285, // 12:45
+    priceSensitivity: 'HIGH',
     dialogue: 'Nắng nôi quá, cho ly trà tắc giải khát đi con!'
   },
   {
@@ -97,6 +104,7 @@ export const fixtureCustomers = Object.freeze([
     isRegular: false,
     recipe: 'BANH_MI_CHA',
     arrivalMinute: 315, // 13:15
+    priceSensitivity: 'HIGH',
     dialogue: 'Còn bánh mì không chú? Làm tui một ổ mang đi.'
   }
 ]);
@@ -243,11 +251,40 @@ export function action(state, type, payload) {
     const enabledDishes = Object.values(s.menu).filter(m => m.enabled);
     if (enabledDishes.length === 0) return fail('Cần bật ít nhất 1 món trong thực đơn.');
     s.screen = 'SHOP';
-    s.clock = 0; // Starts at 08:00
-    s.customerIndex = 0;
     s.activeCustomer = null;
     s.isPaused = false;
     s.activeDecision = null;
+    s.extraCha = null;
+    s.servedOrders = [];
+    s.missedOrders = [];
+
+    if (s.openingTime === 'late_10am') {
+      // Quán mở muộn 10:00: Khách ghé trước 10:00 (minute 120) bị bỏ lỡ
+      s.clock = 120; // 10:00 AM
+      let idx = 0;
+      while (idx < fixtureCustomers.length && fixtureCustomers[idx].arrivalMinute < 120) {
+        const missedCust = fixtureCustomers[idx];
+        s.missedOrders.push({
+          ticketId: missedCust.id + '_late_opening',
+          personId: missedCust.id,
+          name: missedCust.name,
+          recipe: missedCust.recipe,
+          reason: 'MISSED_LATE_OPENING',
+          note: 'Quán mở trễ lúc 10h, khách sáng đã đi qua chỗ khác.',
+          timestampMinute: missedCust.arrivalMinute
+        });
+        s.facts[missedCust.id] = {
+          ...(s.facts[missedCust.id] || {}),
+          missed_orders: ((s.facts[missedCust.id]?.missed_orders) || 0) + 1
+        };
+        idx++;
+      }
+      s.customerIndex = idx; // Starts with Bé Tí (index 2)
+    } else {
+      // ontime_8am
+      s.clock = 0;
+      s.customerIndex = 0;
+    }
   } else if (type === 'SET_SPEED') {
     if (s.screen !== 'SHOP') return fail('Chỉ đổi tốc độ trong giờ bán.');
     s.speed = payload === 2 ? 2 : 1;
@@ -258,6 +295,17 @@ export function action(state, type, payload) {
     
     const delta = Number(payload) || 2;
     s.clock = Math.min(360, s.clock + delta * s.speed);
+
+    // Self-healing customer departure recovery:
+    // If customer finished serving/rejecting and UI timer was lost (e.g. page reload),
+    // automatically clear customer after 4 simulation ticks.
+    if (s.activeCustomer && ['SERVED', 'OUT_OF_STOCK', 'MENU_DISABLED', 'PRICE_REJECTED'].includes(s.activeCustomer.status)) {
+      s.activeCustomer.ticksInCompletedState = (s.activeCustomer.ticksInCompletedState || 0) + 1;
+      if (s.activeCustomer.ticksInCompletedState >= 4) {
+        s.activeCustomer = null;
+        s.customerIndex += 1;
+      }
+    }
     
     // Check Market News Ticker at minute 195 (11:15 AM)
     if (s.clock >= 195 && !s.newsTicker && s.clock < 240) {
@@ -309,16 +357,56 @@ export function action(state, type, payload) {
     const isExtra = cust.id === 'be_ti' && s.extraCha === true;
     const needs = recipeNeeds(recipeId, isExtra);
     const menuItem = s.menu[recipeId];
+    const recipeDef = recipes[recipeId];
     
-    // Check if recipe is enabled and has stock
-    if (!menuItem || !menuItem.enabled || !hasEnoughStock(s.stock, needs)) {
-      // Out of stock
+    // 1. Check if recipe is disabled in today's menu
+    if (!menuItem || !menuItem.enabled) {
+      s.missedOrders.push({
+        ticketId: cust.id + '_' + s.clock,
+        personId: cust.id,
+        name: cust.name,
+        recipe: recipeId,
+        reason: 'MENU_DISABLED',
+        note: 'Món không có trong thực đơn hôm nay.',
+        timestampMinute: s.clock
+      });
+      s.facts[cust.id] = {
+        ...(s.facts[cust.id] || {}),
+        missed_orders: ((s.facts[cust.id]?.missed_orders) || 0) + 1
+      };
+      s.activeCustomer.status = 'MENU_DISABLED';
+      return { state: s };
+    }
+
+    // 2. Check customer price sensitivity (High tier vs HIGH sensitivity)
+    const isHighPrice = menuItem.sellPrice > recipeDef.basePrice;
+    if (isHighPrice && cust.priceSensitivity === 'HIGH') {
+      s.missedOrders.push({
+        ticketId: cust.id + '_' + s.clock,
+        personId: cust.id,
+        name: cust.name,
+        recipe: recipeId,
+        reason: 'PRICE_TOO_HIGH',
+        note: `Khách chê giá đắt (${menuItem.sellPrice.toLocaleString('vi-VN')}đ).`,
+        timestampMinute: s.clock
+      });
+      s.facts[cust.id] = {
+        ...(s.facts[cust.id] || {}),
+        missed_orders: ((s.facts[cust.id]?.missed_orders) || 0) + 1
+      };
+      s.activeCustomer.status = 'PRICE_REJECTED';
+      return { state: s };
+    }
+
+    // 3. Check inventory stock
+    if (!hasEnoughStock(s.stock, needs)) {
       s.missedOrders.push({
         ticketId: cust.id + '_' + s.clock,
         personId: cust.id,
         name: cust.name,
         recipe: recipeId,
         reason: 'OUT_OF_STOCK',
+        note: 'Hết nguyên liệu trong kho.',
         timestampMinute: s.clock
       });
       s.facts[cust.id] = {
@@ -326,42 +414,40 @@ export function action(state, type, payload) {
         missed_orders: ((s.facts[cust.id]?.missed_orders) || 0) + 1
       };
       s.activeCustomer.status = 'OUT_OF_STOCK';
-    } else {
-      // Fulfill order
-      for (const [ing, qty] of Object.entries(needs)) {
-        s.stock[ing] -= qty;
-      }
-      const cogs = calculateRecipeCost(needs);
-      const sellPrice = menuItem.sellPrice;
-      s.cash += sellPrice;
-      s.revenue += sellPrice;
-      
-      s.servedOrders.push({
-        ticketId: cust.id + '_' + s.clock,
-        personId: cust.id,
-        name: cust.name,
-        recipe: recipeId,
-        sellPrice,
-        cogs,
-        ingredientsUsed: needs,
-        timestampMinute: s.clock
-      });
-      
-      s.facts[cust.id] = {
-        ...(s.facts[cust.id] || {}),
-        successful_orders: ((s.facts[cust.id]?.successful_orders) || 0) + 1,
-        times_given_extra: ((s.facts[cust.id]?.times_given_extra) || 0) + (isExtra ? 1 : 0)
-      };
-      s.activeCustomer.status = 'SERVED';
+      return { state: s };
     }
+
+    // 4. Fulfill order successfully
+    for (const [ing, qty] of Object.entries(needs)) {
+      s.stock[ing] -= qty;
+    }
+    const cogs = calculateRecipeCost(needs);
+    const sellPrice = menuItem.sellPrice;
+    s.cash += sellPrice;
+    s.revenue += sellPrice;
+    
+    s.servedOrders.push({
+      ticketId: cust.id + '_' + s.clock,
+      personId: cust.id,
+      name: cust.name,
+      recipe: recipeId,
+      sellPrice,
+      cogs,
+      ingredientsUsed: needs,
+      timestampMinute: s.clock
+    });
+    
+    s.facts[cust.id] = {
+      ...(s.facts[cust.id] || {}),
+      successful_orders: ((s.facts[cust.id]?.successful_orders) || 0) + 1,
+      times_given_extra: ((s.facts[cust.id]?.times_given_extra) || 0) + (isExtra ? 1 : 0)
+    };
+    s.activeCustomer.status = 'SERVED';
   } else if (type === 'CUSTOMER_LEAVE') {
     if (s.screen !== 'SHOP' || !s.activeCustomer) return fail('Không có khách đang rời.');
     s.activeCustomer = null;
     s.customerIndex += 1;
-    // If all customers processed, auto end or wait for close
-    if (s.customerIndex >= fixtureCustomers.length) {
-      // Ca bán hoàn tất
-    }
+    // If all customers processed, ca ban hoan tat
   } else if (type === 'CLOSE') {
     if (s.screen !== 'SHOP') return fail('Quán chưa mở.');
     s.screen = 'DAY_RESULT';
@@ -410,6 +496,14 @@ export function calculateLedger(state) {
       margin: orders.reduce((s, o) => s + (o.sellPrice - o.cogs), 0)
     };
   }
+
+  const missedOrders = state.missedOrders || [];
+  const missedByReason = {
+    OUT_OF_STOCK: missedOrders.filter(o => o.reason === 'OUT_OF_STOCK'),
+    MENU_DISABLED: missedOrders.filter(o => o.reason === 'MENU_DISABLED'),
+    PRICE_TOO_HIGH: missedOrders.filter(o => o.reason === 'PRICE_TOO_HIGH'),
+    MISSED_LATE_OPENING: missedOrders.filter(o => o.reason === 'MISSED_LATE_OPENING')
+  };
   
   return {
     startingCash,
@@ -425,8 +519,9 @@ export function calculateLedger(state) {
     retainedStockValueAtCost,
     dishBreakdown,
     servedCount: (state.servedOrders || []).length,
-    missedCount: (state.missedOrders || []).length,
-    missedOrders: state.missedOrders || []
+    missedCount: missedOrders.length,
+    missedOrders,
+    missedByReason
   };
 }
 
