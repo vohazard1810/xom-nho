@@ -22,17 +22,19 @@ async def assert_all_buttons_touch_target(page, screen_name):
             text: b.textContent.trim().replace(/\\s+/g, ' ').slice(0, 30),
             className: b.className,
             height: Math.round(b.getBoundingClientRect().height),
-            width: Math.round(b.getBoundingClientRect().width)
+            width: Math.round(b.getBoundingClientRect().width),
+            visible: b.getBoundingClientRect().bottom > 0 && b.getBoundingClientRect().top < innerHeight && b.getBoundingClientRect().right > 0 && b.getBoundingClientRect().left < innerWidth,
+            centerClickable: (() => { const r = b.getBoundingClientRect(); if (r.top < 0 || r.bottom > innerHeight) return null; const x = r.left + r.width / 2, y = r.top + r.height / 2; return b === document.elementFromPoint(x, y) || b.contains(document.elementFromPoint(x, y)); })()
         }));
     }""")
     print(f"  Touch targets inspection on {screen_name} ({len(details)} buttons):")
     all_valid = True
     for b in details:
-        valid = b['height'] >= 44
+        valid = b['height'] >= 44 and b['width'] >= 44 and b['visible'] and b['centerClickable'] is not False
         if not valid:
             all_valid = False
         print(f"    - [{b['text']}]: {b['height']}×{b['width']}px (pass: {valid})")
-    assert all_valid, f"Every button on {screen_name} must have touch target height >= 44px"
+    assert all_valid, f"Every visible button on {screen_name} must be at least 44×44px and reachable"
 
 async def run_gate2_mobile_experience():
     print("=" * 65)
@@ -187,6 +189,9 @@ async def run_gate2_mobile_experience():
         
         total_service_time = time.time() - start_service_time
         print(f"\n⏱ TOTAL SERVICE TIME: {total_service_time:.1f}s (Pacing target: 45–60s)")
+        assert 45 <= total_service_time <= 60, f"Service time {total_service_time:.1f}s outside 45–60s target"
+        assert captured_stage1 and captured_stage2 and captured_stage3, "All three prep stages must be observed"
+        assert beti_decision_handled and captured_news_ticker, "Decision and market news must be observed"
         
         # Click close shop if still on SHOP
         on_shop = await page.evaluate("() => document.querySelector('.btn-close-shop') !== null")
