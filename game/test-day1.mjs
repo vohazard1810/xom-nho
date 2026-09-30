@@ -44,6 +44,16 @@ function run({ price = 25000, disabled = false, late = false, reloadAt = -1 } = 
   return { s, ledger };
 }
 
+function prepared() {
+  let s = fresh();
+  for (const type of ['NAVIGATE', 'NAVIGATE', 'BUNDLE_DAY1', 'BUY']) {
+    const r = action(s, type);
+    assert.equal(r.error, undefined);
+    s = r.state;
+  }
+  return s;
+}
+
 const baseline = run();
 assert.equal(baseline.ledger.finalCashInDrawer, 127000);
 assert.equal(baseline.ledger.grossOperatingProfit, 67000);
@@ -58,4 +68,78 @@ const late = run({ late: true });
 assert.equal(late.s.missedOrders.filter(o => o.reason === 'MISSED_LATE_OPENING').length, 2);
 assert.deepEqual(late.s.servedOrders.map(o => o.name), ['Bé Tí', 'Cô Chín', 'Anh Tùng', 'Bác Năm', 'Cô Bảy', 'Chú Tư']);
 assert.notDeepEqual(late.s.servedOrders.map(o => o.name), baseline.s.servedOrders.map(o => o.name));
-console.log('v0.7 Day 1: baseline, serialized resume, price, disabled menu, late opening, ledger and duplicate-service guard PASS');
+
+// The setup gates cannot be bypassed through generic navigation.
+let gate = prepared();
+assert.ok(action(gate, 'NAVIGATE').error);
+assert.ok(action(gate, 'CONFIG_MENU', { recipeId: 'BANH_MI_CHA', sellPrice: 123 }).error);
+assert.ok(action(gate, 'BASKET', null).error);
+gate = action(gate, 'SET_OPENING_TIME', 'early_6am').state;
+gate = action(gate, 'START_DAY').state;
+assert.equal(gate.clock, -120);
+assert.equal(gate.customerIndex, 0);
+assert.ok(action(gate, 'CUSTOMER_LEAVE').error);
+assert.ok(action(gate, 'TICK', -3).error);
+gate = action(gate, 'SET_SPEED', 2).state;
+gate = action(gate, 'TICK', 3).state;
+assert.equal(gate.clock, -117, 'x2 changes interval, not simulation minutes per tick');
+
+// News is delivered once without pausing and does not reappear after expiry.
+let news = prepared();
+news = action(news, 'START_DAY').state;
+for (let i = 0; i < 65; i++) {
+  if (news.activeCustomer?.status === 'ARRIVED') {
+    if (news.isPaused) news = action(news, 'DECIDE', { choice: 'no' }).state;
+    news = action(news, 'SERVE_AUTO').state;
+    news = action(news, 'CUSTOMER_LEAVE').state;
+  }
+  news = action(news, 'TICK', 3).state;
+}
+assert.ok(news.newsSeen && news.newsTicker);
+for (let i = 0; i < 16; i++) {
+  if (news.activeCustomer?.status === 'ARRIVED') {
+    news = action(news, 'SERVE_AUTO').state;
+    news = action(news, 'CUSTOMER_LEAVE').state;
+  }
+  news = action(news, 'TICK', 3).state;
+}
+assert.equal(news.newsTicker, null);
+assert.equal(news.isPaused, false);
+
+// Explicit early closure accounts for every unserved customer and preserves cash.
+let closed = prepared();
+closed = action(closed, 'START_DAY').state;
+closed = action(closed, 'TICK', 3).state;
+closed = action(closed, 'CLOSE').state;
+assert.equal(closed.missedOrders.length, 8);
+assert.equal(calculateLedger(closed).missedByReason.MISSED_EARLY_CLOSING.length, 8);
+assert.equal(closed.cash, 5000);
+assert.equal(action(closed, 'TICK', 3).error, 'Quán chưa mở.');
+
+// A special request cannot silently turn an affordable ordinary order into a loss.
+let scarce = prepared();
+scarce.stock.cha = 1;
+scarce = action(scarce, 'START_DAY').state;
+scarce = action(scarce, 'TICK', 3).state;
+scarce.activeCustomer = { ...fixtureCustomers[2], status: 'ARRIVED' };
+scarce.activeDecision = { id: 'EXTRA_CHA' };
+scarce.isPaused = true;
+assert.ok(action(scarce, 'DECIDE', { choice: 'yes' }).error);
+assert.equal(scarce.isPaused, true);
+scarce = action(scarce, 'DECIDE', { choice: 'no' }).state;
+assert.equal(scarce.isPaused, false);
+scarce = action(scarce, 'SERVE_AUTO').state;
+assert.equal(scarce.activeCustomer.status, 'SERVED');
+
+// Closing while a decision is open records all unserved customers once.
+let pausedClose = prepared();
+pausedClose = action(pausedClose, 'START_DAY').state;
+pausedClose.activeCustomer = { ...fixtureCustomers[2], status: 'ARRIVED' };
+pausedClose.activeDecision = { id: 'EXTRA_CHA' };
+pausedClose.isPaused = true;
+pausedClose.customerIndex = 2;
+pausedClose.missedOrders = fixtureCustomers.slice(0, 2).map(c => ({ personId: c.id, reason: 'MISSED_LATE_OPENING' }));
+pausedClose = action(pausedClose, 'CLOSE').state;
+assert.equal(pausedClose.missedOrders.length, 8);
+assert.equal(pausedClose.activeDecision, null);
+console.log('v0.7 Day 1: baseline ledger, serialized resume, pricing/menu, clock/news, opening/closing, extra chả and duplicate-service guards PASS');
