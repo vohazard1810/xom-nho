@@ -12,4 +12,4 @@ node game/test-multiday.mjs
 node game/test-ui.mjs
 ```
 
-Các bài Playwright ở `tools/playtest/` kiểm tra Day 1 trên browser/điện thoại và cần máy có Edge hoặc Playwright browser. Art Day 2+, nhân vật và hoạt ảnh là placeholder để Antigravity sản xuất sau; chưa có bằng chứng visual gate cho bản nhiều ngày.
+Gate browser 7 ngày: `python tools/playtest/mobile_gate_7day.py` trên checkout đầy đủ `assets/` và máy có Playwright Chromium/Edge. Script tự mở server, kiểm tra 390×844, tự chuyển ngày, F5, đối soát tiền, ảnh, nút chạm, lỗi JS và ghi video/screenshot. Xem `docs/MOBILE_GATE_HANDOFF.md`. Những script v0.7 cũ chỉ là tham chiếu Day 1. Art Day 2+, nhân vật và hoạt ảnh là placeholder để Antigravity sản xuất sau; chưa có bằng chứng visual gate cho bản nhiều ngày.
