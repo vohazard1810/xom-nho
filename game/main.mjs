@@ -127,6 +127,9 @@ let prepTimer2 = null;
 let prepTimer3 = null;
 let leaveTimer = null;
 let simulationSpeed = null;
+let resultTimer = null;
+let resultDetailsOpen = false;
+const vnCalendarDate = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
 
 const money = n => new Intl.NumberFormat('vi-VN').format(n) + 'đ';
 const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char]);
@@ -145,6 +148,15 @@ function clearAllTimers() {
   if (prepTimer2) { clearTimeout(prepTimer2); prepTimer2 = null; }
   if (prepTimer3) { clearTimeout(prepTimer3); prepTimer3 = null; }
   if (leaveTimer) { clearTimeout(leaveTimer); leaveTimer = null; }
+  if (resultTimer) { clearTimeout(resultTimer); resultTimer = null; }
+}
+function scheduleNextDay() {
+  if (resultTimer) clearTimeout(resultTimer);
+  if (state.screen !== 'DAY_RESULT' || resultDetailsOpen) return;
+  resultTimer = setTimeout(() => {
+    resultTimer = null;
+    if (state.screen === 'DAY_RESULT' && !resultDetailsOpen) send('NEXT_DAY');
+  }, 12000);
 }
 
 function send(type, payload) {
@@ -171,6 +183,7 @@ function send(type, payload) {
   state = r.state;
   message = '';
   persist();
+  if (type === 'NEXT_DAY') resultDetailsOpen = false;
 
   // Handle simulation lifecycle when entering/leaving SHOP
   if (state.screen === 'SHOP') {
@@ -181,6 +194,7 @@ function send(type, payload) {
   }
 
   render();
+  if (state.screen === 'DAY_RESULT') scheduleNextDay();
 }
 
 function startSimulationLoop() {
@@ -408,14 +422,18 @@ function renderXomOi() {
         ${state.currentDay > 1 ? `
           <div class="story-hint"><b>📰 Tin trước giờ mở:</b> ${escapeHtml(state.dayEvent.forecast)}<br>
           Dự kiến ${state.dayCustomers.length} lượt khách · Sao quán ${state.rating?.toFixed(1) || 'chưa đánh giá'} ⭐.
-          Giá đã mua hôm trước giữ nguyên trong kho; giá mới chỉ áp dụng cho hàng mua hôm nay.</div>
+          Giá đã mua hôm trước giữ nguyên trong kho; giá mới chỉ áp dụng cho hàng mua hôm nay.<br>Tem ghé xóm: ${state.login?.visitDays || 0} ngày lịch, nghỉ chơi không mất tem.</div>
+          ${state.lastDayReport ? `<details class="story-hint"><summary>Xem lại ngày ${state.lastDayReport.day}: ${state.lastDayReport.served} khách được phục vụ · két ${money(state.lastDayReport.cash)}</summary><ul>${state.lastDayReport.feedback.slice(0, 3).map(f => `<li>${escapeHtml(f.name)}: ${escapeHtml(f.text)}</li>`).join('')}</ul></details>` : ''}
           <div class="upgrade-list"><h3>🔧 Nâng cấp trước khi đi chợ</h3>
             ${Object.entries(UPGRADE_CATALOG).map(([id, u]) => `
-              <button class="btn-secondary" data-type="UPGRADE" data-payload="${id}" ${state.upgrades[id] >= u.maxLevel || state.cash < (state.upgrades[id] === 1 ? (u.nextCost || u.cost) : u.cost) ? 'disabled' : ''}>
-                ${u.name} · ${money(state.upgrades[id] === 1 ? (u.nextCost || u.cost) : u.cost)} — ${u.description} (${state.upgrades[id]}/${u.maxLevel})
+              <button class="btn-secondary" data-type="UPGRADE" data-payload="${id}" ${state.currentDay < (u.unlockDay || 2) || state.upgrades[id] >= u.maxLevel || state.cash < (state.upgrades[id] === 1 ? (u.nextCost || u.cost) : u.cost) ? 'disabled' : ''}>
+                ${u.name} · ${money(state.upgrades[id] === 1 ? (u.nextCost || u.cost) : u.cost)} — ${u.description} (${state.upgrades[id]}/${u.maxLevel})${state.currentDay < (u.unlockDay || 2) ? ` · Mở ngày ${u.unlockDay}` : ''}
               </button>
             `).join('')}
           </div>
+          ${state.currentDay >= 3 ? `<button class="btn-secondary" data-type="LEARN_RECIPE" data-payload="BANH_MI_TRUNG" ${!state.upgrades.counter || state.knownRecipeIds.includes('BANH_MI_TRUNG') || state.cash < 12000 ? 'disabled' : ''}>📒 Học bánh mì ốp la · 12.000đ (cần nới quầy)${state.knownRecipeIds.includes('BANH_MI_TRUNG') ? ' · Đã học' : ''}</button>` : ''}
+          ${state.currentDay >= 8 ? `<button class="btn-secondary" data-type="HIRE_STAFF" ${state.staffHiredToday || state.cash < 8000 ? 'disabled' : ''}>🧑‍🍳 Thuê người phụ ca này · lương 8.000đ; có thể nhận 2 khách giờ trưa, vẫn cần đủ nguyên liệu</button>` : ''}
+          ${state.currentDay >= 15 ? `<button class="btn-secondary" data-type="ENABLE_ONLINE" ${state.onlineEnabledToday ? 'disabled' : ''}>🛵 Nhận 2 đơn mang đi · phí 2.000đ/đơn thành công, dùng chung hàng tồn</button>` : ''}
           ${state.cash < 11000 && !state.sideJobIncome ? `<button class="btn-secondary" data-type="SIDE_JOB">🧹 Phụ cô hàng xóm dọn sân · nhận 15.000đ vốn nhập hàng</button>` : ''}
           ${state.sideJobIncome ? `<p>Hôm nay đã làm việc phụ: +${money(state.sideJobIncome)}. Khoản này ghi riêng với tiền bán món.</p>` : ''}
           ${message ? `<div class="alert-message">${escapeHtml(message)}</div>` : ''}
@@ -526,8 +544,8 @@ function renderMenuSetup() {
             <div class="menu-card ${cfg.enabled ? 'active' : 'disabled'}">
               <div class="menu-card-header">
                 <label class="menu-toggle">
-                  <input type="checkbox" data-type="CONFIG_MENU_TOGGLE" data-recipe="${recipeId}" ${cfg.enabled ? 'checked' : ''} ${recipeId === 'BANH_MI_TRUNG' && !state.upgrades.counter ? 'disabled' : ''}>
-                  <strong>${recipeData.name}${recipeId === 'BANH_MI_TRUNG' && !state.upgrades.counter ? ' · Cần nới quầy' : ''}</strong>
+                  <input type="checkbox" data-type="CONFIG_MENU_TOGGLE" data-recipe="${recipeId}" ${cfg.enabled ? 'checked' : ''} ${recipeId === 'BANH_MI_TRUNG' && !state.knownRecipeIds.includes(recipeId) ? 'disabled' : ''}>
+                  <strong>${recipeData.name}${recipeId === 'BANH_MI_TRUNG' && !state.knownRecipeIds.includes(recipeId) ? ' · Cần nới quầy và học món' : ''}</strong>
                 </label>
                 <span class="cost-estimate">Vốn: ~${money(cost)}</span>
               </div>
@@ -536,7 +554,7 @@ function renderMenuSetup() {
                 <span class="price-tier-label">Giá bán:</span>
                 ${recipeData.priceTiers.map(p => `
                   <button class="price-tier-btn ${cfg.sellPrice === p ? 'selected' : ''}" 
-                    data-type="CONFIG_MENU_PRICE" data-recipe="${recipeId}" data-price="${p}" ${recipeId === 'BANH_MI_TRUNG' && !state.upgrades.counter ? 'disabled' : ''}>
+                    data-type="CONFIG_MENU_PRICE" data-recipe="${recipeId}" data-price="${p}" ${recipeId === 'BANH_MI_TRUNG' && !state.knownRecipeIds.includes(recipeId) ? 'disabled' : ''}>
                     ${p / 1000}k
                   </button>
                 `).join('')}
@@ -795,6 +813,15 @@ function renderDayResult() {
           <h2>📖 SỔ GHI TIỀN ${shopTitle()}</h2>
           <small>Ngày ${state.currentDay} · Tổng Kết Buổi Bán</small>
         </div>
+        <div class="ledger-block highlight-box" aria-label="Tóm tắt cuối ngày">
+          <h3>${ledger.servedCount}/${ledger.servedCount + ledger.missedCount} khách được phục vụ · ⭐ ${state.rating?.toFixed(1)}</h3>
+          <p>Doanh thu ${money(ledger.totalSalesRevenue)} · Lãi gộp ${money(ledger.grossOperatingProfit)} · Tiền két ${money(ledger.finalCashInDrawer)}</p>
+          <h4>Khách nói gì hôm nay?</h4>
+          <ul class="journal-list">${(state.lastDayReport?.feedback || []).filter(f => f.reason !== 'SERVED').slice(0, 2).concat((state.lastDayReport?.feedback || []).filter(f => f.reason === 'SERVED').slice(0, 1)).map(f => `<li><b>${escapeHtml(f.name)}:</b> ${escapeHtml(f.text)}</li>`).join('') || '<li>Hôm nay chưa có phản hồi.</li>'}</ul>
+          <p><b>Ngày mai:</b> ${escapeHtml(state.lastDayReport?.forecastTomorrow || '')}</p>
+          <small>Tự sang màn chuẩn bị ngày ${state.currentDay + 1} sau 12 giây. Chạm xem sổ để dừng đếm.</small>
+        </div>
+        <details id="day-ledger-details" ${resultDetailsOpen ? 'open' : ''}><summary class="btn-secondary">Xem sổ chi tiết & toàn bộ feedback</summary>
 
         <!-- 1. Dòng tiền mặt trong két -->
         <div class="ledger-block">
@@ -809,6 +836,7 @@ function renderDayResult() {
           </div>
           ${ledger.upgradeOutlay ? `<div class="ledger-row minus"><span>Chi nâng cấp quán:</span><strong>-${money(ledger.upgradeOutlay)}</strong></div>` : ''}
           ${ledger.operatingExpenses ? `<div class="ledger-row minus"><span>Chi chuẩn bị mở sớm:</span><strong>-${money(ledger.operatingExpenses)}</strong></div>` : ''}
+          ${ledger.onlineFees ? `<div class="ledger-row minus"><span>Phí đơn mang đi:</span><strong>-${money(ledger.onlineFees)}</strong></div>` : ''}
           ${ledger.sideJobIncome ? `<div class="ledger-row plus"><span>Tiền việc phụ trong xóm:</span><strong>+${money(ledger.sideJobIncome)}</strong></div>` : ''}
           <div class="ledger-row plus">
             <span>Tiền mặt thu thực tế từ bán hàng (${ledger.servedCount} đơn):</span>
@@ -852,7 +880,7 @@ function renderDayResult() {
             <strong>${money(ledger.retainedStockValueAtCost)}</strong>
           </div>
           <div class="ledger-row sub"><span>Nguyên liệu tươi hỏng cuối ngày:</span><strong>${money(ledger.spoilageLoss)}</strong></div>
-          <div class="ledger-row sub"><span>Kết quả sau hao hụt, chi vận hành và việc phụ:</span><strong>${money(ledger.resultAfterSpoilageAndExpenses)}</strong></div>
+          <div class="ledger-row sub"><span>Kết quả sau hao hụt, chi vận hành, phí giao và việc phụ:</span><strong>${money(ledger.resultAfterSpoilageAndExpenses)}</strong></div>
         </div>
 
         <!-- 3. Lãi gộp theo món -->
@@ -908,6 +936,7 @@ function renderDayResult() {
         <div class="ledger-block journal">
           <h4 class="ledger-block-title">📝 5. CHUYỆN XÓM SAU GIỜ BÁN</h4>
           <ul class="journal-list">
+            ${(state.lastDayReport?.feedback || []).map(f => `<li><b>${escapeHtml(f.name)}:</b> ${escapeHtml(f.text)}</li>`).join('')}
             ${state.servedOrders.some(o => o.personId === 'be_ti') ? `
               <li>👧 <b>Bé Tí:</b> Cầm ổ bánh mì thơm phức cười tít mắt, tấm tắc khen chú làm ngon rồi hứa mai tan học ghé tiếp!</li>
             ` : ''}
@@ -939,7 +968,8 @@ function renderDayResult() {
           </div>` : ''}
         </div>
 
-        <button class="btn-primary" data-type="NEXT_DAY" style="margin-top: 16px;">🌅 Sang Ngày ${state.currentDay + 1}</button>
+        </details>
+        <button class="btn-primary" data-type="NEXT_DAY" style="margin-top: 16px;">🌅 Chuẩn bị ngày ${state.currentDay + 1} ngay</button>
         <button class="btn-tertiary" data-type="REPLAY">🔄 Chơi Lại Từ Đầu</button>
       </div>
     </div>
@@ -1030,10 +1060,22 @@ $.addEventListener('click', e => {
   send(t, p);
 });
 
+$.addEventListener('toggle', e => {
+  if (e.target?.id !== 'day-ledger-details') return;
+  resultDetailsOpen = e.target.open;
+  if (resultDetailsOpen) {
+    if (resultTimer) clearTimeout(resultTimer);
+    resultTimer = null;
+  } else scheduleNextDay();
+}, true);
+
 // Initial boot
+const loginClaim = action(state, 'CLAIM_LOGIN', vnCalendarDate());
+if (!loginClaim.error && loginClaim.state !== state) { state = loginClaim.state; persist(); }
 render();
 if (state.screen === 'SHOP') {
   startSimulationLoop();
 }
+if (state.screen === 'DAY_RESULT') scheduleNextDay();
 
 window.__xomNho = { send, getState: () => state };

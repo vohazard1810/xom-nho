@@ -128,8 +128,13 @@ export function fresh() {
     sideJobIncome: 0,
     tips: 0,
     dayHistory: [],
+    login: { lastClaimDate: null, visitDays: 0, stamps: [] },
+    staffHiredToday: false,
+    onlineEnabledToday: false,
+    onlineFees: 0,
+    lastDayReport: null,
     rating: null,
-    upgrades: { vehicleCapacity: 20, counterSlots: 3, seatingLevel: 0, bike_basket: 0, counter: 0, seating: 0 },
+    upgrades: { vehicleCapacity: 20, counterSlots: 3, seatingLevel: 0, bike_basket: 0, counter: 0, seating: 0, canopy: 0 },
     marketPrices: Object.fromEntries(Object.entries(ingredients).map(([id, item]) => [id, item.price])),
     dayEvent: dayConfig(1),
     dayCustomers: structuredClone(fixtureCustomers),
@@ -236,6 +241,15 @@ export function action(state, type, payload) {
     const name = typeof payload === 'string' ? payload.trim().replace(/\s+/g, ' ') : '';
     if (name.length < 2 || name.length > 24 || /[\x00-\x1f\x7f]/.test(name)) return fail('Tên quán cần từ 2 đến 24 ký tự.');
     s.shopName = name;
+  } else if (type === 'CLAIM_LOGIN') {
+    // The calendar is independent of simulated days; no cash or streak loss.
+    if (typeof payload !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(payload) || !Number.isFinite(Date.parse(payload + 'T00:00:00Z'))) return fail('Ngày đăng nhập không hợp lệ.');
+    s.login ||= { lastClaimDate: null, visitDays: 0, stamps: [] };
+    if (s.login.lastClaimDate === payload) return { state };
+    if (s.login.lastClaimDate && payload < s.login.lastClaimDate) return { state };
+    s.login.lastClaimDate = payload;
+    s.login.visitDays += 1;
+    s.login.stamps.push(payload);
   } else if (type === 'NAVIGATE') {
     if (s.screen === 'HOME' && !s.shopName) return fail('Hãy đặt tên quán trước khi bắt đầu.');
     const nextMap = {
@@ -288,6 +302,7 @@ export function action(state, type, payload) {
   } else if (type === 'UPGRADE') {
     if (s.screen !== 'XOM_OI' || s.currentDay < 2 || !Object.hasOwn(UPGRADE_CATALOG, payload)) return fail('Nâng cấp chỉ mua vào buổi sáng từ ngày 2.');
     const def = UPGRADE_CATALOG[payload];
+    if (s.currentDay < (def.unlockDay || 2)) return fail('Chưa đến ngày mở nâng cấp này.');
     if (s.upgrades[payload] >= def.maxLevel) return fail('Đã nâng cấp tối đa.');
     const upgradeCost = s.upgrades[payload] === 1 ? (def.nextCost || def.cost) : def.cost;
     if (s.cash < upgradeCost) return fail('Không đủ tiền mặt để nâng cấp.');
@@ -297,10 +312,37 @@ export function action(state, type, payload) {
     if (payload === 'bike_basket') s.upgrades.vehicleCapacity = s.upgrades.bike_basket === 1 ? 30 : 45;
     if (payload === 'counter') {
       s.upgrades.counterSlots = 4;
-      s.menu.BANH_MI_TRUNG.enabled = true;
-      s.knownRecipeIds.push('BANH_MI_TRUNG');
     }
-    if (payload === 'seating') s.dayCustomers = rosterForDay(s.currentDay, s.rating ?? 3, s.upgrades.seating) || s.dayCustomers;
+    if (payload === 'seating' || payload === 'canopy') {
+      const extras = s.dayCustomers.filter(c => c.isOnline || c.id.startsWith('staff_peak_'));
+      s.dayCustomers = [...rosterForDay(s.currentDay, s.rating ?? 3, s.upgrades.seating, s.upgrades.canopy), ...extras].sort((a, b) => a.arrivalMinute - b.arrivalMinute);
+    }
+  } else if (type === 'HIRE_STAFF') {
+    if (s.screen !== 'XOM_OI' || s.currentDay < 8 || s.staffHiredToday || s.cash < 8000) return fail('Từ ngày 8 có thể thuê người phụ với lương 8.000đ/ca.');
+    s.cash -= 8000;
+    s.operatingExpenses += 8000;
+    s.staffHiredToday = true;
+    // A helper handles two additional peak-hour walk-ins; their sales still
+    // require ingredients and remain subject to menu and price choices.
+    const additional = s.dayCustomers.slice(0, 2).map((customer, i) => ({
+      ...customer, id: `staff_peak_d${s.currentDay}_${i}`, personId: `staff_peak_${i}`,
+      name: i ? 'Anh ghé giờ trưa' : 'Chị ghé giờ trưa',
+      arrivalMinute: 185 + i * 20, dialogue: 'Thấy quán bán nhanh nên mình ghé thử một phần nhé!'
+    }));
+    s.dayCustomers.push(...additional);
+    s.dayCustomers.sort((a, b) => a.arrivalMinute - b.arrivalMinute);
+  } else if (type === 'LEARN_RECIPE') {
+    if (s.screen !== 'XOM_OI' || s.currentDay < 3 || payload !== 'BANH_MI_TRUNG' || !s.upgrades.counter || s.knownRecipeIds.includes(payload) || s.cash < 12000) return fail('Cần nới quầy và 12.000đ học món từ ngày 3.');
+    s.cash -= 12000;
+    s.upgradeSpent += 12000;
+    s.knownRecipeIds.push(payload);
+    s.menu[payload].enabled = true;
+  } else if (type === 'ENABLE_ONLINE') {
+    if (s.screen !== 'XOM_OI' || s.currentDay < 15 || s.onlineEnabledToday) return fail('Đơn mang đi mở từ ngày 15, chọn một lần trước ca.');
+    s.onlineEnabledToday = true;
+    // Two delivery tickets compete for the same pantry stock as walk-in guests.
+    for (let i = 0; i < 2; i++) s.dayCustomers.push({ id: `online_d${s.currentDay}_${i}`, personId: `online_${i}`, visualVariantId: 'online_order', name: `Đơn mang đi ${i + 1}`, isRegular: false, isOnline: true, recipe: i ? 'TRA_TAC' : 'BANH_MI_CHA', arrivalMinute: 160 + i * 65, priceSensitivity: 'LOW', temperament: 'NORMAL', dialogue: 'Đơn đặt mang đi, gói giúp mình nhé!' });
+    s.dayCustomers.sort((a, b) => a.arrivalMinute - b.arrivalMinute);
   } else if (type === 'SIDE_JOB') {
     if (s.screen !== 'XOM_OI' || s.currentDay < 2 || s.cash >= 11000 || s.sideJobIncome) return fail('Việc phụ chỉ mở khi quán thiếu vốn nhập món cơ bản.');
     s.cash += 15000;
@@ -308,7 +350,7 @@ export function action(state, type, payload) {
   } else if (type === 'CONFIG_MENU') {
     // payload: { recipeId, enabled?: boolean, sellPrice?: number }
     if (s.screen !== 'MENU' || !payload || !Object.hasOwn(recipes, payload.recipeId)) return fail('Món không hợp lệ.');
-    if (payload.recipeId === 'BANH_MI_TRUNG' && !s.upgrades.counter) return fail('Cần mở rộng quầy để bán bánh mì ốp la.');
+    if (payload.recipeId === 'BANH_MI_TRUNG' && (!s.upgrades.counter || !s.knownRecipeIds.includes('BANH_MI_TRUNG'))) return fail('Cần nới quầy và học công thức bánh mì ốp la.');
     if (payload.enabled !== undefined) {
       if (payload.enabled && !s.menu[payload.recipeId].enabled && Object.values(s.menu).filter(m => m.enabled).length >= s.upgrades.counterSlots) return fail('Không còn chỗ trưng bày trên quầy.');
       s.menu[payload.recipeId].enabled = Boolean(payload.enabled);
@@ -408,8 +450,8 @@ export function action(state, type, payload) {
     if (s.clock >= 195 && !s.newsSeen) {
       s.newsSeen = true;
       s.newsTicker = {
-        id: 'KUMQUAT_PRICE_RUMOR',
-        text: 'Bà Sáu chợ đầu ngõ: "Tắc chiều gom ép nước giá lên 3.000đ rồi đó nghen!"',
+        id: s.currentDay === 1 ? 'KUMQUAT_PRICE_RUMOR' : s.dayEvent.event,
+        text: s.currentDay === 1 ? 'Bà Sáu chợ đầu ngõ: "Tắc chiều gom ép nước giá lên 3.000đ rồi đó nghen!"' : s.dayEvent.forecast,
         endMinute: 235
       };
     } else if (s.newsTicker && s.clock >= s.newsTicker.endMinute) {
@@ -439,6 +481,7 @@ export function action(state, type, payload) {
         }
       }
     }
+    if (s.clock >= 360 && !s.activeCustomer) return action(s, 'CLOSE');
   } else if (type === 'DECIDE') {
     // Resolves a pending decision, e.g. payload: { choice: 'yes' | 'no' }
     if (s.screen !== 'SHOP' || !s.activeDecision || !s.isPaused) return fail('Không có quyết định đang chờ.');
@@ -525,8 +568,10 @@ export function action(state, type, payload) {
     // 4. Fulfill order successfully
     const cogs = consumeBatches(s, needs);
     const sellPrice = menuItem.sellPrice;
-    const tip = s.currentDay > 1 && cust.temperament === 'FRIENDLY' ? 1000 + (s.dayEvent.tipBonus || 0) : 0;
-    s.cash += sellPrice + tip;
+    const tip = s.currentDay > 1 && cust.temperament === 'FRIENDLY' ? 1000 + (s.dayEvent.tipBonus || 0) + (s.staffHiredToday ? 500 : 0) : 0;
+    const onlineFee = cust.isOnline ? 2000 : 0;
+    s.cash += sellPrice + tip - onlineFee;
+    s.onlineFees = (s.onlineFees || 0) + onlineFee;
     s.tips += tip;
     s.revenue += sellPrice;
     
@@ -538,6 +583,8 @@ export function action(state, type, payload) {
       sellPrice,
       cogs,
       tip,
+      onlineFee,
+      isOnline: Boolean(cust.isOnline),
       ingredientsUsed: needs,
       timestampMinute: s.clock
     });
@@ -553,7 +600,7 @@ export function action(state, type, payload) {
     if (!['SERVED', 'OUT_OF_STOCK', 'MENU_DISABLED', 'PRICE_REJECTED'].includes(s.activeCustomer.status)) return fail('Khách chưa được xử lý.');
     s.activeCustomer = null;
     s.customerIndex += 1;
-    // If all customers processed, ca ban hoan tat
+    if (s.clock >= 360) return action(s, 'CLOSE');
   } else if (type === 'CLOSE') {
     if (s.screen !== 'SHOP') return fail('Quán chưa mở.');
     // Closing early is a management decision: everyone not yet served is a
@@ -584,9 +631,14 @@ export function action(state, type, payload) {
     clearFreshStock(s);
     const total = s.servedOrders.length + s.missedOrders.length;
     const serviceRate = total ? s.servedOrders.length / total : 0;
-    s.rating = s.currentDay === 1 ? 3 : Math.max(1, Math.min(5, (s.rating ?? 3) + (serviceRate >= .8 ? .5 : serviceRate < .5 ? -.5 : 0)));
+    // Demand growth or bad weather cannot lower rating by itself. Voluntary
+    // early closure, high pricing and menu removals remain controllable.
+    const avoidable = s.missedOrders.filter(o => ['PRICE_TOO_HIGH', 'MENU_DISABLED', 'MISSED_EARLY_CLOSING'].includes(o.reason)).length;
+    s.rating = s.currentDay === 1 ? 3 : Math.max(1, Math.min(5, (s.rating ?? 3) + (avoidable > total / 3 ? -.5 : serviceRate >= .8 && s.servedOrders.length >= 5 ? .5 : 0)));
     s.screen = 'DAY_RESULT';
-    s.dayHistory.push({ day: s.currentDay, cash: s.cash, served: s.servedOrders.length, missed: s.missedOrders.length, rating: s.rating, revenue: s.revenue, cogs: s.servedOrders.reduce((n, o) => n + o.cogs, 0), spoilage: s.spoilageLoss, sideJobIncome: s.sideJobIncome });
+    const feedback = [...s.missedOrders.map(o => ({ personId: o.personId, name: o.name, reason: o.reason, text: o.reason === 'OUT_OF_STOCK' ? 'Tiếc quá, quán hết món rồi; mai mình ghé sớm nhé.' : o.reason === 'PRICE_TOO_HIGH' ? 'Giá hôm nay cao quá, để bữa khác ghé.' : o.reason === 'MENU_DISABLED' ? 'Hôm nay không có món mình thích rồi.' : 'Mình ghé mà quán chưa bán hoặc đã đóng.' })), ...s.servedOrders.map(o => ({ personId: o.personId, name: o.name, reason: 'SERVED', text: o.tip ? 'Ngon quá, gửi quán thêm chút tiền cà phê!' : o.personId === 'be_ti' && s.extraCha ? 'Nhiều chả quá, con thích lắm!' : 'Món vừa miệng, cảm ơn quán nha!' }))];
+    s.lastDayReport = { day: s.currentDay, feedback, forecastTomorrow: dayConfig(s.currentDay + 1).forecast, served: s.servedOrders.length, missed: s.missedOrders.length, cash: s.cash, revenue: s.revenue, cogs: s.servedOrders.reduce((n, o) => n + o.cogs, 0), spoilage: s.spoilageLoss, rating: s.rating };
+    s.dayHistory.push(s.lastDayReport);
   } else if (type === 'NEXT_DAY') {
     if (s.screen !== 'DAY_RESULT') return fail('Hãy kết thúc ca bán trước khi qua ngày mới.');
     s.currentDay += 1;
@@ -594,6 +646,9 @@ export function action(state, type, payload) {
     s.upgradeSpent = 0;
     s.spoilageLoss = 0;
     s.operatingExpenses = 0;
+    s.onlineFees = 0;
+    s.onlineEnabledToday = false;
+    s.staffHiredToday = false;
     s.sideJobIncome = 0;
     s.tips = 0;
     s.spent = 0;
@@ -612,7 +667,7 @@ export function action(state, type, payload) {
     s.basket = Object.fromEntries(Object.keys(ingredients).map(k => [k, 0]));
     s.dayEvent = dayConfig(s.currentDay);
     s.marketPrices = Object.fromEntries(Object.entries(ingredients).map(([id, item]) => [id, s.dayEvent.marketPrices?.[id] ?? item.price]));
-    s.dayCustomers = rosterForDay(s.currentDay, s.rating ?? 3, s.upgrades.seating);
+    s.dayCustomers = rosterForDay(s.currentDay, s.rating ?? 3, s.upgrades.seating, s.upgrades.canopy);
     s.openingTime = 'ontime_8am';
     s.screen = 'XOM_OI';
   } else {
@@ -629,6 +684,7 @@ export function calculateLedger(state) {
   const spentOnMorningStock = state.spent || 0;
   const upgradeOutlay = state.upgradeSpent || 0;
   const operatingExpenses = state.operatingExpenses || 0;
+  const onlineFees = state.onlineFees || 0;
   const sideJobIncome = state.sideJobIncome || 0;
   
   // Actual cash collected from sales
@@ -638,7 +694,7 @@ export function calculateLedger(state) {
   
   // Reconciled physical cash in drawer
   // finalCashInDrawer = startingCash - spentOnMorningStock + cashSalesCollected + tipsCollected
-  const finalCashInDrawer = startingCash - upgradeOutlay - operatingExpenses - spentOnMorningStock + cashSalesCollected + tipsCollected + sideJobIncome;
+  const finalCashInDrawer = startingCash - upgradeOutlay - operatingExpenses - onlineFees - spentOnMorningStock + cashSalesCollected + tipsCollected + sideJobIncome;
   const netCashDifferenceToday = finalCashInDrawer - startingCash;
   
   // Accrual P&L: COGS of sold items only
@@ -678,6 +734,7 @@ export function calculateLedger(state) {
     spentOnMorningStock,
     upgradeOutlay,
     operatingExpenses,
+    onlineFees,
     sideJobIncome,
     spoilageLoss: state.spoilageLoss || 0,
     cashSalesCollected,
@@ -688,7 +745,7 @@ export function calculateLedger(state) {
     totalSalesRevenue,
     cogsSoldItemsOnly,
     grossOperatingProfit,
-    resultAfterSpoilageAndExpenses: grossOperatingProfit - (state.spoilageLoss || 0) - operatingExpenses + sideJobIncome,
+    resultAfterSpoilageAndExpenses: grossOperatingProfit - (state.spoilageLoss || 0) - operatingExpenses - onlineFees + sideJobIncome,
     retainedStockValueAtCost,
     dishBreakdown,
     servedCount: (state.servedOrders || []).length,
@@ -750,6 +807,12 @@ export function decode(raw) {
       s.stockBatches = Object.fromEntries(Object.entries(s.stock).map(([id, qty]) => [id, qty ? [{ quantityRemaining: qty, unitCost: ingredients[id].price, dayAcquired: 1 }] : []]));
       s.newsSeen = Boolean(s.newsTicker);
     }
+    s.login ||= { lastClaimDate: null, visitDays: 0, stamps: [] };
+    s.upgrades.canopy ||= 0;
+    s.staffHiredToday ||= false;
+    s.onlineEnabledToday ||= false;
+    s.onlineFees ||= 0;
+    s.lastDayReport ||= s.dayHistory.at(-1) || null;
     return s;
   } catch {
     return null;

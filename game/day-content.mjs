@@ -7,7 +7,8 @@ export const extraRecipe = {
 export const UPGRADE_CATALOG = Object.freeze({
   bike_basket: { name: 'Rổ đèo hàng', cost: 30000, nextCost: 45000, description: 'Sức chở 20 → 30 → 45 đơn vị', maxLevel: 2 },
   counter: { name: 'Nới quầy', cost: 25000, description: 'Mở slot thứ 4 và món bánh mì ốp la', maxLevel: 1 },
-  seating: { name: 'Ghế nhựa thêm', cost: 20000, description: 'Thêm 2 chỗ ngồi, thu hút thêm khách', maxLevel: 2 }
+  seating: { name: 'Ghế nhựa thêm', cost: 20000, description: 'Thêm 2 chỗ ngồi, thu hút thêm khách', maxLevel: 2 },
+  canopy: { name: 'Mái che quán', cost: 35000, description: 'Từ ngày 5: giữ thêm 1 khách vào ngày mưa', maxLevel: 1, unlockDay: 5 }
 });
 export const FRESH_INGREDIENTS = new Set(['bread', 'cha', 'vegetable', 'ice', 'kumquat', 'soy_milk', 'egg']);
 
@@ -33,10 +34,10 @@ export function dayConfig(day) {
   };
 }
 
-export function rosterForDay(day, rating = 3, seatingLevel = 0) {
+export function rosterForDay(day, rating = 3, seatingLevel = 0, canopy = 0) {
   if (day === 1) return null; // Day 1 retains its approved eight-customer fixture.
   const config = dayConfig(day);
-  const extra = Math.max(0, Math.min(8, day - 1)) + seatingLevel * 2 + (rating >= 4 ? 2 : 0) + config.demandDelta;
+  const extra = Math.max(0, Math.min(8, day - 1)) + seatingLevel * 2 + (rating >= 4 ? 2 : 0) + config.demandDelta + (config.event === 'rain' ? canopy : 0);
   const count = Math.max(6, Math.min(20, 8 + extra));
   const recipes = ['BANH_MI_CHA', 'TRA_TAC', 'SUA_DAU_DA', 'BANH_MI_CHA', 'TRA_TAC', 'BANH_MI_TRUNG'];
   return Array.from({ length: count }, (_, i) => {
