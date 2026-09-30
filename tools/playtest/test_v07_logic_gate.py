@@ -39,7 +39,7 @@ async def run_gate1_logic_tests():
         e2e_ledger = await page.evaluate("""() => {
             return import('./day1-core.mjs').then(core => {
                 // Run complete simulation from fresh state to Day Result
-                let s = core.fresh();
+                let s = core.action(core.fresh(), 'SET_SHOP_NAME', 'Quán Test').state;
                 s.screen = 'MARKET';
                 s = core.action(s, 'BUNDLE_DAY1').state;
                 s = core.action(s, 'BUY').state;
@@ -138,7 +138,7 @@ async def run_gate1_logic_tests():
         print("\n--- TEST 2: Customer Price Sensitivity Mechanics ---")
         price_test = await page.evaluate("""() => {
             return import('./day1-core.mjs').then(core => {
-                let s = core.fresh();
+                let s = core.action(core.fresh(), 'SET_SHOP_NAME', 'Quán Test').state;
                 s.screen = 'MENU';
                 s.stock = { bread: 5, cha: 5, vegetable: 5, ice: 5, sugar_syrup: 5, kumquat: 5, soy_milk: 5 };
                 
@@ -196,7 +196,7 @@ async def run_gate1_logic_tests():
         print("\n--- TEST 3: Menu Disabled Dish Distinction ---")
         disabled_dish_test = await page.evaluate("""() => {
             return import('./day1-core.mjs').then(core => {
-                let s = core.fresh();
+                let s = core.action(core.fresh(), 'SET_SHOP_NAME', 'Quán Test').state;
                 s.screen = 'MENU';
                 s.stock = { bread: 2, cha: 2, vegetable: 2, ice: 2, sugar_syrup: 2, kumquat: 2, soy_milk: 2 };
                 
@@ -233,7 +233,7 @@ async def run_gate1_logic_tests():
         print("\n--- TEST 4: Opening Time Impact on Customer Roster ---")
         opening_time_test = await page.evaluate("""() => {
             return import('./day1-core.mjs').then(core => {
-                let s = core.fresh();
+                let s = core.action(core.fresh(), 'SET_SHOP_NAME', 'Quán Test').state;
                 s.screen = 'MENU';
                 
                 // Choose late opening: late_10am
@@ -315,7 +315,8 @@ async def run_gate1_logic_tests():
         await page.wait_for_timeout(300)
         
         # Navigate to Market and buy 55k bundle
-        await js_click(page, 'button[data-type="NAVIGATE"]')
+        await page.fill('#shop-name-input', 'Quán Test')
+        await js_click(page, 'button[data-type="SET_SHOP_NAME"]')
         await page.wait_for_timeout(200)
         await js_click(page, 'button[data-type="NAVIGATE"]')
         await page.wait_for_timeout(200)
@@ -390,7 +391,8 @@ async def run_gate1_logic_tests():
         # ─────────────────────────────────────────────────────────────
         print("\n--- TEST 7: REPLAY During Active Prep / Timers Cancellation ---")
         await js_click(page, 'button[data-type="REPLAY"]')
-        await js_click(page, 'button[data-type="NAVIGATE"]')
+        await page.fill('#shop-name-input', 'Quán Test')
+        await js_click(page, 'button[data-type="SET_SHOP_NAME"]')
         await js_click(page, 'button[data-type="NAVIGATE"]')
         await js_click(page, 'button[data-type="BUNDLE_DAY1"]')
         await js_click(page, 'button[data-type="BUY"]')

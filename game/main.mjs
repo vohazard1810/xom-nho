@@ -4,6 +4,7 @@ import {
   fixtureCustomers,
   SAVE_KEY,
   BIKE_CAPACITY,
+  UPGRADE_CATALOG,
   fresh,
   totalBasketUnits,
   totalBasketCost,
@@ -51,7 +52,8 @@ const ingredientMeta = {
   ice: { name: 'Đá bi', icon: '🧊', unit: 'ca', img: '../assets/ingredients/ice.png' },
   sugar_syrup: { name: 'Nước đường', icon: '🍯', unit: 'muỗng', img: '../assets/ingredients/sugar_syrup.png' },
   kumquat: { name: 'Tắc tươi', icon: '🍊', unit: 'trái', img: '../assets/ingredients/kumquat.png' },
-  soy_milk: { name: 'Sữa đậu', icon: '🥛', unit: 'bịch', img: '../assets/ingredients/soy_milk.png' }
+  soy_milk: { name: 'Sữa đậu', icon: '🥛', unit: 'bịch', img: '../assets/ingredients/soy_milk.png' },
+  egg: { name: 'Trứng gà', icon: '🥚', unit: 'quả', img: null }
 };
 
 // Audio synthesis
@@ -127,6 +129,8 @@ let leaveTimer = null;
 let simulationSpeed = null;
 
 const money = n => new Intl.NumberFormat('vi-VN').format(n) + 'đ';
+const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char]);
+const shopTitle = () => escapeHtml(state.shopName || 'Xóm Nhỏ');
 
 function persist() {
   localStorage.setItem(SAVE_KEY + ':' + (state.revision % 2), encode(state));
@@ -324,8 +328,8 @@ function runAutoPrepSequence() {
       // Transaction commit (1350ms)
       prepTimer3 = setTimeout(() => {
         const earned = menuItem.sellPrice;
-        floatingCash = '+' + money(earned);
         send('SERVE_AUTO');
+        floatingCash = '+' + money(earned + (state.servedOrders.at(-1)?.tip || 0));
 
         let quote = 'Cảm ơn chú nhiều nghen, món ngon vừa miệng lắm!';
         if (cust.id === 'be_ti') {
@@ -340,6 +344,10 @@ function runAutoPrepSequence() {
           quote = 'Giá nay hơi nhỉnh xíu ha chú, mà thèm quá nên mua luôn nè!';
         } else if (menuItem.sellPrice < recipeDef.basePrice) {
           quote = 'Quán bán giá mềm mà chất lượng ghê, để bác rủ thêm người ủng hộ!';
+        } else if (cust.temperament === 'RUSH') {
+          quote = 'Kịp giờ rồi! Cảm ơn quán, mình đi đây!';
+        } else if (cust.temperament === 'FRIENDLY') {
+          quote = 'Ngon quá, gửi thêm quán ít tiền cà phê nha!';
         }
 
         customerReaction = { quote, status: 'happy' };
@@ -366,7 +374,7 @@ function renderHome() {
     <div class="screen-home">
       <div class="cover-hero">
         <span class="cover-tag">🏮 PHIÊN BẢN CHƠI THỬ · IDLE MANAGEMENT</span>
-        <h1 class="cover-brand">XÓM NHỎ</h1>
+        <h1 class="cover-brand">${shopTitle()}</h1>
         <p class="cover-sub">Chuyện Làm Ăn Buôn Bán Quán Phố</p>
       </div>
       <div class="cover-card">
@@ -374,8 +382,13 @@ function renderHome() {
           Quản lý quán ăn nhỏ trong con hẻm Sài Gòn.<br>
           Dự tính nhu cầu, đặt giá bán, mở quán tự bán và xử lý tình huống phát sinh cùng bà con chòm xóm.
         </p>
-        <button class="btn-primary" data-type="NAVIGATE">🌿 Bắt Đầu Mở Quán Ngày 1</button>
-        ${saved ? `<button class="btn-secondary" data-type="RESUME">Tiếp Tục Ca Bán Đang Chơi</button>` : ''}
+        ${!state.shopName ? `
+          <label for="shop-name-input">Tên quán của bạn</label>
+          <input id="shop-name-input" class="shop-name-input" maxlength="24" placeholder="Ví dụ: Quán Đầu Hẻm" autocomplete="off">
+          <button class="btn-primary" data-type="SET_SHOP_NAME">🌿 Đặt Tên & Bắt Đầu</button>
+        ` : `<button class="btn-primary" data-type="NAVIGATE">🌿 Bắt Đầu Ngày ${state.currentDay}</button>`}
+        ${saved && state.screen === 'HOME' && saved.currentDay > 1 ? `<small>Đã lưu đến ngày ${saved.currentDay}</small>` : ''}
+        ${message ? `<div class="alert-message">${escapeHtml(message)}</div>` : ''}
         <button class="btn-tertiary" data-type="REPLAY">🔄 Đặt Lại / Chơi Lại Từ Đầu</button>
       </div>
     </div>
@@ -385,14 +398,28 @@ function renderHome() {
 function renderXomOi() {
   return `
     <header class="top-nav">
-      <div class="brand-title">XÓM NHỎ <small>Tin Buổi Sớm</small></div>
+      <div class="brand-title">${shopTitle()} <small>Tin Buổi Sớm</small></div>
       <div class="wallet-badge">💵 ${money(state.cash)}</div>
     </header>
     <div class="story-screen">
       <div class="story-card">
-        <h2>🌤️ Xóm Ơi · Tiếng Chổi Tre Quét Sớm</h2>
+        <h2>🌤️ Xóm Ơi · Ngày ${state.currentDay}</h2>
         <p>Nắng sớm len lỏi qua giàn hoa giấy tím trước hiên nhà. Mùi cà phê thơm lừng quyện cùng tiếng còi xe máy đầu hẻm báo hiệu một ngày buôn bán mới.</p>
-        
+        ${state.currentDay > 1 ? `
+          <div class="story-hint"><b>📰 Tin trước giờ mở:</b> ${escapeHtml(state.dayEvent.forecast)}<br>
+          Dự kiến ${state.dayCustomers.length} lượt khách · Sao quán ${state.rating?.toFixed(1) || 'chưa đánh giá'} ⭐.
+          Giá đã mua hôm trước giữ nguyên trong kho; giá mới chỉ áp dụng cho hàng mua hôm nay.</div>
+          <div class="upgrade-list"><h3>🔧 Nâng cấp trước khi đi chợ</h3>
+            ${Object.entries(UPGRADE_CATALOG).map(([id, u]) => `
+              <button class="btn-secondary" data-type="UPGRADE" data-payload="${id}" ${state.upgrades[id] >= u.maxLevel || state.cash < (state.upgrades[id] === 1 ? (u.nextCost || u.cost) : u.cost) ? 'disabled' : ''}>
+                ${u.name} · ${money(state.upgrades[id] === 1 ? (u.nextCost || u.cost) : u.cost)} — ${u.description} (${state.upgrades[id]}/${u.maxLevel})
+              </button>
+            `).join('')}
+          </div>
+          ${state.cash < 11000 && !state.sideJobIncome ? `<button class="btn-secondary" data-type="SIDE_JOB">🧹 Phụ cô hàng xóm dọn sân · nhận 15.000đ vốn nhập hàng</button>` : ''}
+          ${state.sideJobIncome ? `<p>Hôm nay đã làm việc phụ: +${money(state.sideJobIncome)}. Khoản này ghi riêng với tiền bán món.</p>` : ''}
+          ${message ? `<div class="alert-message">${escapeHtml(message)}</div>` : ''}
+        ` : `
         <div class="story-clues">
           <strong>📰 Tin tức trong xóm:</strong>
           <ul>
@@ -406,6 +433,7 @@ function renderXomOi() {
         <div class="story-hint">
           📢 <b>Bà Sáu đầu chợ rỉ tai:</b> <i>"Tắc bữa nay gom ép nước nhiều, giá chợ chiều có thể nhích lên 3.000đ/trái đó nghen chú!"</i>
         </div>
+        `}
 
         <button class="btn-primary" data-type="NAVIGATE" style="margin-top: 18px;">🛒 Ra Chợ Đầu Ngõ Nhập Hàng</button>
       </div>
@@ -415,42 +443,42 @@ function renderXomOi() {
 
 function renderMarket() {
   const currentBasketUnits = totalBasketUnits(state.basket);
-  const currentBasketCost = totalBasketCost(state.basket);
+  const currentBasketCost = totalBasketCost(state.basket, state.marketPrices);
   const remainingCash = state.cash - currentBasketCost;
 
   return `
     <header class="top-nav">
-      <div class="brand-title">XÓM NHỎ <small>Chợ Đầu Ngõ</small></div>
+      <div class="brand-title">${shopTitle()} <small>Chợ Đầu Ngõ</small></div>
       <div class="wallet-badge">💵 ${money(state.cash)}</div>
     </header>
     <div class="market-screen">
       <div class="capacity-banner">
         <div class="capacity-header">
           <span>🚲 Sức chở xe đạp hàng:</span>
-          <strong>${currentBasketUnits} / ${BIKE_CAPACITY} đơn vị</strong>
+          <strong>${currentBasketUnits} / ${state.upgrades.vehicleCapacity} đơn vị</strong>
         </div>
         <div class="capacity-bar-track">
-          <div class="capacity-bar-fill ${currentBasketUnits > BIKE_CAPACITY ? 'overflow' : ''}" style="width: ${Math.min(100, (currentBasketUnits / BIKE_CAPACITY) * 100)}%;"></div>
+          <div class="capacity-bar-fill ${currentBasketUnits > state.upgrades.vehicleCapacity ? 'overflow' : ''}" style="width: ${Math.min(100, (currentBasketUnits / state.upgrades.vehicleCapacity) * 100)}%;"></div>
         </div>
       </div>
 
-      <div class="bundle-quick-row">
+      ${state.currentDay === 1 ? `<div class="bundle-quick-row">
         <button class="btn-bundle" data-type="BUNDLE_DAY1">
           <span>🌟 Chọn Gói Gợi Ý Day 1 (55.000đ)</span>
           <small>3 Bánh mì, 4 Chả, 3 Dưa, 3 Đá, 3 Đường, 2 Tắc, 1 Sữa (19 đơn vị)</small>
         </button>
-      </div>
+      </div>` : `<p class="market-note">Ngày ${state.currentDay}: chọn số lượng dựa trên lượng khách dự kiến. Hàng khô còn từ hôm qua: ${Object.entries(state.stock).filter(([id, qty]) => qty > 0).map(([id, qty]) => `${ingredientMeta[id]?.name}: ${qty}`).join(', ') || 'không có'}.</p>`}
 
       <div class="market-list">
-        ${Object.entries(ingredients).map(([id, item]) => {
+        ${Object.entries(ingredients).filter(([id]) => state.currentDay > 1 || id !== 'egg').map(([id, item]) => {
           const qty = state.basket[id] || 0;
           return `
             <div class="market-item-card">
-              <img src="${ingredientMeta[id]?.img || ''}" class="market-item-img" alt="${item.name}">
+              ${ingredientMeta[id]?.img ? `<img src="${ingredientMeta[id].img}" class="market-item-img" alt="${item.name}">` : `<span class="market-item-img">${ingredientMeta[id]?.icon || ''}</span>`}
               <div class="market-item-info">
                 <strong>${item.name}</strong>
-                <span>${money(item.price)} / ${item.unit}</span>
-                ${id === 'kumquat' ? `<small class="market-warning">⚠️ Chiều có thể lên 3.000đ</small>` : ''}
+                <span>${money(state.marketPrices[id])} / ${item.unit}</span>
+                ${id === 'kumquat' && state.currentDay === 1 ? `<small class="market-warning">⚠️ Ngày mai có thể lên 3.000đ</small>` : ''}
               </div>
               <div class="stepper">
                 <button class="step-btn" data-type="BASKET" data-payload="${id}:${Math.max(0, qty - 1)}">-</button>
@@ -468,8 +496,8 @@ function renderMarket() {
           <div>Tiền còn lại: <strong style="color: ${remainingCash < 0 ? '#ef4444' : '#15803d'}">${money(remainingCash)}</strong></div>
         </div>
         ${message ? `<div class="alert-message">${message}</div>` : ''}
-        <button class="btn-primary" data-type="BUY" ${currentBasketUnits === 0 || remainingCash < 0 ? 'disabled' : ''}>
-          🥖 Mang Hàng Về Lên Menu
+        <button class="btn-primary" data-type="BUY" ${(currentBasketUnits === 0 && state.currentDay === 1) || remainingCash < 0 ? 'disabled' : ''}>
+          🥖 ${currentBasketUnits ? 'Mua Hàng & Lên Menu' : 'Không Mua Thêm · Lên Menu'}
         </button>
       </div>
     </div>
@@ -479,27 +507,27 @@ function renderMarket() {
 function renderMenuSetup() {
   return `
     <header class="top-nav">
-      <div class="brand-title">XÓM NHỎ <small>Lên Thực Đơn</small></div>
+      <div class="brand-title">${shopTitle()} <small>Lên Thực Đơn</small></div>
       <div class="wallet-badge">💵 ${money(state.cash)}</div>
     </header>
     <div class="menu-screen">
       <div class="menu-intro">
-        <h3>📋 Bảng Thực Đơn Quán Hôm Nay (3 Slot Quầy)</h3>
+        <h3>📋 Bảng Thực Đơn Ngày ${state.currentDay} (${state.upgrades.counterSlots} chỗ trên quầy)</h3>
         <p>Chọn các món mở bán và mức giá niêm yết cho khách hàng.</p>
       </div>
 
       <div class="menu-slots-grid">
         ${Object.entries(recipes).map(([recipeId, recipeData]) => {
           const cfg = state.menu[recipeId] || { enabled: true, sellPrice: recipeData.basePrice };
-          const cost = calculateRecipeCost(recipeData.needs);
+          const cost = Object.entries(recipeData.needs).reduce((n, [id, qty]) => n + (state.marketPrices[id] || ingredients[id].price) * qty, 0);
           const margin = cfg.sellPrice - cost;
 
           return `
             <div class="menu-card ${cfg.enabled ? 'active' : 'disabled'}">
               <div class="menu-card-header">
                 <label class="menu-toggle">
-                  <input type="checkbox" data-type="CONFIG_MENU_TOGGLE" data-recipe="${recipeId}" ${cfg.enabled ? 'checked' : ''}>
-                  <strong>${recipeData.name}</strong>
+                  <input type="checkbox" data-type="CONFIG_MENU_TOGGLE" data-recipe="${recipeId}" ${cfg.enabled ? 'checked' : ''} ${recipeId === 'BANH_MI_TRUNG' && !state.upgrades.counter ? 'disabled' : ''}>
+                  <strong>${recipeData.name}${recipeId === 'BANH_MI_TRUNG' && !state.upgrades.counter ? ' · Cần nới quầy' : ''}</strong>
                 </label>
                 <span class="cost-estimate">Vốn: ~${money(cost)}</span>
               </div>
@@ -508,7 +536,7 @@ function renderMenuSetup() {
                 <span class="price-tier-label">Giá bán:</span>
                 ${recipeData.priceTiers.map(p => `
                   <button class="price-tier-btn ${cfg.sellPrice === p ? 'selected' : ''}" 
-                    data-type="CONFIG_MENU_PRICE" data-recipe="${recipeId}" data-price="${p}">
+                    data-type="CONFIG_MENU_PRICE" data-recipe="${recipeId}" data-price="${p}" ${recipeId === 'BANH_MI_TRUNG' && !state.upgrades.counter ? 'disabled' : ''}>
                     ${p / 1000}k
                   </button>
                 `).join('')}
@@ -536,7 +564,7 @@ function renderMenuSetup() {
             😴 Trễ (10h)
           </button>
         </div>
-        <p class="opening-note">${state.openingTime === 'early_6am' ? 'Mở từ 6h, nhưng hôm nay khách đầu tiên dự kiến 8h30; quán sẽ có thời gian chờ.' : state.openingTime === 'late_10am' ? 'Mở lúc 10h sẽ bỏ lỡ khách ghé trước giờ này.' : 'Mở lúc 8h để đón trọn lượt khách sáng.'}</p>
+        <p class="opening-note">${state.openingTime === 'early_6am' ? state.currentDay === 1 ? 'Ngày đầu khách đầu tiên dự kiến 8h30; mở sớm sẽ chờ lâu.' : `Mở sớm sẽ đón khách 7h; ${state.dayEvent.costDelta ? `tốn ${money(state.dayEvent.costDelta)} chuẩn bị` : 'không phát sinh chi phí chuẩn bị hôm nay'}.` : state.openingTime === 'late_10am' ? 'Mở lúc 10h sẽ bỏ lỡ khách ghé trước giờ này.' : 'Mở lúc 8h để đón khách sáng.'}</p>
       </div>
 
       ${message ? `<div class="alert-message">${message}</div>` : ''}
@@ -563,9 +591,9 @@ function renderShop() {
 
   return `
     <header class="top-nav">
-      <div class="brand-title">XÓM NHỎ <small>Đang Mở Bán</small></div>
+      <div class="brand-title">${shopTitle()} <small>Đang Mở Bán</small></div>
       <div class="clock-display">
-        <span>⏰ ${timeFormatted}</span>
+        <span>⏰ ${timeFormatted} · Ngày ${state.currentDay}</span>
         <div class="speed-toggle">
           <button class="speed-btn ${state.speed === 1 ? 'active' : ''}" data-type="SPEED" data-payload="1">x1</button>
           <button class="speed-btn ${state.speed === 2 ? 'active' : ''}" data-type="SPEED" data-payload="2">x2</button>
@@ -599,16 +627,16 @@ function renderShop() {
             ` : isAnhTung ? `
               <img src="${ANH_TUNG_IMG}" class="actor-sprite anh-tung-sprite" alt="Anh Tùng">
             ` : `
-              <div class="walkin-avatar-placeholder">
+              <div class="walkin-avatar-placeholder" data-visual-variant="${escapeHtml(cust.visualVariantId || 'walkin_variant_0')}">
                 <span class="walkin-avatar-icon">👤</span>
-                <span class="walkin-name-tag">${cust.name}</span>
+                <span class="walkin-name-tag">${escapeHtml(cust.name)}</span>
               </div>
             `}
 
             <!-- Customer speech bubble -->
             <div class="customer-bubble">
-              <strong>${cust.name}:</strong>
-              <span>"${customerReaction ? customerReaction.quote : cust.dialogue}"</span>
+              <strong>${escapeHtml(cust.name)}${cust.temperament === 'RUSH' ? ' · Đang vội' : cust.temperament === 'FRIENDLY' ? ' · Vui vẻ' : ''}:</strong>
+              <span>"${escapeHtml(customerReaction ? customerReaction.quote : cust.dialogue)}"</span>
               ${autoPrepState && autoPrepState.stage === 'done' ? `<div class="bubble-sparkle">✨ Cảm ơn quán!</div>` : ''}
             </div>
           </div>
@@ -701,6 +729,8 @@ function renderShop() {
                 </div>
               `}
             </div>
+          ` : autoPrepState && autoPrepState.item === 'BANH_MI_TRUNG' ? `
+            <div class="prep-idle-platter">Bánh mì ốp la đang được làm · ${autoPrepState.stage === 'done' ? 'Đã hoàn thành' : 'Tự chế biến...'}</div>
           ` : `
             <div class="prep-idle-platter">
               <span class="idle-desc">Thớt gỗ sạch sẽ · Dao thớt sẵn sàng · Ly cốc ngay ngắn</span>
@@ -724,7 +754,7 @@ function renderShop() {
           `).join('')}
         </div>
         <div class="shop-action-row">
-          <button class="btn-close-shop" data-type="CLOSE">🚪 ${state.customerIndex < fixtureCustomers.length ? 'Đóng Sớm & Tính Sổ' : 'Đóng Quán & Tính Sổ'}</button>
+          <button class="btn-close-shop" data-type="CLOSE">🚪 ${state.customerIndex < state.dayCustomers.length ? 'Đóng Sớm & Tính Sổ' : 'Đóng Quán & Tính Sổ'}</button>
         </div>
       </div>
     </div>
@@ -755,15 +785,15 @@ function renderDayResult() {
 
   return `
     <header class="top-nav">
-      <div class="brand-title">XÓM NHỎ <small>Sổ Ghi Tiền Cuối Ngày</small></div>
+      <div class="brand-title">${shopTitle()} <small>Sổ Ghi Tiền Cuối Ngày</small></div>
       <div class="wallet-badge">💵 ${money(ledger.finalCashInDrawer)}</div>
     </header>
 
     <div class="result-screen">
       <div class="notebook-ledger-card">
         <div class="notebook-header">
-          <h2>📖 SỔ GHI TIỀN QUÁN XÓM NHỎ</h2>
-          <small>Ngày 1 · Tổng Kết Kinh Doanh Buổi Đầu</small>
+          <h2>📖 SỔ GHI TIỀN ${shopTitle()}</h2>
+          <small>Ngày ${state.currentDay} · Tổng Kết Buổi Bán</small>
         </div>
 
         <!-- 1. Dòng tiền mặt trong két -->
@@ -777,6 +807,9 @@ function renderDayResult() {
             <span>Chi tiền mua nguyên liệu ở chợ:</span>
             <strong>-${money(ledger.spentOnMorningStock)}</strong>
           </div>
+          ${ledger.upgradeOutlay ? `<div class="ledger-row minus"><span>Chi nâng cấp quán:</span><strong>-${money(ledger.upgradeOutlay)}</strong></div>` : ''}
+          ${ledger.operatingExpenses ? `<div class="ledger-row minus"><span>Chi chuẩn bị mở sớm:</span><strong>-${money(ledger.operatingExpenses)}</strong></div>` : ''}
+          ${ledger.sideJobIncome ? `<div class="ledger-row plus"><span>Tiền việc phụ trong xóm:</span><strong>+${money(ledger.sideJobIncome)}</strong></div>` : ''}
           <div class="ledger-row plus">
             <span>Tiền mặt thu thực tế từ bán hàng (${ledger.servedCount} đơn):</span>
             <strong>+${money(ledger.cashSalesCollected)}</strong>
@@ -812,12 +845,14 @@ function renderDayResult() {
           <hr class="ledger-divider">
           <div class="ledger-row highlight profit">
             <span>👉 LỢI NHUẬN GỘP (GROSS OPERATING PROFIT):</span>
-            <strong>+${money(ledger.grossOperatingProfit)}</strong>
+            <strong>${ledger.grossOperatingProfit >= 0 ? '+' : ''}${money(ledger.grossOperatingProfit)}</strong>
           </div>
           <div class="ledger-row sub">
             <span>Giá trị nguyên liệu còn tồn kho:</span>
             <strong>${money(ledger.retainedStockValueAtCost)}</strong>
           </div>
+          <div class="ledger-row sub"><span>Nguyên liệu tươi hỏng cuối ngày:</span><strong>${money(ledger.spoilageLoss)}</strong></div>
+          <div class="ledger-row sub"><span>Kết quả sau hao hụt, chi vận hành và việc phụ:</span><strong>${money(ledger.resultAfterSpoilageAndExpenses)}</strong></div>
         </div>
 
         <!-- 3. Lãi gộp theo món -->
@@ -896,15 +931,16 @@ function renderDayResult() {
 
         <!-- 6. Đánh giá & Preview Day 2 -->
         <div class="ledger-block highlight-box">
-          <div class="rating-tag">⭐ QUÁN MỚI MỞ · ${ledger.servedCount >= 5 ? 'Nhiều khách hài lòng' : ledger.servedCount > 0 ? 'Có khách đầu tiên, cần cải thiện thêm' : 'Chưa có đơn thành công'}</div>
-          <p>Ngày mai: tắc có thể lên 3.000đ/trái; cân nhắc lượng nhập và giá trà tắc.</p>
-          <div class="upgrade-preview">
+          <div class="rating-tag">⭐ ${state.rating?.toFixed(1) || 'Chưa đánh giá'} sao · ${ledger.servedCount >= 5 ? 'Nhiều khách hài lòng' : ledger.servedCount > 0 ? 'Có khách đầu tiên, cần cải thiện thêm' : 'Chưa có đơn thành công'}</div>
+          <p>${state.currentDay === 1 ? 'Ngày mai: tắc dự kiến lên 3.000đ/trái; cân nhắc lượng nhập và giá trà tắc.' : `Ngày ${state.currentDay + 1}: đọc tin xóm trước khi nhập hàng.`}</p>
+          ${state.currentDay === 1 ? `<div class="upgrade-preview">
             <b>🔧 Xem trước nâng cấp Day 2:</b>
             <p>Rổ đèo hàng xe đạp (sức chở 30 đơn vị) và mối trứng gà tươi giá mềm đầu chợ để mở món Bánh Mì Ốp-La!</p>
-          </div>
+          </div>` : ''}
         </div>
 
-        <button class="btn-primary" data-type="REPLAY" style="margin-top: 16px;">🔄 Mở Quán Chơi Lại Ngày 1</button>
+        <button class="btn-primary" data-type="NEXT_DAY" style="margin-top: 16px;">🌅 Sang Ngày ${state.currentDay + 1}</button>
+        <button class="btn-tertiary" data-type="REPLAY">🔄 Chơi Lại Từ Đầu</button>
       </div>
     </div>
   `;
@@ -930,6 +966,12 @@ $.addEventListener('click', e => {
   const t = b.dataset.type;
   const p = b.dataset.payload;
 
+  if (t === 'SET_SHOP_NAME') {
+    send('SET_SHOP_NAME', $('#shop-name-input')?.value || '');
+    if (state.shopName) send('NAVIGATE');
+    return;
+  }
+
   if (t === 'RESUME') {
     if (saved) {
       state = saved;
@@ -945,8 +987,8 @@ $.addEventListener('click', e => {
     return;
   }
 
-  if (t === 'CLOSE' && state.customerIndex < fixtureCustomers.length) {
-    const remaining = fixtureCustomers.length - state.customerIndex - (state.activeCustomer?.status && state.activeCustomer.status !== 'ARRIVED' ? 1 : 0);
+  if (t === 'CLOSE' && state.customerIndex < state.dayCustomers.length) {
+    const remaining = state.dayCustomers.length - state.customerIndex - (state.activeCustomer?.status && state.activeCustomer.status !== 'ARRIVED' ? 1 : 0);
     if (!window.confirm(`Đóng sớm sẽ bỏ lỡ ${remaining} khách chưa phục vụ. Vẫn đóng quán?`)) return;
   }
 

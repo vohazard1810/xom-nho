@@ -8,6 +8,7 @@ function run({ price = 25000, disabled = false, late = false, reloadAt = -1 } = 
     assert.equal(result.error, undefined, `${type}: ${result.error}`);
     s = result.state;
   };
+  apply('SET_SHOP_NAME', 'Quán Xóm Nhỏ');
   apply('NAVIGATE');
   apply('NAVIGATE');
   apply('BUNDLE_DAY1');
@@ -46,8 +47,8 @@ function run({ price = 25000, disabled = false, late = false, reloadAt = -1 } = 
 
 function prepared() {
   let s = fresh();
-  for (const type of ['NAVIGATE', 'NAVIGATE', 'BUNDLE_DAY1', 'BUY']) {
-    const r = action(s, type);
+  for (const [type, payload] of [['SET_SHOP_NAME', 'Quán Xóm Nhỏ'], ['NAVIGATE'], ['NAVIGATE'], ['BUNDLE_DAY1'], ['BUY']]) {
+    const r = action(s, type, payload);
     assert.equal(r.error, undefined);
     s = r.state;
   }

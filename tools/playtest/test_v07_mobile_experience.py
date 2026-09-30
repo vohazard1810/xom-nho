@@ -74,7 +74,8 @@ async def run_gate2_mobile_experience():
         print("\n2. HOME Screen...")
         await page.screenshot(path=os.path.join(EVIDENCE_DIR, "01_home_screen.png"))
         await assert_all_buttons_touch_target(page, "HOME")
-        await js_click(page, 'button[data-type="NAVIGATE"]')
+        await page.fill('#shop-name-input', 'Quán Xóm Nhỏ')
+        await js_click(page, 'button[data-type="SET_SHOP_NAME"]')
         await page.wait_for_timeout(300)
         
         # 2. XOM_OI SCREEN

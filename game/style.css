@@ -1801,6 +1801,24 @@ button:disabled {
   line-height: 1.35;
 }
 
+.shop-name-input {
+  display: block;
+  width: 100%;
+  min-height: 48px;
+  margin: 8px 0 14px;
+  padding: 10px 12px;
+  border: 2px solid #af794d;
+  border-radius: 10px;
+  background: #fffaf1;
+  color: #402713;
+  font: inherit;
+  box-sizing: border-box;
+}
+
+.upgrade-list { display: grid; gap: 8px; margin: 14px 0; }
+.upgrade-list .btn-secondary { white-space: normal; min-height: 48px; text-align: left; }
+.market-note { padding: 0 14px; color: #65452c; line-height: 1.4; }
+
 .watercolor-prep-stage {
   display: flex;
   flex-direction: column;
