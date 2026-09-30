@@ -536,6 +536,7 @@ function renderMenuSetup() {
             😴 Trễ (10h)
           </button>
         </div>
+        <p class="opening-note">${state.openingTime === 'early_6am' ? 'Mở từ 6h, nhưng hôm nay khách đầu tiên dự kiến 8h30; quán sẽ có thời gian chờ.' : state.openingTime === 'late_10am' ? 'Mở lúc 10h sẽ bỏ lỡ khách ghé trước giờ này.' : 'Mở lúc 8h để đón trọn lượt khách sáng.'}</p>
       </div>
 
       ${message ? `<div class="alert-message">${message}</div>` : ''}
@@ -548,9 +549,9 @@ function renderMenuSetup() {
 }
 
 function renderShop() {
-  // Compute display clock time (clock: 0 min -> 08:00 AM)
-  const baseMinutes = state.openingTime === 'early_6am' ? 360 : (state.openingTime === 'late_10am' ? 600 : 480);
-  const totalMinutes = baseMinutes + state.clock;
+  // Engine clock is always measured relative to 08:00; early starts at -120,
+  // late starts at +120. Do not add the opening offset twice.
+  const totalMinutes = 480 + state.clock;
   const hours = Math.floor(totalMinutes / 60);
   const minutes = totalMinutes % 60;
   const timeFormatted = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
@@ -640,7 +641,13 @@ function renderShop() {
         <div class="prep-visual-dock">
           ${autoPrepState && autoPrepState.item === 'BANH_MI_CHA' ? `
             <div class="watercolor-prep-stage banh-mi-stage">
-                <div class="art-layers-stack ${autoPrepState.stage === 'done' ? 'is-finished' : ''}">
+              ${autoPrepState.stage === 'done' ? `
+                <div class="art-layer-finish">
+                  <img src="../assets/dishes/banh_mi_cha.png" class="dish-finish-img popIn" alt="Bánh mì chả hoàn chỉnh">
+                  <div class="finish-label">Ổ Bánh Mì Chả Nóng Giòn</div>
+                </div>
+              ` : `
+                <div class="art-layers-stack">
                   <img src="../assets/ingredients/bread.png" class="art-layer art-bread ${autoPrepState.stage === 'layer1' ? 'layer-enter' : ''}" alt="Bánh mì">
                   ${['layer2', 'done'].includes(autoPrepState.stage) ? `
                     <img src="../assets/ingredients/cha.png" class="art-layer art-cha-slice slice-1 dropIn" alt="Chả lụa">
@@ -649,38 +656,50 @@ function renderShop() {
                     ` : ''}
                     <img src="../assets/ingredients/vegetable.png" class="art-layer art-veg dropIn" alt="Dưa ngò">
                   ` : ''}
-                  ${autoPrepState.stage === 'done' ? `<img src="../assets/dishes/banh_mi_cha.png" class="art-layer completed-dish" alt="Bánh mì chả hoàn chỉnh">` : ''}
                 </div>
                 <div class="prep-layer-caption">
-                  ${autoPrepState.stage === 'layer1' ? 'Vỏ bánh mì nướng giòn rụm' : autoPrepState.stage === 'done' ? 'Ổ bánh mì chả nóng giòn' : (autoPrepState.isExtra ? 'Xếp 2 khoanh chả lụa dày đặc + dưa ngò' : 'Xếp chả lụa thơm ngậy + dưa ngò')}
+                  ${autoPrepState.stage === 'layer1' ? 'Vỏ bánh mì nướng giòn rụm' : (autoPrepState.isExtra ? 'Xếp 2 khoanh chả lụa dày đặc + dưa ngò' : 'Xếp chả lụa thơm ngậy + dưa ngò')}
                 </div>
+              `}
             </div>
           ` : autoPrepState && autoPrepState.item === 'TRA_TAC' ? `
             <div class="watercolor-prep-stage drink-stage">
-                <div class="art-layers-stack drink-stack ${autoPrepState.stage === 'done' ? 'is-finished' : ''}">
+              ${autoPrepState.stage === 'done' ? `
+                <div class="art-layer-finish">
+                  <img src="../assets/dishes/tra_tac.png" class="dish-finish-img popIn" alt="Trà tắc hoàn chỉnh">
+                  <div class="finish-label">Ly Trà Tắc Chua Ngọt Mát Lạnh</div>
+                </div>
+              ` : `
+                <div class="art-layers-stack drink-stack">
                   <img src="../assets/ingredients/ice.png" class="art-layer art-ice ${autoPrepState.stage === 'layer1' ? 'layer-enter' : ''}" alt="Đá bi">
                   ${['layer2', 'done'].includes(autoPrepState.stage) ? `
                     <img src="../assets/ingredients/sugar_syrup.png" class="art-layer art-syrup dropIn" alt="Nước đường">
                     <img src="../assets/ingredients/kumquat.png" class="art-layer art-kumquat dropIn" alt="Tắc tươi">
                   ` : ''}
-                  ${autoPrepState.stage === 'done' ? `<img src="../assets/dishes/tra_tac.png" class="art-layer completed-dish" alt="Trà tắc hoàn chỉnh">` : ''}
                 </div>
                 <div class="prep-layer-caption">
-                  ${autoPrepState.stage === 'layer1' ? 'Ly thủy tinh đầy ắp đá bi' : autoPrepState.stage === 'done' ? 'Ly trà tắc mát lạnh' : 'Vắt tắc tươi mọng nước + chan nước đường'}
+                  ${autoPrepState.stage === 'layer1' ? 'Ly thủy tinh đầy ắp đá bi' : 'Vắt tắc tươi mọng nước + chan nước đường'}
                 </div>
+              `}
             </div>
           ` : autoPrepState && autoPrepState.item === 'SUA_DAU_DA' ? `
             <div class="watercolor-prep-stage drink-stage">
-                <div class="art-layers-stack drink-stack ${autoPrepState.stage === 'done' ? 'is-finished' : ''}">
+              ${autoPrepState.stage === 'done' ? `
+                <div class="art-layer-finish">
+                  <img src="../assets/dishes/sua_dau.png" class="dish-finish-img popIn" alt="Sữa đậu hoàn chỉnh">
+                  <div class="finish-label">Ly Sữa Đậu Nành Béo Mát</div>
+                </div>
+              ` : `
+                <div class="art-layers-stack drink-stack">
                   <img src="../assets/ingredients/ice.png" class="art-layer art-ice ${autoPrepState.stage === 'layer1' ? 'layer-enter' : ''}" alt="Đá bi">
                   ${['layer2', 'done'].includes(autoPrepState.stage) ? `
                     <img src="../assets/ingredients/soy_milk.png" class="art-layer art-soymilk dropIn" alt="Sữa đậu">
                   ` : ''}
-                  ${autoPrepState.stage === 'done' ? `<img src="../assets/dishes/sua_dau.png" class="art-layer completed-dish" alt="Sữa đậu hoàn chỉnh">` : ''}
                 </div>
                 <div class="prep-layer-caption">
-                  ${autoPrepState.stage === 'layer1' ? 'Ly thủy tinh đầy ắp đá bi' : autoPrepState.stage === 'done' ? 'Ly sữa đậu đá béo mát' : 'Rót sữa đậu nành béo thơm'}
+                  ${autoPrepState.stage === 'layer1' ? 'Ly thủy tinh đầy ắp đá bi' : 'Rót sữa đậu nành béo thơm'}
                 </div>
+              `}
             </div>
           ` : `
             <div class="prep-idle-platter">
@@ -705,7 +724,7 @@ function renderShop() {
           `).join('')}
         </div>
         <div class="shop-action-row">
-          <button class="btn-close-shop" data-type="CLOSE">🚪 Đóng Quán & Tính Sổ</button>
+          <button class="btn-close-shop" data-type="CLOSE">🚪 ${state.customerIndex < fixtureCustomers.length ? 'Đóng Sớm & Tính Sổ' : 'Đóng Quán & Tính Sổ'}</button>
         </div>
       </div>
     </div>
@@ -719,11 +738,12 @@ function renderShop() {
           <p class="decision-speech">"${state.activeDecision.message}"</p>
           <div class="decision-options-col">
             ${state.activeDecision.options.map(opt => `
-              <button class="btn-decision" data-type="DECIDE" data-payload="${opt.key}">
+              <button class="btn-decision" data-type="DECIDE" data-payload="${opt.key}" ${opt.key === 'yes' && state.stock.cha < 2 ? 'disabled title="Không đủ chả trong kho"' : ''}>
                 ${opt.label}
               </button>
             `).join('')}
           </div>
+          ${state.stock.cha < 2 ? '<p>Không đủ chả để thêm; hôm nay chỉ có thể bán phần thường.</p>' : ''}
         </div>
       </div>
     ` : ''}
@@ -838,6 +858,9 @@ function renderDayResult() {
               ${ledger.missedByReason?.MISSED_LATE_OPENING?.length ? `
                 <div class="missed-subline">• Mở quán muộn (lúc 10h): <b>${ledger.missedByReason.MISSED_LATE_OPENING.map(o => o.name).join(', ')}</b></div>
               ` : ''}
+              ${ledger.missedByReason?.MISSED_EARLY_CLOSING?.length ? `
+                <div class="missed-subline">• Đóng quán sớm: <b>${ledger.missedByReason.MISSED_EARLY_CLOSING.map(o => o.name).join(', ')}</b></div>
+              ` : ''}
             </div>
           ` : `
             <div class="ledger-row text-green">
@@ -864,6 +887,7 @@ function renderDayResult() {
                 o.reason === 'MENU_DISABLED' ? 'Tiếc vì quán không bán món hôm nay, hẹn mai ghé lại.' :
                 o.reason === 'PRICE_TOO_HIGH' ? 'Chê giá hôm nay đắt hơn mức bình dân trong xóm.' :
                 o.reason === 'MISSED_LATE_OPENING' ? 'Ghé lúc sáng sớm khi quán chưa mở cửa.' :
+                o.reason === 'MISSED_EARLY_CLOSING' ? 'Định ghé mua nhưng quán đã đóng sớm.' :
                 'Tiếc vì quán hết hàng sớm, hẹn mai ghé sớm hơn.'
               }</li>
             `).join('')}
@@ -872,7 +896,8 @@ function renderDayResult() {
 
         <!-- 6. Đánh giá & Preview Day 2 -->
         <div class="ledger-block highlight-box">
-          <div class="rating-tag">⭐ ĐÁNH GIÁ: Quán Mới Mở · Nhận Phản Hồi Tích Cực</div>
+          <div class="rating-tag">⭐ QUÁN MỚI MỞ · ${ledger.servedCount >= 5 ? 'Nhiều khách hài lòng' : ledger.servedCount > 0 ? 'Có khách đầu tiên, cần cải thiện thêm' : 'Chưa có đơn thành công'}</div>
+          <p>Ngày mai: tắc có thể lên 3.000đ/trái; cân nhắc lượng nhập và giá trà tắc.</p>
           <div class="upgrade-preview">
             <b>🔧 Xem trước nâng cấp Day 2:</b>
             <p>Rổ đèo hàng xe đạp (sức chở 30 đơn vị) và mối trứng gà tươi giá mềm đầu chợ để mở món Bánh Mì Ốp-La!</p>
@@ -918,6 +943,11 @@ $.addEventListener('click', e => {
   if (t === 'REPLAY') {
     send('REPLAY');
     return;
+  }
+
+  if (t === 'CLOSE' && state.customerIndex < fixtureCustomers.length) {
+    const remaining = fixtureCustomers.length - state.customerIndex - (state.activeCustomer?.status && state.activeCustomer.status !== 'ARRIVED' ? 1 : 0);
+    if (!window.confirm(`Đóng sớm sẽ bỏ lỡ ${remaining} khách chưa phục vụ. Vẫn đóng quán?`)) return;
   }
 
   if (t === 'CONFIG_MENU_TOGGLE') {
