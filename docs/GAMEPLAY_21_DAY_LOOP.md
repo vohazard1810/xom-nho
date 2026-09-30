@@ -34,7 +34,7 @@ Upgrade outlay includes recipe training (12k after counter) and canopy (35k from
 
 ## Rules and limits
 
-- Shop rating drops only when avoidable refusals (high pricing, disabled menu, deliberate early closing) exceed one third of visits; unexpected excess demand and rain do not directly lower stars. Strong service can still increase rating by half a star. These thresholds are prototype tuning values, not validated player balance.
+- Shop rating drops only when avoidable refusals (high pricing, disabling a *learned* recipe, deliberate early closing) exceed one third of visits; unexpected excess demand, locked recipes and rain do not directly lower stars. Good service relative to vehicle capacity can raise rating by half a star, up to a visible ceiling of 3.5/4/5 for capacity 20/30/45. Below 3 stars, ordinary-budget customers also reject the top price; low reputation reduces forecast traffic. These thresholds are prototype tuning values, not validated player balance.
 - Forecasts appear before morning stock buying. The in-shift news ticker does not pause the clock. The Bé Tí request and the Day 6 roadwork sign choice pause only for an actual decision; no daily spam of modal dialogs.
 - The current helper is a demand/earning abstraction; no NPC sprite or work-speed animation is produced here. Walk-in visitors and delivery orders still use placeholder visuals. Antigravity should supply character art and visual choreography separately.
 - The UI has only Node smoke coverage. Real 390×844 browser playtesting, touch target and visual/art gates remain open.

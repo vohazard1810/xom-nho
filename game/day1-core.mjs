@@ -550,7 +550,9 @@ export function action(state, type, payload) {
 
     // 2. Check customer price sensitivity (High tier vs HIGH sensitivity)
     const isHighPrice = menuItem.sellPrice > recipeDef.basePrice;
-    if (isHighPrice && cust.priceSensitivity === 'HIGH') {
+    // Customers with ordinary budgets become less willing to pay the top
+    // tier after the shop's reputation has dropped. Day 1 fixture unaffected.
+    if (isHighPrice && (cust.priceSensitivity === 'HIGH' || (s.currentDay > 1 && s.rating < 3 && cust.priceSensitivity === 'MEDIUM'))) {
       s.missedOrders.push({
         ticketId: cust.id + '_' + s.clock,
         personId,
@@ -654,11 +656,13 @@ export function action(state, type, payload) {
     s.isPaused = false;
     clearFreshStock(s);
     const total = s.servedOrders.length + s.missedOrders.length;
-    const serviceRate = total ? s.servedOrders.length / total : 0;
     // Demand growth or bad weather cannot lower rating by itself. Voluntary
     // early closure, high pricing and menu removals remain controllable.
-    const avoidable = s.missedOrders.filter(o => ['PRICE_TOO_HIGH', 'MENU_DISABLED', 'MISSED_EARLY_CLOSING'].includes(o.reason)).length;
-    s.rating = s.currentDay === 1 ? 3 : Math.max(1, Math.min(5, (s.rating ?? 3) + (avoidable > total / 3 ? -.5 : serviceRate >= .8 && s.servedOrders.length >= 5 ? .5 : 0)));
+    const avoidable = s.missedOrders.filter(o => o.reason === 'PRICE_TOO_HIGH' || o.reason === 'MISSED_EARLY_CLOSING' || o.reason === 'MENU_DISABLED' && s.knownRecipeIds.includes(o.recipe)).length;
+    const reachableOrders = Math.min(total, Math.floor(s.upgrades.vehicleCapacity / 3));
+    const capacityServiceRate = reachableOrders ? s.servedOrders.length / reachableOrders : 0;
+    const ratingCeiling = s.upgrades.vehicleCapacity <= 20 ? 3.5 : s.upgrades.vehicleCapacity <= 30 ? 4 : 5;
+    s.rating = s.currentDay === 1 ? 3 : Math.max(1, Math.min(ratingCeiling, (s.rating ?? 3) + (avoidable > total / 3 ? -.5 : capacityServiceRate >= .8 && s.servedOrders.length >= 5 && avoidable === 0 ? .5 : 0)));
     s.screen = 'DAY_RESULT';
     const feedback = [...s.missedOrders.map(o => ({ personId: o.personId, name: o.name, reason: o.reason, text: o.reason === 'OUT_OF_STOCK' ? 'Tiếc quá, quán hết món rồi; mai mình ghé sớm nhé.' : o.reason === 'PRICE_TOO_HIGH' ? 'Giá hôm nay cao quá, để bữa khác ghé.' : o.reason === 'MENU_DISABLED' ? 'Hôm nay không có món mình thích rồi.' : 'Mình ghé mà quán chưa bán hoặc đã đóng.' })), ...s.servedOrders.map(o => ({ personId: o.personId, name: o.name, reason: 'SERVED', text: o.tip ? 'Ngon quá, gửi quán thêm chút tiền cà phê!' : o.personId === 'be_ti' && s.extraCha ? 'Nhiều chả quá, con thích lắm!' : 'Món vừa miệng, cảm ơn quán nha!' }))];
     s.lastDayReport = { day: s.currentDay, feedback, forecastTomorrow: dayConfig(s.currentDay + 1).forecast, served: s.servedOrders.length, missed: s.missedOrders.length, cash: s.cash, revenue: s.revenue, cogs: s.servedOrders.reduce((n, o) => n + o.cogs, 0), spoilage: s.spoilageLoss, rating: s.rating };

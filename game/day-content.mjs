@@ -37,7 +37,8 @@ export function dayConfig(day) {
 export function rosterForDay(day, rating = 3, seatingLevel = 0, canopy = 0) {
   if (day === 1) return null; // Day 1 retains its approved eight-customer fixture.
   const config = dayConfig(day);
-  const extra = Math.max(0, Math.min(8, day - 1)) + seatingLevel * 2 + (rating >= 4 ? 2 : 0) + config.demandDelta + (config.event === 'rain' ? canopy : 0);
+  const reputationDemand = rating >= 4 ? 2 : rating < 2 ? -3 : rating < 3 ? -1 : 0;
+  const extra = Math.max(0, Math.min(8, day - 1)) + seatingLevel * 2 + reputationDemand + config.demandDelta + (config.event === 'rain' ? canopy : 0);
   const count = Math.max(6, Math.min(20, 8 + extra));
   const recipes = ['BANH_MI_CHA', 'TRA_TAC', 'SUA_DAU_DA', 'BANH_MI_CHA', 'TRA_TAC', 'BANH_MI_TRUNG'];
   return Array.from({ length: count }, (_, i) => {

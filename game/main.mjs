@@ -422,7 +422,10 @@ function renderXomOi() {
         ${state.currentDay > 1 ? `
           <div class="story-hint"><b>📰 Tin trước giờ mở:</b> ${escapeHtml(state.dayEvent.forecast)}<br>
           Dự kiến ${state.dayCustomers.length} lượt khách · Sao quán ${state.rating?.toFixed(1) || 'chưa đánh giá'} ⭐.
-          Giá đã mua hôm trước giữ nguyên trong kho; giá mới chỉ áp dụng cho hàng mua hôm nay.<br>Tem ghé xóm: ${state.login?.visitDays || 0} ngày lịch, nghỉ chơi không mất tem.</div>
+          Giá đã mua hôm trước giữ nguyên trong kho; giá mới chỉ áp dụng cho hàng mua hôm nay.
+          ${state.rating !== null && state.rating < 3 ? '<br>⚠️ Sao quán đang thấp: khách bình dân sẽ dè giá cao, dự kiến ít người ghé hơn.' : ''}
+          <br>Sức chở ${state.upgrades.vehicleCapacity} đơn vị: trần sao hiện tại ${state.upgrades.vehicleCapacity <= 20 ? '3,5' : state.upgrades.vehicleCapacity <= 30 ? '4,0' : '5,0'}; nâng xe để phục vụ nhiều khách hơn.
+          <br>Tem ghé xóm: ${state.login?.visitDays || 0} ngày lịch, nghỉ chơi không mất tem.</div>
           ${state.lastDayReport ? `<details class="story-hint"><summary>Xem lại ngày ${state.lastDayReport.day}: ${state.lastDayReport.served} khách được phục vụ · két ${money(state.lastDayReport.cash)}</summary><ul>${state.lastDayReport.feedback.slice(0, 3).map(f => `<li>${escapeHtml(f.name)}: ${escapeHtml(f.text)}</li>`).join('')}</ul></details>` : ''}
           <div class="upgrade-list"><h3>🔧 Nâng cấp trước khi đi chợ</h3>
             ${Object.entries(UPGRADE_CATALOG).map(([id, u]) => `
