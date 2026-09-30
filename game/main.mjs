@@ -786,12 +786,12 @@ function renderShop() {
           <p class="decision-speech">"${state.activeDecision.message}"</p>
           <div class="decision-options-col">
             ${state.activeDecision.options.map(opt => `
-              <button class="btn-decision" data-type="DECIDE" data-payload="${opt.key}" ${opt.key === 'yes' && state.stock.cha < 2 ? 'disabled title="Không đủ chả trong kho"' : ''}>
+              <button class="btn-decision" data-type="DECIDE" data-payload="${opt.key}" ${opt.key === 'yes' && ((state.activeDecision.id === 'EXTRA_CHA' && state.stock.cha < 2) || (state.activeDecision.id === 'ROADWORK_SIGN' && state.cash < 3000)) ? 'disabled' : ''}>
                 ${opt.label}
               </button>
             `).join('')}
           </div>
-          ${state.stock.cha < 2 ? '<p>Không đủ chả để thêm; hôm nay chỉ có thể bán phần thường.</p>' : ''}
+          ${state.activeDecision.id === 'EXTRA_CHA' && state.stock.cha < 2 ? '<p>Không đủ chả để thêm; hôm nay chỉ có thể bán phần thường.</p>' : ''}
         </div>
       </div>
     ` : ''}

@@ -15,6 +15,7 @@ function serveDay(s) {
   let steps = 0;
   while (s.customerIndex < s.dayCustomers.length) {
     assert.ok(++steps < 1500, `Day ${s.currentDay} stalled`);
+    if (s.isPaused) s = apply(s, 'DECIDE', { choice: s.activeDecision.id === 'ROADWORK_SIGN' ? 'no' : s.stock.cha >= 2 ? 'yes' : 'no' });
     if (!s.activeCustomer) s = apply(s, 'TICK', 3);
     if (!s.activeCustomer) continue;
     if (s.isPaused) s = apply(s, 'DECIDE', { choice: s.stock.cha >= 2 ? 'yes' : 'no' });

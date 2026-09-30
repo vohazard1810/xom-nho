@@ -172,6 +172,7 @@ export function fresh() {
     // Non-pausing news ticker
     newsTicker: null, // null or { id: string, text: string, endMinute: number }
     newsSeen: false,
+    eventDecisionSeen: false,
     
     // Transaction history
     servedOrders: [], // Array of { ticketId, personId, name, recipe, sellPrice, cogs, ingredientsUsed }
@@ -392,6 +393,7 @@ export function action(state, type, payload) {
     }
     s.newsTicker = null;
     s.newsSeen = false;
+    s.eventDecisionSeen = false;
 
     if (s.openingTime === 'late_10am') {
       // Quán mở muộn 10:00: Khách ghé trước 10:00 (minute 120) bị bỏ lỡ
@@ -457,6 +459,18 @@ export function action(state, type, payload) {
     } else if (s.newsTicker && s.clock >= s.newsTicker.endMinute) {
       s.newsTicker = null;
     }
+    if (s.dayEvent.event === 'roadwork' && s.clock >= 150 && !s.eventDecisionSeen && !s.activeDecision) {
+      s.eventDecisionSeen = true;
+      s.isPaused = true;
+      s.activeDecision = {
+        id: 'ROADWORK_SIGN', title: 'Đầu hẻm đang sửa đường',
+        message: 'Có người đi ngang hỏi đường vào quán. Làm bảng chỉ vào hẻm 3.000đ không?',
+        options: [
+          { key: 'yes', label: 'Làm bảng chỉ đường · 3.000đ' },
+          { key: 'no', label: 'Để khách tự tìm quán' }
+        ]
+      };
+    }
     
     // Spawn next customer if no active customer and clock matches
     if (!s.activeCustomer && s.customerIndex < s.dayCustomers.length) {
@@ -489,6 +503,16 @@ export function action(state, type, payload) {
     if (s.activeDecision.id === 'EXTRA_CHA') {
       if (payload.choice === 'yes' && (s.stock.cha || 0) < 2) return fail('Không đủ 2 phần chả để thêm cho Bé Tí. Chọn phần thường hoặc nhập nhiều hơn ngày sau.');
       s.extraCha = payload.choice === 'yes';
+      s.activeDecision = null;
+      s.isPaused = false;
+    } else if (s.activeDecision.id === 'ROADWORK_SIGN') {
+      if (payload.choice === 'yes' && s.cash < 3000) return fail('Không đủ 3.000đ làm bảng chỉ đường.');
+      if (payload.choice === 'yes') {
+        s.cash -= 3000;
+        s.operatingExpenses += 3000;
+        s.dayCustomers.push({ id: `sign_d${s.currentDay}`, personId: 'visitor_sign', visualVariantId: 'walkin_variant_2', name: 'Cô tìm quán trong hẻm', isRegular: false, recipe: 'TRA_TAC', arrivalMinute: 265, priceSensitivity: 'MEDIUM', temperament: 'NORMAL', dialogue: 'May có bảng chỉ đường, cô mới tìm được quán!' });
+        s.dayCustomers.sort((a, b) => a.arrivalMinute - b.arrivalMinute);
+      }
       s.activeDecision = null;
       s.isPaused = false;
     }
@@ -660,6 +684,7 @@ export function action(state, type, payload) {
     s.extraCha = null;
     s.newsTicker = null;
     s.newsSeen = false;
+    s.eventDecisionSeen = false;
     s.isPaused = false;
     s.speed = 1;
     s.servedOrders = [];
@@ -812,6 +837,7 @@ export function decode(raw) {
     s.staffHiredToday ||= false;
     s.onlineEnabledToday ||= false;
     s.onlineFees ||= 0;
+    s.eventDecisionSeen ||= false;
     s.lastDayReport ||= s.dayHistory.at(-1) || null;
     return s;
   } catch {

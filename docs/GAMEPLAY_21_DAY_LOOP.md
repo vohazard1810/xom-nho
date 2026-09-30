@@ -17,7 +17,7 @@ This document describes the implemented engine in `game/`, not a balanced or art
 | 3 | School crowd | Counter expansion and egg recipe training available |
 | 4 | Early-opening cost cue | Choose opening time versus possible missed breakfast guests |
 | 5 | Friendly visitors, syrup inflation | Canopy unlocks; menu margin choice |
-| 6 | Roadwork, price-sensitive guests | Set affordable prices or accept refusals |
+| 6 | Roadwork, price-sensitive guests | Set affordable prices; at 10:30 choose whether to spend 3k on a sign pointing to the shop. The sign adds one visitor with a real inventory requirement. Declining has no cash cost. |
 | 7 | Payday crowd | Test earlier inventory and capacity choices |
 | 8–14 | Deterministic rotating cues | Optional helper paid 8k per day; two extra peak-hour visits, +500 potential tip per friendly order |
 | 15–21 | Rotating cues | Optional two delivery tickets per day, same stock/menu, 2k fee on successful orders |
@@ -35,7 +35,7 @@ Upgrade outlay includes recipe training (12k after counter) and canopy (35k from
 ## Rules and limits
 
 - Shop rating drops only when avoidable refusals (high pricing, disabled menu, deliberate early closing) exceed one third of visits; unexpected excess demand and rain do not directly lower stars. Strong service can still increase rating by half a star. These thresholds are prototype tuning values, not validated player balance.
-- Forecasts appear before morning stock buying. The in-shift news ticker does not pause the clock. The Day 1 Bé Tí request remains the only mandatory pause.
+- Forecasts appear before morning stock buying. The in-shift news ticker does not pause the clock. The Bé Tí request and the Day 6 roadwork sign choice pause only for an actual decision; no daily spam of modal dialogs.
 - The current helper is a demand/earning abstraction; no NPC sprite or work-speed animation is produced here. Walk-in visitors and delivery orders still use placeholder visuals. Antigravity should supply character art and visual choreography separately.
 - The UI has only Node smoke coverage. Real 390×844 browser playtesting, touch target and visual/art gates remain open.
 

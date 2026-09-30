@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { fresh, action, calculateLedger, encode, decode, recipes } from './day1-core.mjs';
+import { fresh, action, calculateLedger, encode, decode, recipes, dayConfig } from './day1-core.mjs';
 
 const run = (s, type, payload) => {
   const result = action(s, type, payload);
@@ -86,4 +86,26 @@ assert.equal(ledger.finalCashInDrawer, s.cash);
 assert.equal(ledger.resultAfterSpoilageAndExpenses, ledger.grossOperatingProfit - ledger.spoilageLoss - ledger.operatingExpenses - ledger.onlineFees + ledger.sideJobIncome);
 assert.ok(s.lastDayReport.feedback.some(f => f.name === 'Đơn mang đi 1'));
 assert.ok(recipes.BANH_MI_TRUNG);
+// Roadwork is a single optional in-shift decision, with a signaled cost and
+// actual additional visitor; choosing no cannot spend money or create demand.
+for (const choice of ['yes', 'no']) {
+  let event = fresh();
+  event.currentDay = 6;
+  event.screen = 'SHOP';
+  event.shopName = 'Quán Hẻm';
+  event.dayEvent = dayConfig(6);
+  event.dayCustomers = [];
+  event.cash = 10000;
+  event.dayStartingCash = 10000;
+  event.clock = 147;
+  event = run(event, 'TICK', 3);
+  assert.equal(event.activeDecision.id, 'ROADWORK_SIGN');
+  assert.equal(event.isPaused, true);
+  event = run(event, 'DECIDE', { choice });
+  assert.equal(event.cash, choice === 'yes' ? 7000 : 10000);
+  assert.equal(event.dayCustomers.length, choice === 'yes' ? 1 : 0);
+  assert.equal(event.operatingExpenses, choice === 'yes' ? 3000 : 0);
+  event = run(event, 'CLOSE');
+  assert.equal(calculateLedger(event).finalCashInDrawer, event.cash);
+}
 console.log('Progression: calendar, auto close, recipe, canopy, staff, online inventory/fees, feedback and ledger PASS');
