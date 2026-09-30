@@ -344,6 +344,7 @@ export function action(state, type, payload) {
   } else if (type === 'DECIDE') {
     // Resolves a pending decision, e.g. payload: { choice: 'yes' | 'no' }
     if (s.screen !== 'SHOP' || !s.activeDecision) return fail('Không có quyết định đang chờ.');
+    if (!['yes', 'no'].includes(payload?.choice)) return fail('Lựa chọn không hợp lệ.');
     if (s.activeDecision.id === 'EXTRA_CHA') {
       s.extraCha = payload.choice === 'yes';
       s.activeDecision = null;
@@ -352,6 +353,7 @@ export function action(state, type, payload) {
   } else if (type === 'SERVE_AUTO') {
     // Automatically prepare and serve the active customer
     if (s.screen !== 'SHOP' || !s.activeCustomer) return fail('Không có khách tại quầy.');
+    if (s.activeCustomer.status !== 'ARRIVED' || s.isPaused) return fail('Đơn này chưa sẵn sàng hoặc đã xử lý.');
     const cust = s.activeCustomer;
     const recipeId = cust.recipe;
     const isExtra = cust.id === 'be_ti' && s.extraCha === true;
