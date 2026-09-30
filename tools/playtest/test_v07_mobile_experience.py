@@ -16,21 +16,26 @@ async def js_click(page, selector):
     }}""")
 
 async def assert_all_buttons_touch_target(page, screen_name):
-    details = await page.evaluate("""() => {
-        const btns = Array.from(document.querySelectorAll('button'));
-        return btns.map(b => ({
+    # Modal backdrop intentionally blocks the page underneath; measure only
+    # the active modal controls while it is open.
+    selector = '.decision-modal-backdrop button' if await page.locator('.decision-modal-backdrop').count() else 'button:visible'
+    buttons = page.locator(selector)
+    details = []
+    for i in range(await buttons.count()):
+        button = buttons.nth(i)
+        await button.scroll_into_view_if_needed()
+        details.append(await button.evaluate("""b => ({
             text: b.textContent.trim().replace(/\\s+/g, ' ').slice(0, 30),
             className: b.className,
             height: Math.round(b.getBoundingClientRect().height),
             width: Math.round(b.getBoundingClientRect().width),
             visible: b.getBoundingClientRect().bottom > 0 && b.getBoundingClientRect().top < innerHeight && b.getBoundingClientRect().right > 0 && b.getBoundingClientRect().left < innerWidth,
-            centerClickable: (() => { const r = b.getBoundingClientRect(); if (r.top < 0 || r.bottom > innerHeight) return null; const x = r.left + r.width / 2, y = r.top + r.height / 2; return b === document.elementFromPoint(x, y) || b.contains(document.elementFromPoint(x, y)); })()
-        }));
-    }""")
+            centerClickable: (() => { const r = b.getBoundingClientRect(); const x = r.left + r.width / 2, y = r.top + r.height / 2; return b === document.elementFromPoint(x, y) || b.contains(document.elementFromPoint(x, y)); })()
+        })"""))
     print(f"  Touch targets inspection on {screen_name} ({len(details)} buttons):")
     all_valid = True
     for b in details:
-        valid = b['height'] >= 44 and b['width'] >= 44 and b['visible'] and b['centerClickable'] is not False
+        valid = b['height'] >= 44 and b['width'] >= 44 and b['visible'] and b['centerClickable']
         if not valid:
             all_valid = False
         print(f"    - [{b['text']}]: {b['height']}×{b['width']}px (pass: {valid})")
