@@ -1,4 +1,20 @@
-import {ingredients,recipes,customers,SAVE_KEY,fresh,total,needFor,equalCounts,action,encode,decode} from './day1-core.mjs';
+import {
+  ingredients,
+  recipes,
+  fixtureCustomers,
+  SAVE_KEY,
+  BIKE_CAPACITY,
+  fresh,
+  totalBasketUnits,
+  totalBasketCost,
+  recipeNeeds,
+  hasEnoughStock,
+  calculateRecipeCost,
+  action,
+  calculateLedger,
+  encode,
+  decode
+} from './day1-core.mjs';
 
 const $ = document.querySelector('#app');
 
@@ -10,24 +26,6 @@ const BETI_SPRITES = {
     ASSET_BASE + 'queue_wait_normal_pilot/actor_crop/queue_wait_normal_02.png',
     ASSET_BASE + 'queue_wait_normal_pilot/actor_crop/queue_wait_normal_03.png',
     ASSET_BASE + 'queue_wait_normal_pilot/actor_crop/queue_wait_normal_04.png'
-  ],
-  deprioritized: [
-    ASSET_BASE + 'queue_wait_deprioritized_pilot/actor_crop/deprioritized_01.png',
-    ASSET_BASE + 'queue_wait_deprioritized_pilot/actor_crop/deprioritized_02.png',
-    ASSET_BASE + 'queue_wait_deprioritized_pilot/actor_crop/deprioritized_03.png',
-    ASSET_BASE + 'queue_wait_deprioritized_pilot/actor_crop/deprioritized_04.png'
-  ],
-  reserved: [
-    ASSET_BASE + 'queue_wait_reserved_for_other_pilot/actor_crop/reserved_01.png',
-    ASSET_BASE + 'queue_wait_reserved_for_other_pilot/actor_crop/reserved_02.png',
-    ASSET_BASE + 'queue_wait_reserved_for_other_pilot/actor_crop/reserved_03.png',
-    ASSET_BASE + 'queue_wait_reserved_for_other_pilot/actor_crop/reserved_04.png'
-  ],
-  stock: [
-    ASSET_BASE + 'queue_wait_stock_pending_pilot/actor_crop/stock_01.png',
-    ASSET_BASE + 'queue_wait_stock_pending_pilot/actor_crop/stock_02.png',
-    ASSET_BASE + 'queue_wait_stock_pending_pilot/actor_crop/stock_03.png',
-    ASSET_BASE + 'queue_wait_stock_pending_pilot/actor_crop/stock_04.png'
   ],
   order: [
     ASSET_BASE + 'order_four_frame_pilot/actor_crop/order_01_mid_raise.png',
@@ -46,7 +44,17 @@ const DISH_IMAGES = {
   SUA_DAU_DA: '../assets/dishes/sua_dau.png'
 };
 
-// Audio effects using Web Audio API
+const ingredientMeta = {
+  bread: { name: 'Bánh mì', icon: '🥖', unit: 'ổ', img: '../assets/ingredients/bread.png' },
+  cha: { name: 'Chả lụa', icon: '🍖', unit: 'khoanh', img: '../assets/ingredients/cha.png' },
+  vegetable: { name: 'Dưa ngò', icon: '🥒', unit: 'phần', img: '../assets/ingredients/vegetable.png' },
+  ice: { name: 'Đá bi', icon: '🧊', unit: 'ca', img: '../assets/ingredients/ice.png' },
+  sugar_syrup: { name: 'Nước đường', icon: '🍯', unit: 'muỗng', img: '../assets/ingredients/sugar_syrup.png' },
+  kumquat: { name: 'Tắc tươi', icon: '🍊', unit: 'trái', img: '../assets/ingredients/kumquat.png' },
+  soy_milk: { name: 'Sữa đậu', icon: '🥛', unit: 'bịch', img: '../assets/ingredients/soy_milk.png' }
+};
+
+// Audio synthesis
 function playChime() {
   try {
     const ctx = new (window.AudioContext || window.webkitAudioContext)();
@@ -61,24 +69,6 @@ function playChime() {
     gain.connect(ctx.destination);
     osc.start();
     osc.stop(ctx.currentTime + 0.45);
-  } catch (e) {}
-}
-
-function playBell() {
-  try {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
-    [0, 0.1].forEach((delay, idx) => {
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(idx === 0 ? 1760 : 2349, ctx.currentTime + delay);
-      gain.gain.setValueAtTime(0.2, ctx.currentTime + delay);
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + delay + 0.35);
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.start(ctx.currentTime + delay);
-      osc.stop(ctx.currentTime + delay + 0.35);
-    });
   } catch (e) {}
 }
 
@@ -100,27 +90,15 @@ function playCoins() {
   } catch (e) {}
 }
 
-function playTap(ingredientId) {
+function playTap(type = 'default') {
   try {
     const ctx = new (window.AudioContext || window.webkitAudioContext)();
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
-    
-    let freqStart = 380;
-    let freqEnd = 240;
-    let type = 'triangle';
-    if (ingredientId === 'ice') {
-      freqStart = 1400; freqEnd = 900; type = 'sine';
-    } else if (ingredientId === 'kumquat' || ingredientId === 'sugar_syrup' || ingredientId === 'soy_milk') {
-      freqStart = 500; freqEnd = 700; type = 'sine';
-    } else if (ingredientId === 'bread' || ingredientId === 'cha') {
-      freqStart = 320; freqEnd = 180; type = 'triangle';
-    }
-
-    osc.type = type;
-    osc.frequency.setValueAtTime(freqStart, ctx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(freqEnd, ctx.currentTime + 0.08);
-    gain.gain.setValueAtTime(0.25, ctx.currentTime);
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(440, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(220, ctx.currentTime + 0.08);
+    gain.gain.setValueAtTime(0.2, ctx.currentTime);
     gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.08);
     osc.connect(gain);
     gain.connect(ctx.destination);
@@ -129,293 +107,201 @@ function playTap(ingredientId) {
   } catch (e) {}
 }
 
-function playCoong() {
-  try {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
-    const osc1 = ctx.createOscillator();
-    const osc2 = ctx.createOscillator();
-    const gain = ctx.createGain();
-    
-    osc1.type = 'sine';
-    osc1.frequency.setValueAtTime(1318.51, ctx.currentTime);
-    osc2.type = 'triangle';
-    osc2.frequency.setValueAtTime(2637, ctx.currentTime);
-
-    gain.gain.setValueAtTime(0.45, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.9);
-
-    osc1.connect(gain);
-    osc2.connect(gain);
-    gain.connect(ctx.destination);
-
-    osc1.start();
-    osc2.start();
-    osc1.stop(ctx.currentTime + 0.9);
-    osc2.stop(ctx.currentTime + 0.9);
-  } catch (e) {}
-}
-
-// Persistent storage
+// Storage helpers
 const load = () => [0, 1].map(i => decode(localStorage.getItem(SAVE_KEY + ':' + i))).filter(Boolean).sort((a, b) => b.revision - a.revision)[0] || null;
 let saved = load();
 let state = saved || fresh();
 let message = '';
-let betiFrameIdx = 0;
-let betiAnimationTimer = null;
-let lastServedToast = null;
 
-// Game feel & customer interaction state
-let customerTransitionState = 'idle'; // 'idle', 'entering', 'leaving'
-let floatingCash = null; // string for juice, e.g. "+25.000đ"
-let showParticles = false;
-let speechBubbleHidden = false;
-let bubbleFadeTimer = null;
-let customerReaction = null; // { name, reaction, earned }
-let reactionDisplayTimer = null;
-let reactionLeaveTimer = null;
-let reactionIdleTimer = null;
+// Simulation and Animation State
+let simInterval = null;
+let betiFrameIdx = 0;
+let betiAnimTimer = null;
+let autoPrepState = null; // { stage: 'bread'|'cha'|'veg'|'done', progress: number, item: recipeId, isExtra: boolean }
+let floatingCash = null; // e.g. "+25.000đ"
+let customerReaction = null; // { quote: string, status: 'happy'|'disappointed' }
+let prepTimer1 = null;
+let prepTimer2 = null;
+let prepTimer3 = null;
+let leaveTimer = null;
 
 const money = n => new Intl.NumberFormat('vi-VN').format(n) + 'đ';
-
-const ingredientMeta = {
-  bread: { name: 'Bánh mì', icon: '🥖', unit: 'ổ', img: '../assets/ingredients/bread.png' },
-  cha: { name: 'Chả lụa', icon: '🍖', unit: 'khoanh', img: '../assets/ingredients/cha.png' },
-  vegetable: { name: 'Dưa ngò', icon: '🥒', unit: 'phần', img: '../assets/ingredients/vegetable.png' },
-  ice: { name: 'Đá bi', icon: '🧊', unit: 'ca', img: '../assets/ingredients/ice.png' },
-  sugar_syrup: { name: 'Nước đường', icon: '🍯', unit: 'muỗng', img: '../assets/ingredients/sugar_syrup.png' },
-  kumquat: { name: 'Tắc tươi', icon: '🍊', unit: 'trái', img: '../assets/ingredients/kumquat.png' },
-  soy_milk: { name: 'Sữa đậu', icon: '🥛', unit: 'bịch', img: '../assets/ingredients/soy_milk.png' }
-};
 
 function persist() {
   localStorage.setItem(SAVE_KEY + ':' + (state.revision % 2), encode(state));
   saved = state;
 }
 
+function clearAllTimers() {
+  if (simInterval) { clearInterval(simInterval); simInterval = null; }
+  if (betiAnimTimer) { clearInterval(betiAnimTimer); betiAnimTimer = null; }
+  if (prepTimer1) { clearTimeout(prepTimer1); prepTimer1 = null; }
+  if (prepTimer2) { clearTimeout(prepTimer2); prepTimer2 = null; }
+  if (prepTimer3) { clearTimeout(prepTimer3); prepTimer3 = null; }
+  if (leaveTimer) { clearTimeout(leaveTimer); leaveTimer = null; }
+}
+
 function send(type, payload) {
-  if (type === 'COMMIT') {
-    const r = action(state, type, payload);
-    if (r.error) {
-      message = r.error;
-      render();
-      return;
-    }
-    playCoins();
-    playChime();
-    const npc = customers.find(c => c.id === state.selected);
-    const basePrice = recipes[npc.recipe].price;
-
-    let reactionText = '';
-    if (npc.id === 'be_ti') {
-      reactionText = state.extraCha 
-        ? 'Bé Tí ôm ổ bánh mì cười tít mắt: "Oa, chả ngập tràn luôn, con cảm ơn chú nhiều lắm! Mai con tan học lại ghé!"' 
-        : 'Bé Tí nhận bánh mì cười tươi: "Bánh mì giòn rụm thơm phức, con cảm ơn chú nghen!"';
-    } else if (npc.id === 'co_chin') {
-      reactionText = 'Cô Chín nhấp một ngụm gật gù: "Trà tắc mát rượi thanh tao, đã khát thiệt đó con ơi! Bữa sau cô lại sang ủng hộ!"';
-    } else if (npc.id === 'anh_tung') {
-      reactionText = 'Anh Tùng uống ực một hơi sảng khoái: "Sữa đậu béo bùi mát lạnh, tỉnh cả người em ơi! Cảm ơn quán, anh chạy cuốc trưa đây!"';
-    }
-
-    customerReaction = {
-      name: npc.name,
-      reaction: reactionText,
-      earned: basePrice
-    };
-
-    floatingCash = '+' + money(basePrice);
-    showParticles = true;
-    state = r.state;
-    message = '';
+  if (type === 'REPLAY') {
+    clearAllTimers();
+    localStorage.removeItem(SAVE_KEY + ':0');
+    localStorage.removeItem(SAVE_KEY + ':1');
+    autoPrepState = null;
+    floatingCash = null;
+    customerReaction = null;
+    state = fresh();
     persist();
-    if (reactionDisplayTimer) clearTimeout(reactionDisplayTimer);
-    if (reactionLeaveTimer) clearTimeout(reactionLeaveTimer);
-    if (reactionIdleTimer) clearTimeout(reactionIdleTimer);
-
-    reactionDisplayTimer = setTimeout(() => {
-      floatingCash = null;
-      showParticles = false;
-      customerReaction = null;
-      customerTransitionState = 'leaving';
-      render();
-
-      reactionLeaveTimer = setTimeout(() => {
-        ensureActiveCustomer();
-        customerTransitionState = 'entering';
-        render();
-
-        reactionIdleTimer = setTimeout(() => {
-          customerTransitionState = 'idle';
-          render();
-        }, 300);
-      }, 350);
-    }, 1400);
+    render();
     return;
   }
 
   const r = action(state, type, payload);
   if (r.error) {
     message = r.error;
-  } else {
-    if (type === 'REPLAY') {
-      localStorage.removeItem(SAVE_KEY + ':0');
-      localStorage.removeItem(SAVE_KEY + ':1');
-      if (reactionDisplayTimer) { clearTimeout(reactionDisplayTimer); reactionDisplayTimer = null; }
-      if (reactionLeaveTimer) { clearTimeout(reactionLeaveTimer); reactionLeaveTimer = null; }
-      if (reactionIdleTimer) { clearTimeout(reactionIdleTimer); reactionIdleTimer = null; }
-      customerTransitionState = 'idle';
-      customerReaction = null;
-      floatingCash = null;
-      showParticles = false;
-      if (betiAnimationTimer) { clearTimeout(betiAnimationTimer); betiAnimationTimer = null; }
-      if (bubbleFadeTimer) { clearTimeout(bubbleFadeTimer); bubbleFadeTimer = null; }
-    }
-    if (type === 'TAP') {
-      playTap(payload);
-    }
-    if (type === 'SELECT') {
-      playBell();
-      speechBubbleHidden = false;
-      if (bubbleFadeTimer) clearTimeout(bubbleFadeTimer);
-      bubbleFadeTimer = setTimeout(() => {
-        speechBubbleHidden = true;
-        const b = document.querySelector('.customer-order-bubble');
-        if (b && (!state.selected || state.selected !== 'be_ti' || state.extraCha !== null)) {
-          b.classList.add('bubble-faded');
-        }
-      }, 2500);
-    }
-    if (type === 'BUY') {
-      playCoins();
-    }
-    if (type === 'EXTRA') {
-      speechBubbleHidden = false;
-      if (bubbleFadeTimer) clearTimeout(bubbleFadeTimer);
-      bubbleFadeTimer = setTimeout(() => {
-        speechBubbleHidden = true;
-        const b = document.querySelector('.customer-order-bubble');
-        if (b) b.classList.add('bubble-faded');
-      }, 2500);
-    }
-    state = r.state;
-    message = '';
-    persist();
+    render();
+    return;
   }
+
+  state = r.state;
+  message = '';
+  persist();
+
+  // Handle simulation lifecycle when entering/leaving SHOP
+  if (state.screen === 'SHOP') {
+    startSimulationLoop();
+  } else {
+    clearAllTimers();
+  }
+
   render();
 }
 
-// Automatically advance queue in SHOP
-function ensureActiveCustomer() {
-  if (state.screen !== 'SHOP') return;
-  if (customerReaction) return; // Do not switch or close while reaction is being displayed
+function startSimulationLoop() {
+  if (simInterval) clearInterval(simInterval);
+  const intervalMs = state.speed === 2 ? 140 : 280;
   
-  const remaining = customers.filter(c => !state.served.includes(c.id) && !state.missed.includes(c.id));
-  if (remaining.length === 0) {
-    send('CLOSE');
+  simInterval = setInterval(() => {
+    if (state.screen !== 'SHOP') {
+      clearInterval(simInterval);
+      return;
+    }
+    
+    // If decision modal is active or auto-prep in progress, do not advance clock
+    if (state.isPaused || autoPrepState) {
+      return;
+    }
+
+    // Advance clock
+    send('TICK', 3);
+
+    // If a customer just arrived and is ready for auto-prep
+    if (state.activeCustomer && state.activeCustomer.status === 'ARRIVED' && !state.isPaused && !autoPrepState) {
+      runAutoPrepSequence();
+    }
+  }, intervalMs);
+}
+
+function runAutoPrepSequence() {
+  const cust = state.activeCustomer;
+  if (!cust) return;
+
+  const recipeId = cust.recipe;
+  const isExtra = cust.id === 'be_ti' && state.extraCha === true;
+  const needs = recipeNeeds(recipeId, isExtra);
+  const menuItem = state.menu[recipeId];
+  const canServe = menuItem && menuItem.enabled && hasEnoughStock(state.stock, needs);
+
+  if (!canServe) {
+    // Out of stock flow
+    autoPrepState = { stage: 'outofstock', progress: 100, item: recipeId, isExtra };
+    render();
+
+    prepTimer1 = setTimeout(() => {
+      send('SERVE_AUTO');
+      customerReaction = {
+        quote: 'Hết hàng rồi hả chú? Tiếc quá, để mai con ghé sớm ủng hộ tiếp nha!',
+        status: 'disappointed'
+      };
+      render();
+
+      leaveTimer = setTimeout(() => {
+        customerReaction = null;
+        autoPrepState = null;
+        send('CUSTOMER_LEAVE');
+        render();
+      }, 1500);
+    }, 800);
     return;
   }
-  
-  if (!state.selected || state.served.includes(state.selected) || state.missed.includes(state.selected)) {
-    send('SELECT', remaining[0].id);
-  }
+
+  // Auto-prep animation sequence (1.2 - 1.5s total)
+  autoPrepState = { stage: 'layer1', progress: 25, item: recipeId, isExtra };
+  playTap('bread');
+  render();
+
+  prepTimer1 = setTimeout(() => {
+    autoPrepState = { stage: 'layer2', progress: 65, item: recipeId, isExtra };
+    playTap('cha');
+    render();
+
+    prepTimer2 = setTimeout(() => {
+      autoPrepState = { stage: 'done', progress: 100, item: recipeId, isExtra };
+      playChime();
+      playCoins();
+      render();
+
+      prepTimer3 = setTimeout(() => {
+        // Complete transaction
+        const earned = menuItem.sellPrice;
+        floatingCash = '+' + money(earned);
+        send('SERVE_AUTO');
+
+        let quote = 'Cảm ơn chú nhiều nghen, món ngon vừa miệng lắm!';
+        if (cust.id === 'be_ti') {
+          quote = isExtra 
+            ? 'Oa chả ngập tràn luôn, con cảm ơn chú nhiều lắm! Mai con ghé tiếp!'
+            : 'Bánh mì giòn rụm thơm phức, con cảm ơn chú nghen!';
+        } else if (cust.id === 'co_chin') {
+          quote = 'Trà tắc mát rượi thanh tao, đã khát thiệt đó con ơi!';
+        } else if (cust.id === 'anh_tung') {
+          quote = 'Sữa đậu béo bùi mát lạnh, tỉnh cả người em ơi! Anh chạy cuốc trưa đây!';
+        }
+
+        customerReaction = { quote, status: 'happy' };
+        render();
+
+        leaveTimer = setTimeout(() => {
+          floatingCash = null;
+          customerReaction = null;
+          autoPrepState = null;
+          send('CUSTOMER_LEAVE');
+          render();
+        }, 1400);
+      }, 400);
+    }, 450);
+  }, 450);
 }
 
-// Tính toán sổ sách kế toán Ngày 1 minh bạch
-function calculateLedger() {
-  const startingCash = 60000;
-  const spentOnStock = state.spent || 0; // 28000
-  const salesRevenue = state.revenue || 0; // 57000
-  const tipsEarned = 0;
-  const debt = 0;
-
-  // Giá vốn hàng bán (COGS): Tính theo nguyên liệu đã dùng cho các khách đã phục vụ thành công
-  let cogs = 0;
-  for (const custId of state.served) {
-    const cust = customers.find(c => c.id === custId);
-    if (cust) {
-      const extraCha = cust.id === 'be_ti' ? state.extraCha : null;
-      const needed = needFor(cust.id, extraCha);
-      for (const [ingId, qty] of Object.entries(needed)) {
-        cogs += (ingredients[ingId].price || 0) * qty;
-      }
-    }
-  }
-
-  // Giá trị nguyên liệu còn tồn kho cuối ngày (Ending Stock)
-  let endingStockValue = 0;
-  for (const [ingId, qty] of Object.entries(state.stock)) {
-    endingStockValue += (ingredients[ingId].price || 0) * (qty || 0);
-  }
-
-  // Lợi nhuận ròng thực tế = Doanh thu bán hàng + Tip - COGS
-  const netProfit = salesRevenue + tipsEarned - cogs;
-
-  // Tiền mặt thực tế trong két
-  const finalCash = state.cash;
-
-  // Chênh lệch tiền mặt ròng trong ngày (Cash difference)
-  const cashDifference = finalCash - startingCash;
-
-  return {
-    startingCash,
-    spentOnStock,
-    salesRevenue,
-    tipsEarned,
-    cogs,
-    endingStockValue,
-    netProfit,
-    finalCash,
-    cashDifference,
-    debt
-  };
-}
-
-// Bé Tí animation loop manager
-function startBetiAnimation() {
-  if (betiAnimationTimer) clearTimeout(betiAnimationTimer);
-  betiFrameIdx = 0;
-  
-  const tick = () => {
-    const el = document.getElementById('beti-sprite-img');
-    if (!el) return;
-    
-    const frames = BETI_SPRITES.order;
-    const delays = [200, 250, 450, 550];
-    const delay = delays[betiFrameIdx] || 400;
-    
-    betiFrameIdx = (betiFrameIdx + 1) % frames.length;
-    el.src = frames[betiFrameIdx];
-    betiAnimationTimer = setTimeout(tick, delay);
-  };
-
-  betiAnimationTimer = setTimeout(tick, 300);
-}
-
-// -------------------------------------------------------------
-// MAIN GAME VIEWS
-// -------------------------------------------------------------
+// ─────────────────────────────────────────────────────────────
+// RENDERERS
+// ─────────────────────────────────────────────────────────────
 
 function renderHome() {
   return `
-    <div class="title-cover-wrapper">
-      <div class="title-header-box">
-        <span class="title-badge">🏮 PHIÊN BẢN CHƠI THỬ · NGÀY 1</span>
-        <h1 class="title-main-logo">XÓM NHỎ</h1>
-        <p class="title-sub-text">Chuyện Làm Ăn Quán Phố · Sài Gòn 2000s</p>
+    <div class="screen-home">
+      <div class="cover-hero">
+        <span class="cover-tag">🏮 PHIÊN BẢN CHƠI THỬ · IDLE MANAGEMENT</span>
+        <h1 class="cover-brand">XÓM NHỎ</h1>
+        <p class="cover-sub">Chuyện Làm Ăn Buôn Bán Quán Phố</p>
       </div>
-
-      <div class="title-card-footer">
-        <div style="font-size: 13.5px; line-height: 1.6; color: var(--text-muted); margin-bottom: 16px;">
-          Chào buổi sáng! Quầy bánh mì nhỏ của bạn mở đầu ngày với <b>60.000đ</b> tiền vốn. 
-          Hãy ra chợ nhập nguyên liệu tươi ngon, dọn quầy đón <b>Bé Tí</b>, <b>Cô Chín</b> và <b>Anh Tùng</b> nhé!
-        </div>
-
-        <div style="display: flex; flex-direction: column; gap: 10px;">
-          <button class="btn-primary btn-wide" data-type="NAVIGATE" style="font-size: 16px;">
-            🌿 Bắt Đầu Mở Quán Hôm Nay
-          </button>
-          ${saved && saved.screen !== 'HOME' ? `<button class="btn-secondary btn-wide" data-type="RESUME">Tiếp tục ngày đang chơi</button>` : ''}
-          <button class="btn-secondary" data-type="REPLAY" style="font-size: 12.5px;">Chơi lại từ đầu</button>
-        </div>
+      <div class="cover-card">
+        <p class="cover-desc">
+          Quản lý quán ăn nhỏ trong con hẻm Sài Gòn.<br>
+          Dự tính nhu cầu, đặt giá bán, mở quán tự bán và xử lý tình huống phát sinh cùng bà con chòm xóm.
+        </p>
+        <button class="btn-primary" data-type="NAVIGATE">🌿 Bắt Đầu Mở Quán Ngày 1</button>
+        ${saved ? `<button class="btn-secondary" data-type="RESUME">Tiếp Tục Ca Bán Đang Chơi</button>` : ''}
+        <button class="btn-tertiary" data-type="REPLAY">🔄 Đặt Lại / Chơi Lại Từ Đầu</button>
       </div>
     </div>
   `;
@@ -423,512 +309,487 @@ function renderHome() {
 
 function renderXomOi() {
   return `
-    <div class="story-card" style="max-width: 650px; margin: 30px auto; width: calc(100% - 32px);">
-      <div class="story-header">
-        <span style="font-size: 28px;">🌤️</span>
-        <h2 style="font-size: 20px;">Xóm Ơi · Tiếng Rao Buổi Sớm</h2>
-      </div>
-      <p style="font-size: 14.5px; line-height: 1.6;">
-        Nắng sớm len lỏi qua giàn hoa giấy rực rỡ đầu ngõ. Tiếng chổi tre quét lá xào xạc hòa cùng tiếng còi xe máy rộn rã. 
-        Trời hôm nay oi ả lắm, mấy món giải nhiệt có đá lạnh và tắc chua ngọt chắc chắn sẽ đắt khách.
-      </p>
-      <p style="font-size: 14.5px; line-height: 1.6;">
-        Trưa nay, <b>Bé Tí</b> thế nào cũng ghé quán ăn bánh mì lót dạ. 
-        <b>Cô Chín</b> đi chợ về và <b>Anh Tùng</b> chạy xe ôm cũng sẽ dừng lại trước quầy làm ly nước giải khát.
-      </p>
-      
-      <div class="story-tip" style="margin: 16px 0;">
-        💡 <b>Mẹo nhập hàng:</b> Đá bi và nước đường dùng chung cho cả Trà tắc và Sữa đậu đá. Nhớ mua dư một chút chả lụa nếu muốn chiều lòng Bé Tí nhé!
-      </div>
+    <header class="top-nav">
+      <div class="brand-title">XÓM NHỎ <small>Tin Buổi Sớm</small></div>
+      <div class="wallet-badge">💵 ${money(state.cash)}</div>
+    </header>
+    <div class="story-screen">
+      <div class="story-card">
+        <h2>🌤️ Xóm Ơi · Tiếng Chổi Tre Quét Sớm</h2>
+        <p>Nắng sớm len lỏi qua giàn hoa giấy tím trước hiên nhà. Mùi cà phê thơm lừng quyện cùng tiếng còi xe máy đầu hẻm báo hiệu một ngày buôn bán mới.</p>
+        
+        <div class="story-clues">
+          <strong>📰 Tin tức trong xóm:</strong>
+          <ul>
+            <li>👧 <b>Bé Tí</b> hôm nay tan trường sớm (~10h), thế nào cũng tạt qua quán ăn bánh mì.</li>
+            <li>👵 <b>Cô Chín</b> đi chợ ngang (~11h), trời oi nồng cô thường thèm ly trà tắc thanh mát.</li>
+            <li>🛵 <b>Anh Tùng</b> chạy xe ôm công nghệ ghé nghỉ trưa (~11h45) nạp năng lượng ly sữa đậu.</li>
+            <li>☀️ <b>Thời tiết:</b> Nắng nóng từ sớm, nước giải khát dự kiến sẽ đắt hàng.</li>
+          </ul>
+        </div>
 
-      <div style="margin-top: 24px;">
-        <button class="btn-primary btn-wide" data-type="NAVIGATE" style="font-size: 16px;">
-          🛒 Ra Chợ Đầu Ngõ Nhập Hàng
-        </button>
+        <div class="story-hint">
+          📢 <b>Bà Sáu đầu chợ rỉ tai:</b> <i>"Tắc bữa nay gom ép nước nhiều, giá chợ chiều có thể nhích lên 3.000đ/trái đó nghen chú!"</i>
+        </div>
+
+        <button class="btn-primary" data-type="NAVIGATE" style="margin-top: 18px;">🛒 Ra Chợ Đầu Ngõ Nhập Hàng</button>
       </div>
     </div>
   `;
 }
 
 function renderMarket() {
-  const basketCost = total(state.basket);
-  const remainingCash = state.cash - basketCost;
-  const canBuy = basketCost > 0 && remainingCash >= 0;
+  const currentBasketUnits = totalBasketUnits(state.basket);
+  const currentBasketCost = totalBasketCost(state.basket);
+  const remainingCash = state.cash - currentBasketCost;
 
   return `
-    <div class="story-card" style="max-width: 680px; margin: 20px auto; width: calc(100% - 32px);">
-      <div class="story-header" style="justify-content: space-between; border-bottom: 1px dashed var(--border-color); padding-bottom: 12px;">
-        <div style="display:flex; align-items:center; gap:10px;">
-          <span style="font-size: 26px;">🏪</span>
-          <div>
-            <h2 style="font-size: 18px; margin: 0;">Sạp Chợ Đầu Ngõ</h2>
-            <small style="color: var(--text-light); font-size: 12px;">Mua nguyên liệu tươi về phục vụ 3 người khách</small>
-          </div>
+    <header class="top-nav">
+      <div class="brand-title">XÓM NHỎ <small>Chợ Đầu Ngõ</small></div>
+      <div class="wallet-badge">💵 ${money(state.cash)}</div>
+    </header>
+    <div class="market-screen">
+      <div class="capacity-banner">
+        <div class="capacity-header">
+          <span>🚲 Sức chở xe đạp hàng:</span>
+          <strong>${currentBasketUnits} / ${BIKE_CAPACITY} đơn vị</strong>
         </div>
-        <div class="wallet-badge">💵 ${money(state.cash)}</div>
+        <div class="capacity-bar-track">
+          <div class="capacity-bar-fill ${currentBasketUnits > BIKE_CAPACITY ? 'overflow' : ''}" style="width: ${Math.min(100, (currentBasketUnits / BIKE_CAPACITY) * 100)}%;"></div>
+        </div>
       </div>
-      
-      <!-- Gợi ý combo mua nhanh Ngày 1 -->
-      <div style="background: #fdf5ea; border: 1.5px dashed #d97706; border-radius: 12px; padding: 12px 14px; margin: 14px 0;">
-        <div style="font-size: 13.5px; font-weight: 700; color: #7c2d12; margin-bottom: 2px;">
-          ⚡ Gợi Ý Mua Nhanh Cho Ngày 1 (3 khách):
-        </div>
-        <div style="font-size: 12px; color: #78350f; margin-bottom: 8px;">
-          Tự động chọn đủ Bánh mì chả thêm chả (Bé Tí), Trà tắc (Cô Chín) và Sữa đậu đá (Anh Tùng).
-        </div>
-        <button class="btn-secondary" data-type="BUNDLE_DAY1" style="font-size: 13px; padding: 8px 14px; width: 100%; border: 1.5px solid #d97706; background: #fffdf9;">
-          🧺 Tự động chọn combo chuẩn 3 khách (48.000đ)
+
+      <div class="bundle-quick-row">
+        <button class="btn-bundle" data-type="BUNDLE_DAY1">
+          <span>🌟 Chọn Gói Gợi Ý Day 1 (55.000đ)</span>
+          <small>3 Bánh mì, 4 Chả, 3 Dưa, 3 Đá, 3 Đường, 2 Tắc, 1 Sữa (19 đơn vị)</small>
         </button>
       </div>
 
-      <div class="market-table">
+      <div class="market-list">
         ${Object.entries(ingredients).map(([id, item]) => {
-          const meta = ingredientMeta[id] || { icon: '📦', unit: 'phần' };
           const qty = state.basket[id] || 0;
           return `
-            <div class="market-item-row">
+            <div class="market-item-card">
+              <img src="${ingredientMeta[id]?.img || ''}" class="market-item-img" alt="${item.name}">
               <div class="market-item-info">
-                <span class="market-item-icon">${meta.icon}</span>
-                <div class="market-item-text">
-                  <strong>${item.name}</strong><br>
-                  <small>${money(item.price)} / ${meta.unit}</small>
-                </div>
+                <strong>${item.name}</strong>
+                <span>${money(item.price)} / ${item.unit}</span>
+                ${id === 'kumquat' ? `<small class="market-warning">⚠️ Chiều có thể lên 3.000đ</small>` : ''}
               </div>
-              <div class="market-stepper">
-                <button class="btn-stepper" data-type="BASKET" data-payload="${id}:${Math.max(0, qty - 1)}">−</button>
-                <span class="stepper-val">${qty}</span>
-                <button class="btn-stepper" data-type="BASKET" data-payload="${id}:${qty + 1}">+</button>
+              <div class="stepper">
+                <button class="step-btn" data-type="BASKET" data-payload="${id}:${Math.max(0, qty - 1)}">-</button>
+                <span class="step-val">${qty}</span>
+                <button class="step-btn" data-type="BASKET" data-payload="${id}:${qty + 1}">+</button>
               </div>
             </div>
           `;
         }).join('')}
       </div>
 
-      <!-- Basket summary bar -->
-      <div style="background: #fdf5ea; border: 1.5px solid #ebd3b6; border-radius: 14px; padding: 14px; margin-top: 16px;">
-        <div style="display:flex; justify-content:space-between; font-size: 14px; margin-bottom: 6px;">
-          <span>Tiền hàng trong giỏ:</span>
-          <strong style="color: #c2410c; font-size: 16px;">${money(basketCost)}</strong>
+      <div class="market-checkout-dock">
+        <div class="checkout-summary">
+          <div>Tiền giỏ hàng: <strong>${money(currentBasketCost)}</strong></div>
+          <div>Tiền còn lại: <strong style="color: ${remainingCash < 0 ? '#ef4444' : '#15803d'}">${money(remainingCash)}</strong></div>
         </div>
-        <div style="display:flex; justify-content:space-between; font-size: 14px;">
-          <span>Tiền mặt còn lại:</span>
-          <strong style="color: ${remainingCash < 0 ? '#dc2626' : '#15803d'}; font-size: 16px;">${money(remainingCash)}</strong>
-        </div>
-      </div>
-
-      <button class="btn-primary btn-wide" data-type="BUY" ${!canBuy ? 'disabled' : ''} style="margin-top: 16px; font-size: 16px;">
-        ${remainingCash < 0 ? '❌ Không đủ tiền mặt' : basketCost === 0 ? '👉 Hãy chọn nguyên liệu' : '🥖 Mang Hàng Về Mở Quán Ngay!'}
-      </button>
-    </div>
-  `;
-}
-
-// -------------------------------------------------------------
-// FIRST-PERSON COOKING STAGE (SHOP)
-// -------------------------------------------------------------
-function renderShop() {
-  const currentCustomer = customers.find(c => c.id === state.selected);
-  const targetRecipe = currentCustomer ? recipes[currentCustomer.recipe] : null;
-  const isBeti = currentCustomer && currentCustomer.id === 'be_ti';
-  const isCoChin = currentCustomer && currentCustomer.id === 'co_chin';
-  const isAnhTung = currentCustomer && currentCustomer.id === 'anh_tung';
-
-  const isBanhMiOrder = currentCustomer && currentCustomer.recipe === 'BANH_MI_CHA';
-  const isDrinkOrder = currentCustomer && currentCustomer.recipe !== 'BANH_MI_CHA';
-
-  const needed = currentCustomer ? needFor(currentCustomer.id, isBeti ? state.extraCha : null) : {};
-  const neededKeys = Object.keys(needed);
-  const isReadyToCommit = currentCustomer && equalCounts(state.draft, needed);
-  const isMissingStock = currentCustomer && neededKeys.some(k => (state.stock[k] || 0) < needed[k]);
-
-  const checklist = neededKeys.map(k => {
-    const reqQty = needed[k];
-    const draftQty = state.draft[k] || 0;
-    return {
-      id: k,
-      meta: ingredientMeta[k],
-      reqQty,
-      draftQty,
-      isDone: draftQty === reqQty,
-      isOver: draftQty > reqQty
-    };
-  });
-
-  return `
-    <div class="cooking-stage-container">
-      <!-- 1. UPPER HALF: THE STREET WINDOW WITH ACTIVE CUSTOMER -->
-      <div class="street-window-view">
-        <div class="street-window-overlay"></div>
-
-        <!-- Neighborhood Queue Tracker (Interactive customer tabs) -->
-        <div class="queue-tracker-hud">
-          ${customers.map(c => {
-            const isServed = state.served.includes(c.id);
-            const isCurrent = state.selected === c.id;
-            return `
-              <button class="queue-dot ${isServed ? 'served' : isCurrent ? 'current' : ''}" 
-                      data-type="SELECT" data-payload="${c.id}" ${isServed ? 'disabled' : ''} 
-                      style="background:none; border:none; padding:3px 6px; cursor:pointer;"
-                      title="${c.id === 'anh_tung' ? 'Đơn gấp' : ''}">
-                ${isServed ? '✓' : isCurrent ? '⭐' : '⏳'} ${c.id === 'anh_tung' ? '⚡ ' + c.name : c.name}
-              </button>
-            `;
-          }).join('')}
-        </div>
-
-        <!-- 2.1 Ambient Loops: Grill Smoke & Swaying Lantern -->
-        <div class="ambient-lantern">🏮</div>
-        <div class="grill-smoke-emitter">
-          <span class="smoke-puff s1"></span>
-          <span class="smoke-puff s2"></span>
-          <span class="smoke-puff s3"></span>
-        </div>
-
-        <!-- 2.3 Camera Cutscene Flash when new customer arrives -->
-        ${customerTransitionState === 'entering' ? `<div class="camera-cutscene-flash"></div>` : ''}
-
-        <!-- Ground Contact Shadow & Active Customer -->
-        ${currentCustomer ? `
-          <div class="active-customer-spot ${customerTransitionState === 'entering' ? 'customer-entering' : customerTransitionState === 'leaving' ? 'customer-leaving' : ''}">
-            <div class="customer-contact-shadow"></div>
-            <div class="customer-avatar-box">
-              ${isBeti ? `<img id="beti-sprite-img" src="${BETI_SPRITES.order[0]}" alt="Bé Tí">` : ''}
-              ${isCoChin ? `<img src="${CO_CHIN_IMG}" alt="Cô Chín">` : ''}
-              ${isAnhTung ? `<img src="${ANH_TUNG_IMG}" alt="Anh Tùng">` : ''}
-            </div>
-          </div>
-
-          <!-- Counter Sill Bar (3D foreground edge between street & prep counter) -->
-          <div class="counter-sill-bar"></div>
-
-          <!-- Floating Order Speech Bubble -->
-          <div class="customer-order-bubble ${speechBubbleHidden ? 'bubble-faded' : ''}">
-            <div class="order-dish-badge">
-              <img src="${isBanhMiOrder ? '../assets/ingredients/bread.png' : isCoChin ? '../assets/ingredients/kumquat.png' : '../assets/ingredients/soy_milk.png'}" style="width:24px;height:24px;object-fit:contain;">
-            </div>
-            <div class="order-bubble-text">
-              ${customerReaction ? `
-                <div class="bubble-header-line">
-                  <strong>${customerReaction.name}</strong>
-                  <span class="bubble-recipe-pill" style="background:#dcfce7; color:#15803d;">Đã nhận món · +${money(customerReaction.earned)}</span>
-                </div>
-                <p class="bubble-dialogue-line" style="color: #15803d; font-weight: 700;">
-                  "${customerReaction.reaction}"
-                </p>
-              ` : `
-                <div class="bubble-header-line">
-                  <strong>${currentCustomer.name}</strong>
-                  <span class="bubble-recipe-pill">${targetRecipe.name} · +${money(targetRecipe.price)}</span>
-                </div>
-                <p class="bubble-dialogue-line">
-                  ${isBeti ? '"Chú ơi cho con ổ Bánh mì chả, chú cho con xin thêm chả nghen!"' 
-                    : isCoChin ? '"Cho cô ly Trà tắc nhiều đá mát lạnh nghen con!"' 
-                    : '"Cho anh ly Sữa đậu đá mát rượi em ơi! Đang vội chạy cuốc khách trưa!"'}
-                </p>
-                ${isBeti && state.extraCha === null ? `
-                  <div class="special-request-actions">
-                    <button class="btn-mini-action btn-primary" data-type="EXTRA" data-payload="yes">
-                      👍 Thêm chả cho con (+1 chả)
-                    </button>
-                    <button class="btn-mini-action btn-secondary" data-type="EXTRA" data-payload="no">
-                      Ăn phần thường nha (1 chả)
-                    </button>
-                  </div>
-                ` : isBeti && state.extraCha !== null ? `
-                  <span class="special-confirmed-tag">${state.extraCha ? '✓ Đã đồng ý thêm chả' : '✓ Bán phần thường'}</span>
-                ` : ''}
-              `}
-            </div>
-            
-            ${isMissingStock && !customerReaction ? `
-              <button class="btn-secondary btn-skip-order" data-type="SKIP">
-                Hết hàng<br>(Qua lượt)
-              </button>
-            ` : ''}
-          </div>
-        ` : ''}
-
-        <!-- Juice: Floating Cash & Particle Bursts -->
-        ${floatingCash ? `<div class="floating-cash-popup">${floatingCash}</div>` : ''}
-        ${showParticles ? `
-          <div class="serve-particles-burst">
-            <span class="spark-dot d1"></span>
-            <span class="spark-dot d2"></span>
-            <span class="spark-dot d3"></span>
-            <span class="spark-dot d4"></span>
-          </div>
-        ` : ''}
-      </div>
-
-      <!-- 2. LOWER HALF: COOKING PREP COUNTER (Single Active Station) -->
-      <div class="counter-prep-deck">
-        <div class="workstation-row">
-          ${isBanhMiOrder ? `
-            <!-- Workstation: Bàn Làm Bánh Mì Chả (Expanded Full Width) -->
-            <div class="prep-workstation active-target">
-              <div class="workstation-title">
-                <span>🥖 Quầy Bánh Mì Chả</span>
-                <span style="color:#c2410c; font-size:11px;">Món đang chuẩn bị (${targetRecipe.name})</span>
-              </div>
-
-              <div class="prep-visual-slot">
-                ${isReadyToCommit ? `
-                  <div class="finished-dish-wrap">
-                    <img class="dish-preview-img" src="${DISH_IMAGES.BANH_MI_CHA}" alt="Bánh Mì Chả Hoàn Thành">
-                    <span class="dish-sparkle-badge">✨ Bánh mì nóng giòn đã xong!</span>
-                  </div>
-                ` : Object.keys(state.draft).length > 0 ? `
-                  <div class="assembly-banh-mi-stage">
-                    <img class="assembly-bread-base" src="../assets/ingredients/bread.png" alt="Ổ bánh mì">
-                    ${state.draft.cha ? `
-                      <div class="assembly-cha-layer">
-                        <img class="assembly-cha-slice cha-1" src="../assets/ingredients/cha.png" alt="Chả lụa">
-                        ${state.draft.cha >= 2 ? `<img class="assembly-cha-slice cha-2" src="../assets/ingredients/cha.png" alt="Chả lụa thêm">` : ''}
-                      </div>
-                    ` : ''}
-                    ${state.draft.vegetable ? `
-                      <div class="assembly-veg-layer">
-                        <img class="assembly-veg-sprig" src="../assets/ingredients/vegetable.png" alt="Dưa leo ngò rí">
-                      </div>
-                    ` : ''}
-                  </div>
-                ` : `
-                  <div class="prep-empty-hint">
-                    Khay sạch · Chạm <strong>Bánh mì</strong> bên dưới để đặt ổ bánh lên thớt!
-                  </div>
-                `}
-              </div>
-
-              <!-- Checklist cho Bánh Mì -->
-              <div class="checklist-chips">
-                ${checklist.map(item => `
-                  <span class="checklist-chip ${item.isDone ? 'done' : item.isOver ? 'over' : ''}">
-                    <img src="${item.meta.img}" style="width:14px;height:14px;object-fit:contain;"> ${item.meta.name}: ${item.draftQty}/${item.reqQty} ${item.isDone ? '✓' : ''}
-                  </span>
-                `).join('')}
-              </div>
-            </div>
-          ` : isDrinkOrder ? `
-            <!-- Workstation: Quầy Nước Giải Khát (Expanded Full Width) -->
-            <div class="prep-workstation active-target">
-              <div class="workstation-title">
-                <span>🥤 Quầy Nước Giải Khát</span>
-                <span style="color:#0284c7; font-size:11px;">Món đang chuẩn bị (${targetRecipe.name})</span>
-              </div>
-
-              <div class="prep-visual-slot">
-                ${isReadyToCommit ? `
-                  <div class="finished-dish-wrap">
-                    <img class="dish-preview-img" src="${DISH_IMAGES[currentCustomer.recipe]}" alt="${targetRecipe.name}">
-                    <span class="dish-sparkle-badge">✨ Nước mát lạnh giải khát!</span>
-                  </div>
-                ` : Object.keys(state.draft).length > 0 ? `
-                  <div class="assembly-drink-stage">
-                    <div class="assembly-cup-base">
-                      <div class="assembly-cup-rim"></div>
-                      ${state.draft.sugar_syrup ? `<div class="assembly-drink-syrup"></div>` : ''}
-                      ${state.draft.kumquat ? `<div class="assembly-drink-flavor tra-tac"></div>` : ''}
-                      ${state.draft.soy_milk ? `<div class="assembly-drink-flavor sua-dau"></div>` : ''}
-                      ${state.draft.ice ? `<img class="assembly-drink-ice" src="../assets/ingredients/ice.png" alt="Đá bi">` : ''}
-                      ${state.draft.kumquat ? `<img class="assembly-drink-kumquat-slice" src="../assets/ingredients/kumquat.png" alt="Tắc tươi">` : ''}
-                    </div>
-                  </div>
-                ` : `
-                  <div class="prep-empty-hint">
-                    Ly sạch · Chạm <strong>Đá bi</strong> bên dưới để bắt đầu pha ${targetRecipe.name}!
-                  </div>
-                `}
-              </div>
-
-              <!-- Checklist cho Nước -->
-              <div class="checklist-chips">
-                ${checklist.map(item => `
-                  <span class="checklist-chip ${item.isDone ? 'done' : item.isOver ? 'over' : ''}">
-                    <img src="${item.meta.img}" style="width:14px;height:14px;object-fit:contain;"> ${item.meta.name}: ${item.draftQty}/${item.reqQty} ${item.isDone ? '✓' : ''}
-                  </span>
-                `).join('')}
-              </div>
-            </div>
-          ` : ''}
-        </div>
-
-        <!-- 3. INGREDIENT TRAYS ON COUNTER (KHAY NGUYÊN LIỆU MINH HỌA SPRITE) -->
-        <div class="ingredient-tray-rack">
-          ${Object.entries(ingredients).map(([id, item]) => {
-            const meta = ingredientMeta[id];
-            const stockQty = state.stock[id] || 0;
-            const isNeeded = neededKeys.includes(id);
-            return `
-              <button class="tray-button ${isNeeded ? 'needed' : ''} ${stockQty <= 0 ? 'out-of-stock' : ''}" 
-                      data-type="TAP" data-payload="${id}" ${stockQty <= 0 ? 'disabled' : ''}>
-                <img class="tray-sprite-img" src="${meta.img}" alt="${meta.name}">
-                <span class="tray-name">${meta.name}</span>
-                <span class="tray-stock">Còn: ${stockQty}</span>
-              </button>
-            `;
-          }).join('')}
-        </div>
-
-        <!-- 4. BOTTOM ACTION BAR: SERVE DISH OR TRASH -->
-        <div class="counter-actions-bar">
-          <button class="btn-secondary" data-type="CLEAR" ${Object.keys(state.draft).length === 0 ? 'disabled' : ''} style="padding:12px 14px; font-size:13px; font-weight:700;">
-            🗑️ Làm Lại
-          </button>
-          
-          <button class="btn-serve ${isReadyToCommit ? 'pulse-ready' : ''}" data-type="COMMIT" ${!isReadyToCommit ? 'disabled' : ''}>
-            ${isReadyToCommit ? `✨ GIAO MÓN CHO ${currentCustomer.name.toUpperCase()} (+${money(targetRecipe.price)})` : '🥢 Đang chuẩn bị món...'}
-          </button>
-
-          <button class="btn-secondary" data-type="CLOSE" style="font-size:12px; padding:12px 10px; white-space:nowrap;">
-            Đóng Quán
-          </button>
-        </div>
-      </div>
-    </div>
-  `;
-}
-
-function renderDayResult() {
-  const ledger = calculateLedger();
-
-  return `
-    <div class="notebook-card" style="max-width: 480px; margin: 16px auto; width: calc(100% - 24px);">
-      <div class="notebook-title">
-        📖 SỔ GHI TIỀN QUÁN XÓM NHỎ<br>
-        <small style="font-size: 13px; font-weight: normal; color: #78350f;">Ngày 1 · Tổng kết kinh doanh buổi đầu</small>
-      </div>
-
-      <!-- Dòng tiền mặt trong két (Cash Flow) -->
-      <div class="ledger-group-title">💵 Dòng tiền mặt trong két</div>
-      <div class="ledger-line">
-        <span>Tiền vốn đầu ngày:</span>
-        <strong>${money(ledger.startingCash)}</strong>
-      </div>
-      <div class="ledger-line">
-        <span>Chi tiền mua hàng ở chợ:</span>
-        <strong style="color: #dc2626;">-${money(ledger.spentOnStock)}</strong>
-      </div>
-      <div class="ledger-line">
-        <span>Thu tiền bán bánh & nước:</span>
-        <strong style="color: #16a34a;">+${money(ledger.salesRevenue)}</strong>
-      </div>
-      ${ledger.tipsEarned > 0 ? `
-        <div class="ledger-line">
-          <span>Tiền tip nhận được:</span>
-          <strong style="color: #eab308;">+${money(ledger.tipsEarned)}</strong>
-        </div>
-      ` : ''}
-      <div class="ledger-line ledger-cash-diff">
-        <span>Chênh lệch tiền mặt trong ngày:</span>
-        <strong style="color: #0369a1;">${ledger.cashDifference >= 0 ? '+' : ''}${money(ledger.cashDifference)}</strong>
-      </div>
-      <div class="ledger-line" style="font-weight: 800; color: #7c2d12;">
-        <span>Tổng tiền mặt trong két cuối ngày:</span>
-        <strong style="color: #15803d; font-size: 15px;">${money(ledger.finalCash)}</strong>
-      </div>
-
-      <!-- Kết quả kinh doanh (P&L) -->
-      <div class="ledger-group-title" style="margin-top: 14px;">📊 Kết quả kinh doanh (P&L)</div>
-      <div class="ledger-line">
-        <span>Doanh thu thuần:</span>
-        <strong>+${money(ledger.salesRevenue)}</strong>
-      </div>
-      <div class="ledger-line">
-        <span>Giá vốn hàng đã bán (COGS):</span>
-        <strong style="color: #dc2626;">-${money(ledger.cogs)}</strong>
-      </div>
-      <div class="ledger-line">
-        <span>Giá trị nguyên liệu còn tồn kho:</span>
-        <strong>${money(ledger.endingStockValue)}</strong>
-      </div>
-      <div class="ledger-line ledger-profit">
-        <span>LỢI NHUẬN GỘP NGÀY 1:</span>
-        <span>+${money(ledger.netProfit)}</span>
-      </div>
-      <div class="ledger-line" style="font-size: 12px; color: #735946;">
-        <span>Khoản nợ:</span>
-        <span>${money(ledger.debt)} (Không nợ)</span>
-      </div>
-
-      <!-- Chuyện xóm ghi chép -->
-      <div class="journal-section">
-        <strong style="color: #7c2d12; font-size: 13.5px;">📝 Chuyện Xóm Sau Giờ Bán:</strong>
-        <div class="journal-item">
-          • <b>Bé Tí:</b> ${state.served.includes('be_ti') 
-              ? (state.extraCha ? 'Cầm ổ bánh mì thêm chả cười tít mắt, tấm tắc khen chú làm ngon rồi hứa mai tan học ghé tiếp!' : 'Ăn ổ bánh mì chả ngon lành rồi chào chú chạy về học bài.') 
-              : 'Đợi lâu quá nên đành bụng đói đi về, hôm nay lỡ mất một lượt khách quen.'}
-        </div>
-        <div class="journal-item">
-          • <b>Cô Chín:</b> ${state.served.includes('co_chin') 
-              ? 'Uống ly trà tắc mát lạnh, khen quán pha vừa miệng chua ngọt thanh tao, bảo trưa mai sẽ ghé ủng hộ.' 
-              : 'Không mua được nước giải khát, phải đi tiếp về nhà.'}
-        </div>
-        <div class="journal-item">
-          • <b>Anh Tùng:</b> ${state.served.includes('anh_tung') 
-              ? 'Uống ực một hơi ly sữa đậu mát rượi, khen quán chu đáo rồi nổ máy chạy cuốc xe ôm trưa.' 
-              : 'Vội chạy cuốc khách nên không kịp uống nước.'}
-        </div>
-      </div>
-
-      <!-- Hook ngày mai -->
-      <div style="background: #fef3c7; border: 1.5px dashed #d97706; padding: 12px; border-radius: 10px; margin-top: 16px; font-size: 13px; color: #92400e;">
-        🌟 <b>Gợi ý ngày mai:</b> Nghe mấy cô đầu chợ đồn ngày mai có mối giao trứng gà tươi giá mềm. Quán mình sắp có thể bán thêm món <b>Bánh Mì Ốp-La</b> rồi đấy!
-      </div>
-
-      <div style="display: flex; gap: 10px; margin-top: 20px;">
-        <button class="btn-primary btn-wide" data-type="REPLAY" style="font-size: 15px;">
-          🔄 Mở Quán Chơi Lại Ngày 1
+        ${message ? `<div class="alert-message">${message}</div>` : ''}
+        <button class="btn-primary" data-type="BUY" ${currentBasketUnits === 0 || remainingCash < 0 ? 'disabled' : ''}>
+          🥖 Mang Hàng Về Lên Menu
         </button>
       </div>
     </div>
   `;
 }
 
-// -------------------------------------------------------------
-// RENDER CONTROLLER
-// -------------------------------------------------------------
-function render() {
-  ensureActiveCustomer();
-
-  let content = '';
-  if (state.screen === 'HOME') content = renderHome();
-  else if (state.screen === 'XOM_OI') content = renderXomOi();
-  else if (state.screen === 'MARKET') content = renderMarket();
-  else if (state.screen === 'SHOP') content = renderShop();
-  else if (state.screen === 'DAY_RESULT') content = renderDayResult();
-
-  $.innerHTML = `
+function renderMenuSetup() {
+  return `
     <header class="top-nav">
-      <div class="brand-title">
-        <span>XÓM NHỎ</span>
-        <small>Ngày 1 · ${state.screen}</small>
+      <div class="brand-title">XÓM NHỎ <small>Lên Thực Đơn</small></div>
+      <div class="wallet-badge">💵 ${money(state.cash)}</div>
+    </header>
+    <div class="menu-screen">
+      <div class="menu-intro">
+        <h3>📋 Bảng Thực Đơn Quán Hôm Nay (3 Slot Quầy)</h3>
+        <p>Chọn các món mở bán và mức giá niêm yết cho khách hàng.</p>
       </div>
-      <div class="wallet-badge">
-        💵 ${money(state.cash)}
+
+      <div class="menu-slots-grid">
+        ${Object.entries(recipes).map(([recipeId, recipeData]) => {
+          const cfg = state.menu[recipeId] || { enabled: true, sellPrice: recipeData.basePrice };
+          const cost = calculateRecipeCost(recipeData.needs);
+          const margin = cfg.sellPrice - cost;
+
+          return `
+            <div class="menu-card ${cfg.enabled ? 'active' : 'disabled'}">
+              <div class="menu-card-header">
+                <label class="menu-toggle">
+                  <input type="checkbox" data-type="CONFIG_MENU_TOGGLE" data-recipe="${recipeId}" ${cfg.enabled ? 'checked' : ''}>
+                  <strong>${recipeData.name}</strong>
+                </label>
+                <span class="cost-estimate">Vốn: ~${money(cost)}</span>
+              </div>
+              
+              <div class="price-tiers-row">
+                <span class="price-tier-label">Giá bán:</span>
+                ${recipeData.priceTiers.map(p => `
+                  <button class="price-tier-btn ${cfg.sellPrice === p ? 'selected' : ''}" 
+                    data-type="CONFIG_MENU_PRICE" data-recipe="${recipeId}" data-price="${p}">
+                    ${p / 1000}k
+                  </button>
+                `).join('')}
+              </div>
+
+              <div class="menu-margin-preview">
+                Lãi gộp dự kiến: <strong>+${money(margin)} / phần</strong>
+              </div>
+            </div>
+          `;
+        }).join('')}
+      </div>
+
+      <div class="opening-time-section">
+        <label>⏰ Giờ mở cửa hôm nay:</label>
+        <div class="opening-btn-group">
+          <button class="time-btn ${state.openingTime === 'early_6am' ? 'selected' : ''}" data-type="SET_TIME" data-payload="early_6am">
+            🌅 Sớm (6h)
+          </button>
+          <button class="time-btn ${state.openingTime === 'ontime_8am' ? 'selected' : ''}" data-type="SET_TIME" data-payload="ontime_8am">
+            ⏰ Đúng giờ (8h)
+          </button>
+          <button class="time-btn ${state.openingTime === 'late_10am' ? 'selected' : ''}" data-type="SET_TIME" data-payload="late_10am">
+            😴 Trễ (10h)
+          </button>
+        </div>
+      </div>
+
+      ${message ? `<div class="alert-message">${message}</div>` : ''}
+
+      <div class="menu-footer">
+        <button class="btn-primary" data-type="START_DAY">🏪 Mở Quán Đón Khách</button>
+      </div>
+    </div>
+  `;
+}
+
+function renderShop() {
+  // Compute display clock time (clock: 0 min -> 08:00 AM)
+  const baseMinutes = state.openingTime === 'early_6am' ? 360 : (state.openingTime === 'late_10am' ? 600 : 480);
+  const totalMinutes = baseMinutes + state.clock;
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  const timeFormatted = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+
+  const cust = state.activeCustomer;
+  const isBeti = cust && cust.id === 'be_ti';
+  const isCoChin = cust && cust.id === 'co_chin';
+  const isAnhTung = cust && cust.id === 'anh_tung';
+
+  return `
+    <header class="top-nav">
+      <div class="brand-title">XÓM NHỎ <small>Đang Mở Bán</small></div>
+      <div class="clock-display">
+        <span>⏰ ${timeFormatted}</span>
+        <div class="speed-toggle">
+          <button class="speed-btn ${state.speed === 1 ? 'active' : ''}" data-type="SPEED" data-payload="1">x1</button>
+          <button class="speed-btn ${state.speed === 2 ? 'active' : ''}" data-type="SPEED" data-payload="2">x2</button>
+        </div>
+      </div>
+      <div class="top-nav-right" style="display: flex; align-items: center; gap: 8px;">
+        <button class="btn-icon-replay" data-type="REPLAY" title="Chơi lại" style="background: none; border: none; font-size: 16px; cursor: pointer; color: #fbd38d; min-width: 44px; min-height: 44px; display: flex; align-items: center; justify-content: center;">🔄</button>
+        <div class="wallet-badge">💵 ${money(state.cash)}</div>
       </div>
     </header>
 
-    <div class="view-container">
-      ${message ? `<div class="toast-msg">⚠️ ${message}</div>` : ''}
-      ${lastServedToast ? `<div class="toast-msg" style="background:#dcfce7; border-color:#22c55e; color:#15803d;">🎉 ${lastServedToast}</div>` : ''}
-      ${content}
-    </div>
-  `;
+    <div class="shop-stage-container">
+      ${state.newsTicker ? `
+        <div class="news-ticker-banner">
+          <span>📢 ${state.newsTicker.text}</span>
+        </div>
+      ` : ''}
 
-  // Start Bé Tí animation if Bé Tí is active customer in SHOP
-  if (state.screen === 'SHOP' && state.selected === 'be_ti') {
-    startBetiAnimation();
-  } else if (betiAnimationTimer) {
-    clearTimeout(betiAnimationTimer);
-    betiAnimationTimer = null;
-  }
+      <!-- Street view & Counter window -->
+      <div class="street-counter-scene">
+        <img src="../assets/environment/alley_counter_clean.jpg" class="scene-background" alt="Con hẻm">
+
+        <!-- Customer in queue -->
+        ${cust ? `
+          <div class="customer-actor-wrap ${cust.status === 'SERVED' ? 'served-leaving' : ''}">
+            <div class="customer-contact-shadow"></div>
+            ${isBeti ? `
+              <img src="${BETI_SPRITES.order[betiFrameIdx % 4]}" class="actor-sprite beti-sprite" alt="Bé Tí">
+            ` : isCoChin ? `
+              <img src="${CO_CHIN_IMG}" class="actor-sprite co-chin-sprite" alt="Cô Chín">
+            ` : isAnhTung ? `
+              <img src="${ANH_TUNG_IMG}" class="actor-sprite anh-tung-sprite" alt="Anh Tùng">
+            ` : `
+              <div class="walkin-avatar-placeholder">
+                <span class="walkin-avatar-icon">👤</span>
+                <span class="walkin-name-tag">${cust.name}</span>
+              </div>
+            `}
+
+            <!-- Customer speech bubble -->
+            <div class="customer-bubble">
+              <strong>${cust.name}:</strong>
+              <span>"${customerReaction ? customerReaction.quote : cust.dialogue}"</span>
+              ${autoPrepState && autoPrepState.stage === 'done' ? `<div class="bubble-sparkle">✨ Cảm ơn quán!</div>` : ''}
+            </div>
+          </div>
+        ` : `
+          <div class="empty-street-idle">
+            <span>Tiếng ve kêu râm ran... Quán đang chờ khách ghé</span>
+          </div>
+        `}
+
+        <div class="counter-sill-bar"></div>
+
+        ${floatingCash ? `<div class="floating-cash-burst">${floatingCash}</div>` : ''}
+      </div>
+
+      <!-- Auto-Prep Physical Workstation -->
+      <div class="auto-prep-bench">
+        <div class="prep-bench-header">
+          <span>🍳 Bàn Chế Biến Quán Phố</span>
+          <span class="prep-status-text">
+            ${autoPrepState ? (
+              autoPrepState.stage === 'layer1' ? 'Đang chuẩn bị vỏ bánh / ly đá...' :
+              autoPrepState.stage === 'layer2' ? 'Thêm nhân đậm đà / rót nước...' :
+              autoPrepState.stage === 'done' ? '✨ Đã hoàn thành món!' : 'Hết nguyên liệu!'
+            ) : 'Sẵn sàng phục vụ'}
+          </span>
+        </div>
+
+        <div class="prep-visual-dock">
+          ${autoPrepState && autoPrepState.item === 'BANH_MI_CHA' ? `
+            <div class="banh-mi-assembly-visual">
+              <div class="assembly-bread-base">🥖 Bánh mì giòn rụm</div>
+              ${['layer2', 'done'].includes(autoPrepState.stage) ? `
+                <div class="assembly-cha-layer">
+                  🍖 ${autoPrepState.isExtra ? 'Chả lụa dày đặc (2 khoanh)' : 'Chả lụa thơm ngậy (1 khoanh)'}
+                </div>
+                <div class="assembly-veg-layer">🥒 Dưa leo & Ngò rí xanh mướt</div>
+              ` : ''}
+              ${autoPrepState.stage === 'done' ? `
+                <div class="assembly-wrap-layer">🗞️ Bọc giấy báo thơm lừng!</div>
+              ` : ''}
+            </div>
+          ` : autoPrepState && ['TRA_TAC', 'SUA_DAU_DA'].includes(autoPrepState.item) ? `
+            <div class="drink-assembly-visual">
+              <div class="assembly-ice-layer">🧊 Đá bi lách cách rơi vào ly</div>
+              ${['layer2', 'done'].includes(autoPrepState.stage) ? `
+                <div class="assembly-syrup-layer">🍯 Nước đường mật ong sánh mịn</div>
+                <div class="assembly-flavor-layer">
+                  ${autoPrepState.item === 'TRA_TAC' ? '🍊 Tắc tươi vắt nhẹ nước cốt' : '🥛 Sữa đậu nành nguyên chất béo bùi'}
+                </div>
+              ` : ''}
+              ${autoPrepState.stage === 'done' ? `
+                <div class="assembly-cold-layer">❄️ Ly nước lạnh buốt thơm lành!</div>
+              ` : ''}
+            </div>
+          ` : `
+            <div class="prep-idle-platter">
+              <span>Dao thớt sẵn sàng · Ly cốc sạch sẽ</span>
+            </div>
+          `}
+        </div>
+
+        <!-- Progress bar for auto-prep -->
+        <div class="auto-prep-progress-track">
+          <div class="auto-prep-progress-fill" style="width: ${autoPrepState ? autoPrepState.progress : 0}%;"></div>
+        </div>
+      </div>
+
+      <!-- Live Stock Bar -->
+      <div class="live-stock-dock">
+        <div class="stock-chips-row">
+          ${Object.entries(state.stock).map(([id, qty]) => `
+            <span class="stock-chip ${qty === 0 ? 'zero' : ''}">
+              ${ingredientMeta[id]?.icon || ''} ${ingredientMeta[id]?.name}: <b>${qty}</b>
+            </span>
+          `).join('')}
+        </div>
+        <div class="shop-action-row">
+          <button class="btn-close-shop" data-type="CLOSE">🚪 Đóng Quán & Tính Sổ</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Decision Modal (Pauses Clock) -->
+    ${state.activeDecision ? `
+      <div class="decision-modal-backdrop">
+        <div class="decision-card">
+          <div class="decision-icon">👧</div>
+          <h3>${state.activeDecision.title}</h3>
+          <p class="decision-speech">"${state.activeDecision.message}"</p>
+          <div class="decision-options-col">
+            ${state.activeDecision.options.map(opt => `
+              <button class="btn-decision" data-type="DECIDE" data-payload="${opt.key}">
+                ${opt.label}
+              </button>
+            `).join('')}
+          </div>
+        </div>
+      </div>
+    ` : ''}
+  `;
 }
 
-// Event delegation
+function renderDayResult() {
+  const ledger = calculateLedger(state);
+
+  return `
+    <header class="top-nav">
+      <div class="brand-title">XÓM NHỎ <small>Sổ Ghi Tiền Cuối Ngày</small></div>
+      <div class="wallet-badge">💵 ${money(ledger.finalCashInDrawer)}</div>
+    </header>
+
+    <div class="result-screen">
+      <div class="notebook-ledger-card">
+        <div class="notebook-header">
+          <h2>📖 SỔ GHI TIỀN QUÁN XÓM NHỎ</h2>
+          <small>Ngày 1 · Tổng Kết Kinh Doanh Buổi Đầu</small>
+        </div>
+
+        <!-- 1. Dòng tiền mặt trong két -->
+        <div class="ledger-block">
+          <h4 class="ledger-block-title">💵 1. BÁO CÁO DÒNG TIỀN MẶT TRONG KÉT</h4>
+          <div class="ledger-row">
+            <span>Tiền vốn mở quầy sáng nay:</span>
+            <strong>${money(ledger.startingCash)}</strong>
+          </div>
+          <div class="ledger-row minus">
+            <span>Chi tiền mua nguyên liệu ở chợ:</span>
+            <strong>-${money(ledger.spentOnMorningStock)}</strong>
+          </div>
+          <div class="ledger-row plus">
+            <span>Tiền mặt thu thực tế từ bán hàng (${ledger.servedCount} đơn):</span>
+            <strong>+${money(ledger.cashSalesCollected)}</strong>
+          </div>
+          <div class="ledger-row">
+            <span>Tiền tip:</span>
+            <strong>+${money(ledger.tipsCollected)}</strong>
+          </div>
+          <hr class="ledger-divider">
+          <div class="ledger-row highlight">
+            <span>👉 TỔNG TIỀN MẶT TRONG KÉT:</span>
+            <strong>${money(ledger.finalCashInDrawer)}</strong>
+          </div>
+          <div class="ledger-row sub">
+            <span>Chênh lệch tiền mặt trong ngày:</span>
+            <span class="${ledger.netCashDifferenceToday >= 0 ? 'text-green' : 'text-red'}">
+              ${ledger.netCashDifferenceToday >= 0 ? '+' : ''}${money(ledger.netCashDifferenceToday)}
+            </span>
+          </div>
+        </div>
+
+        <!-- 2. Báo cáo P&L -->
+        <div class="ledger-block">
+          <h4 class="ledger-block-title">📊 2. BÁO CÁO KẾT QUẢ KINH DOANH (P&L)</h4>
+          <div class="ledger-row">
+            <span>Tổng doanh thu thuần:</span>
+            <strong>+${money(ledger.totalSalesRevenue)}</strong>
+          </div>
+          <div class="ledger-row minus">
+            <span>Giá vốn hàng đã bán (COGS):</span>
+            <strong>-${money(ledger.cogsSoldItemsOnly)}</strong>
+          </div>
+          <hr class="ledger-divider">
+          <div class="ledger-row highlight profit">
+            <span>👉 LỢI NHUẬN GỘP (GROSS OPERATING PROFIT):</span>
+            <strong>+${money(ledger.grossOperatingProfit)}</strong>
+          </div>
+          <div class="ledger-row sub">
+            <span>Giá trị nguyên liệu còn tồn kho:</span>
+            <strong>${money(ledger.retainedStockValueAtCost)}</strong>
+          </div>
+        </div>
+
+        <!-- 3. Lãi gộp theo món -->
+        <div class="ledger-block">
+          <h4 class="ledger-block-title">📊 3. LÃI GỘP THEO TỪNG MÓN ĂN</h4>
+          ${Object.entries(ledger.dishBreakdown).map(([id, d]) => `
+            <div class="dish-ledger-line">
+              <div class="dish-line-name">
+                <b>${d.name}:</b> ${d.count} phần
+              </div>
+              <div class="dish-line-math">
+                Thu: ${money(d.revenue)} - Vốn: ${money(d.cogs)} = 
+                <strong class="text-green">+${money(d.margin)}</strong>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+
+        <!-- 4. Đơn phục vụ & Đơn lỡ -->
+        <div class="ledger-block">
+          <h4 class="ledger-block-title">🚫 4. TỔNG KẾT PHỤC VỤ KHÁCH</h4>
+          <div class="ledger-row">
+            <span>Phục vụ thành công:</span>
+            <strong>${ledger.servedCount} / ${ledger.servedCount + ledger.missedCount} khách</strong>
+          </div>
+          ${ledger.missedCount > 0 ? `
+            <div class="ledger-row text-red">
+              <span>Đơn bỏ lỡ do hết hàng:</span>
+              <strong>${ledger.missedCount} đơn (${ledger.missedOrders.map(o => o.name).join(', ')})</strong>
+            </div>
+          ` : `
+            <div class="ledger-row text-green">
+              <span>Không có khách nào bị bỏ lỡ!</span>
+            </div>
+          `}
+        </div>
+
+        <!-- 5. Chuyện xóm sau giờ bán -->
+        <div class="ledger-block journal">
+          <h4 class="ledger-block-title">📝 5. CHUYỆN XÓM SAU GIỜ BÁN</h4>
+          <ul class="journal-list">
+            ${state.servedOrders.some(o => o.personId === 'be_ti') ? `
+              <li>👧 <b>Bé Tí:</b> Cầm ổ bánh mì thơm phức cười tít mắt, tấm tắc khen chú làm ngon rồi hứa mai tan học ghé tiếp!</li>
+            ` : ''}
+            ${state.servedOrders.some(o => o.personId === 'co_chin') ? `
+              <li>👵 <b>Cô Chín:</b> Uống ly trà tắc mát lạnh, khen quán pha thanh mát vừa miệng, bảo trưa mai sẽ ghé ủng hộ.</li>
+            ` : ''}
+            ${state.servedOrders.some(o => o.personId === 'anh_tung') ? `
+              <li>🛵 <b>Anh Tùng:</b> Uống ực một hơi ly sữa đậu mát rượi, khen quán chu đáo rồi nổ máy chạy cuốc xe trưa.</li>
+            ` : ''}
+            ${ledger.missedOrders.map(o => `
+              <li>👤 <b>${o.name}:</b> Tiếc vì quán hết hàng sớm, hẹn mai ghé sớm hơn.</li>
+            `).join('')}
+          </ul>
+        </div>
+
+        <!-- 6. Đánh giá & Preview Day 2 -->
+        <div class="ledger-block highlight-box">
+          <div class="rating-tag">⭐ ĐÁNH GIÁ: Quán Mới Mở · Nhận Phản Hồi Tích Cực</div>
+          <div class="upgrade-preview">
+            <b>🔧 Xem trước nâng cấp Day 2:</b>
+            <p>Rổ đèo hàng xe đạp (sức chở 30 đơn vị) và mối trứng gà tươi giá mềm đầu chợ để mở món Bánh Mì Ốp-La!</p>
+          </div>
+        </div>
+
+        <button class="btn-primary" data-type="REPLAY" style="margin-top: 16px;">🔄 Mở Quán Chơi Lại Ngày 1</button>
+      </div>
+    </div>
+  `;
+}
+
+function render() {
+  if (state.screen === 'HOME') $.innerHTML = renderHome();
+  else if (state.screen === 'XOM_OI') $.innerHTML = renderXomOi();
+  else if (state.screen === 'MARKET') $.innerHTML = renderMarket();
+  else if (state.screen === 'MENU') $.innerHTML = renderMenuSetup();
+  else if (state.screen === 'SHOP') $.innerHTML = renderShop();
+  else if (state.screen === 'DAY_RESULT') $.innerHTML = renderDayResult();
+}
+
+// ─────────────────────────────────────────────────────────────
+// EVENT DELEGATION
+// ─────────────────────────────────────────────────────────────
+
 $.addEventListener('click', e => {
   const b = e.target.closest('[data-type]');
   if (!b) return;
-  
+
   const t = b.dataset.type;
   const p = b.dataset.payload;
 
@@ -936,46 +797,60 @@ $.addEventListener('click', e => {
     if (saved) {
       state = saved;
       message = '';
+      if (state.screen === 'SHOP') startSimulationLoop();
       render();
     }
     return;
   }
 
-  if (t === 'REPLAY' && !confirm('Chơi lại sẽ đặt lại toàn bộ Ngày 1. Bạn chắc chắn chứ?')) {
+  if (t === 'REPLAY') {
+    send('REPLAY');
     return;
   }
 
-  lastServedToast = null;
+  if (t === 'CONFIG_MENU_TOGGLE') {
+    const recipeId = b.dataset.recipe;
+    const isChecked = b.checked;
+    send('CONFIG_MENU', { recipeId, enabled: isChecked });
+    return;
+  }
 
-  if (t === 'BUNDLE_DAY1') {
-    const bundle = {
-      bread: 1,
-      cha: 2,
-      vegetable: 1,
-      ice: 2,
-      sugar_syrup: 2,
-      kumquat: 1,
-      soy_milk: 1
-    };
-    for (const [id, qty] of Object.entries(bundle)) {
-      const r = action(state, 'BASKET', { id, qty });
-      if (!r.error) state = r.state;
-    }
-    persist();
-    render();
+  if (t === 'CONFIG_MENU_PRICE') {
+    const recipeId = b.dataset.recipe;
+    const sellPrice = Number(b.dataset.price);
+    send('CONFIG_MENU', { recipeId, sellPrice });
+    return;
+  }
+
+  if (t === 'SET_TIME') {
+    send('SET_OPENING_TIME', p);
+    return;
+  }
+
+  if (t === 'SPEED') {
+    send('SET_SPEED', Number(p));
+    startSimulationLoop();
+    return;
+  }
+
+  if (t === 'DECIDE') {
+    send('DECIDE', { choice: p });
     return;
   }
 
   if (t === 'BASKET') {
     const [id, qty] = p.split(':');
-    send(t, { id, qty: Number(qty) });
-  } else if (t === 'EXTRA') {
-    send(t, p === 'yes');
-  } else {
-    send(t, p);
+    send('BASKET', { id, qty: Number(qty) });
+    return;
   }
+
+  send(t, p);
 });
 
 // Initial boot
 render();
+if (state.screen === 'SHOP') {
+  startSimulationLoop();
+}
 
+window.__xomNho = { send, getState: () => state };
