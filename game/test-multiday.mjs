@@ -137,6 +137,7 @@ waste = apply(waste, 'CLOSE');
 assert.equal(waste.spoilageLoss, 8000);
 assert.equal(calculateLedger(waste).cogsSoldItemsOnly, 0);
 assert.equal(calculateLedger(waste).finalCashInDrawer, waste.cash);
+assert.equal(calculateLedger(waste).resultAfterSpoilageAndExpenses, -8000);
 assert.equal(waste.stock.bread, 0);
 
 // A bad first-day decision can recover without misreporting a side job as sales.
