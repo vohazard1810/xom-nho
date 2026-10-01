@@ -1,104 +1,57 @@
-# XÓM NHỎ — TÀI LIỆU QUY CÁCH VÀ STORYBOARD ASSET PILOT
+# XÓM NHỎ — TÀI LIỆU QUY CÁCH VÀ STORYBOARD ASSET PILOT (V2)
 
-> **Phiên bản**: v0.7.3-pilot  
-> **Ngày lập**: 01/10/2026  
-> **Mục tiêu**: Định hình quy chuẩn cho đợt thử nghiệm Pilot (4 Khách vãng lai + 1 Mái che + 1 Handoff mẫu + Storyboard nhân sự) trước khi nhân rộng sản xuất hàng loạt.
-
----
-
-## 1. STORYBOARD & ĐỊNH VỊ KHÔNG GIAN NHÂN SỰ QUÁN (STAFF PLACEMENT)
-
-### 1.1. Bối cảnh không gian và thách thức góc nhìn
-- **Góc nhìn hiện tại của màn SHOP (Street Counter Window)**:
-  - Máy quay đặt **bên trong quầy nhìn ra ngoài hẻm** (First-Person / Vendor POV).
-  - Khung trên (`.street-counter-scene` cao 260px): Thấy con hẻm rợp hoa giấy, nền đá, nắng sớm, mái hiên và khách hàng bước đến trước mặt quầy.
-  - Gờ quầy gỗ (`.counter-sill-bar` cao 18px): Ranh giới vật lý giữa trong quán và ngoài đường.
-  - Khung dưới (`.auto-prep-bench` chiếm ~45% màn hình): Thớt gỗ chế biến bánh mì và khay pha chế đồ uống.
-- **Rủi ro thiết kế nếu đặt sprite toàn thân Nhâm / Bé Út vào khung cảnh**:
-  - Nếu vẽ Nhâm đứng phía sau quầy gỗ ở ngoài hẻm: Nhâm sẽ trông như một người khách đứng ngoài đường nhìn vào trong quán, gây mâu thuẫn nhận thức (cognitive dissonance).
-  - Nếu vẽ Nhâm đứng ở góc dưới: Sprite sẽ che mất thớt cắt bánh mì, khay nguyên liệu hoặc che khuất khách hàng đứng đối diện.
-
-### 1.2. Giải pháp Storyboard: First-Person Hands POV + Side Assistant
-Hệ thống nhân sự quán được phân lớp thành 2 thành phần độc lập:
-
-```mermaid
-flowchart TD
-    subgraph Alley["Không gian Ngoài Hẻm (Phía Trước Quầy)"]
-        Canopy["[Z-18] Mái Hiên Di Động (Canopy)"]
-        AlleyBG["[Z-1] Con Hẻm Nắng Sớm & Hoa Giấy"]
-        Customer["[Z-10] Khách Hàng (Học sinh / Văn phòng / Tài xế / Cụ già)"]
-        Shadow["[Z-5] Bóng Tiếp Đất Của Khách"]
-    end
-
-    subgraph Counter["Mặt Bàn Giao Dịch & Gờ Quầy"]
-        Sill["[Z-22] Gờ Quầy Gỗ (Counter Sill Bar)"]
-        Handoff["[Z-26] Đôi Tay Trao Món (First-Person Staff Handoff)"]
-    end
-
-    subgraph Inside["Không Gian Trong Quán (Phía Dưới)"]
-        Assistant["[Tùy chọn tương lai] Bé Út Đứng Góc Quầy Trái / Phụ Việc"]
-        Workbench["[Z-30] Bàn Thớt Chế Biến / Ly Nước Watercolor"]
-        Pantry["[Z-40] Khay Tồn Kho & Nút Điều Khiển Ca Bán"]
-    end
-
-    AlleyBG --> Customer
-    Canopy --> AlleyBG
-    Customer --> Sill
-    Handoff --> Sill
-    Sill --> Workbench
-```
-
-#### A. Chủ quán Nhâm (Góc nhìn First-Person POV)
-- **Hình thức thể hiện**: Đôi cánh tay của Nhâm (áo thun xắn tay gọn gàng, tạp dề mộc).
-- **Trạng thái chuyển động (States)**:
-  1. `prep_cutting`: Đôi tay cầm dao cắt đôi ổ bánh mì giòn trên thớt gỗ.
-  2. `prep_filling`: Đôi tay gắp chả lụa, chan sốt, rắc dưa ngò.
-  3. `prep_drink`: Đôi tay xúc đá viên, vắt tắc tươi, rót sữa đậu.
-  4. `handoff`: Đôi tay cầm ổ bánh mì bọc giấy kraft buộc thun đỏ vươn qua gờ quầy gỗ (`counter-sill-bar`) trao tận tay khách hàng.
-- **Ưu điểm**:
-  - Tỷ lệ tương tác 1:1 đem lại cảm giác nhập vai (tactile immersion) cao như *Coffee Talk* hay *Good Pizza, Great Pizza*.
-  - Hoàn toàn không che khuất khách hàng đứng ngoài quầy và không choán diện tích bàn chế biến.
-
-#### B. Bé Út (Phụ việc quầy — Mở khóa khi nâng cấp quy mô quán)
-- **Hình thức thể hiện**: Đứng ở góc quầy bên trái (Left-hand sill profile), góc nhìn nghiêng 3/4 nhìn hướng ra hẻm.
-- **Vai trò**: Phụ xếp bao mang đi, phụ bê khay nước ra ghế cóc khi khách chọn ngồi lại.
-- **Vị trí**: X = 10px, Y = 160px (chỉ chiếm 15% bề ngang bên trái, mắt hướng về phía khách).
+> **Phiên bản**: v0.7.4-pilot  
+> **Ngày cập nhật**: 01/10/2026  
+> **Trạng thái**: Đã sửa triệt để lỗi phối cảnh gờ quầy, lỗi 3 tay Em Nam, lỗi phân nhóm archetype và phân loại handoff theo món ăn/thức uống.
 
 ---
 
-## 2. QUY CÁCH 4 NHÂN VẬT KHÁCH PILOT (1 CHO MỖI ARCHETYPE)
+## 1. GIẢI TRÌNH CÁC ĐIỂM SỬA CHỮA QUAN TRỌNG THEO PHẢN HỒI
 
-Tất cả 4 nhân vật được thiết kế chuẩn theo phong cách Watercolor Storybook Nam Bộ của `co_chin_standing.png`:
-- Kích thước canvas gốc: $848 \times 1264$ px, tỉ lệ $2:3$, kênh màu RGBA (nền trong suốt đã lọc viền mềm anti-aliasing).
-- Chiều cao hiển thị trong viewport mobile 390×844: $175 - 180$ px.
-- Tách biệt dữ liệu: `personId`, `name`, `visualVariantId`, `clothing`, `expression` hoàn toàn độc lập trong mã nguồn.
+### 1.1. Khắc phục lỗi phối cảnh: Ghép lớp gờ quầy che chân tự nhiên (Counter Depth & Occlusion)
+- **Vấn đề cũ**: Asset khách là toàn thân đứng ở `bottom: 16px`, chân đặt ngay trên gờ quầy gỗ khiến nhân vật trông như đứng lên mặt bàn thay vì đứng ngoài hẻm gọi món.
+- **Giải pháp triệt để**:
+  1. Trích xuất lớp gờ quầy gỗ phía trước ([`counter_shelf_foreground.png`](file:///C:/Users/truonggiang.vo01/.gemini/antigravity/scratch/xom-nho/assets/environment/counter_shelf_foreground.png)) có cùng kích thước $1200 \times 896$ px khớp chuẩn từng pixel với ảnh nền con hẻm [`alley_counter_clean.jpg`](file:///C:/Users/truonggiang.vo01/.gemini/antigravity/scratch/xom-nho/assets/environment/alley_counter_clean.jpg).
+  2. Phân lớp hiển thị theo chiều sâu phối cảnh:
+     - **Lớp 1 (Z-index 1)**: Nền con hẻm, lòng đường đá, giàn hoa giấy.
+     - **Lớp 2 (Z-index 10)**: Khách hàng đứng trên lòng đường hẻm phía sau quầy.
+     - **Lớp 3 (Z-index 18)**: Mái hiên di động sọc xanh trắng che mát phía trên.
+     - **Lớp 4 (Z-index 22)**: Mặt bàn quầy gỗ tiền cảnh ([`counter-shelf-foreground`](file:///C:/Users/truonggiang.vo01/.gemini/antigravity/scratch/xom-nho/assets/environment/counter_shelf_foreground.png)) tự nhiên che khuất phần chân và đùi của khách hàng.
+     - **Lớp 5 (Z-index 26)**: Đôi tay nhân viên trao món vươn từ trong quán ra ngoài gờ quầy.
+  3. Bỏ bóng đổ tiếp đất trên mặt bàn quầy; khách đứng vững vàng phía sau quầy với phần ngực, mặt, tay và trang phục hiển thị rõ nét, biểu cảm.
 
-| Mã Variant | Archetype | Nhân vật Pilot | Trang phục & Phụ kiện đặc trưng | File Asset |
-| :--- | :--- | :--- | :--- | :--- |
-| `walkin_variant_0` | `teen` | **Em Nam (Học sinh)** | Áo sơ mi trắng đồng phục học sinh, quần tây xanh đen, dép quai hậu, đeo ba lô một bên vai. Nét mặt tươi cười rụt rè, chuẩn bị vào lớp. | `assets/pilot/walkin_student.png` |
-| `walkin_variant_1` | `adult_average` | **Chị Mai (Văn phòng)** | Áo sơ mi ngắn tay xanh pastel, chân váy màu be thanh lịch, đeo thẻ nhân viên công sở trước ngực, xách túi vải canvas đựng ly giữ nhiệt. | `assets/pilot/walkin_office.png` |
-| `walkin_variant_2` | `adult_tall` | **Chú Bảy (Tài xế công nghệ)** | Áo khoác gió màu xanh lá có vạch phản quang, quần jean bạc màu, nón bảo hiểm nửa đầu chưa gài quai, khăn bông vắt qua cổ, tay cầm điện thoại. | `assets/pilot/walkin_driver.png` |
-| `walkin_variant_3` | `elder_short` | **Bác Năm (Tập thể dục)** | Áo sơ mi cộc tay cotton hoa văn chìm mát mẻ, quần đũi xám, dép lào, tay cầm quạt nan phe phẩy thong thả. Nét mặt đôn hậu, tóc hoa râm. | `assets/pilot/walkin_elder.png` |
+### 1.2. Khắc phục lỗi 3 cánh tay và tỉ lệ của Em Nam (`walkin_student`)
+- **Lỗi cũ**: Bản vẽ AI trước đó sinh ra một cánh tay buông xuôi và một cánh tay cầm quai balo cùng một phía (tổng cộng 3 cánh tay). Dáng người cũng hơi lớn so với học sinh cấp 3.
+- **Bản sửa mới ([`walkin_student.png`](file:///C:/Users/truonggiang.vo01/.gemini/antigravity/scratch/xom-nho/assets/pilot/walkin_student.png))**:
+  - Giải phẫu chuẩn xác: **chính xác 2 cánh tay** (tay trái giữ quai balo trước ngực, tay phải buông xuôi tự nhiên).
+  - Vóc dáng thiếu niên (teenager ~15–16 tuổi), gương mặt trẻ trung, nụ cười rạng rỡ, áo sơ mi đồng phục trắng tinh và quần tây gọn gàng.
+
+### 1.3. Khắc phục logic sinh khách: Phân nhóm Archetype trước, gán tên và hình sau
+- **Lỗi cũ**: Mã nguồn cũ dùng `index % 4` gán cơ học từ một danh sách tên chung, dẫn đến trường hợp tên người lớn (Cô Bảy, Chú Mười) bị ghép vào hình học sinh.
+- **Cấu trúc mới trong [`game/day-content.mjs`](file:///C:/Users/truonggiang.vo01/.gemini/antigravity/scratch/xom-nho/game/day-content.mjs)**:
+  - Định nghĩa 4 nhóm Archetype cụ thể: `teen`, `office`, `driver`, `elder`.
+  - Mỗi Archetype quản lý một nhóm tên, danh xưng, câu thoại và variant hình ảnh riêng biệt:
+    - **`teen`**: Em Nam, Em Bình, Bạn Thảo, Em Tuấn, Bé Vy $\to$ `walkin_student.png` (Thoại: giờ vào lớp, giờ học).
+    - **`office`**: Chị Mai, Anh Khoa, Chị Ngọc, Anh Bảo, Chị Lành $\to$ `walkin_office.png` (Thoại: văn phòng, giờ họp).
+    - **`driver`**: Chú Bảy, Chú Mười, Chú Bình, Anh Lâm, Bác Tư $\to$ `walkin_driver.png` (Thoại: chạy xe, cuốc xe).
+    - **`elder`**: Bác Năm, Cô Vân, Dì Hạnh, Bác Phúc, Bác Tám $\to$ `walkin_elder.png` (Thoại: tập thể dục, xóm giềng).
+
+### 1.4. Phân loại Handoff theo Món ăn vs. Thức uống
+- **Lỗi cũ**: Luôn hiển thị đôi tay cầm ổ bánh mì kể cả khi khách gọi Trà tắc hay Sữa đậu nành.
+- **Cải tiến trong [`game/main.mjs`](file:///C:/Users/truonggiang.vo01/.gemini/antigravity/scratch/xom-nho/game/main.mjs)**:
+  - Khi món ăn (bánh mì): Hiển thị [`staff_handoff_banhmi.png`](file:///C:/Users/truonggiang.vo01/.gemini/antigravity/scratch/xom-nho/assets/pilot/staff_handoff_banhmi.png) (Ổ bánh mì bọc giấy kraft buộc thun đỏ).
+  - Khi thức uống (`TRA_TAC`, `SUA_DAU_DA`): Hiển thị [`staff_handoff_drink.png`](file:///C:/Users/truonggiang.vo01/.gemini/antigravity/scratch/xom-nho/assets/pilot/staff_handoff_drink.png) (Ly trà tắc/sữa đậu nắp cầu mát lạnh kèm quai xách chữ T tiện lợi).
 
 ---
 
-## 3. QUY CÁCH MÁI CHE NÂNG CẤP (CANOPY AWNING PILOT)
+## 2. DANH MỤC HÌNH ẢNH SHOWCASE PILOT THỰC TẾ (390×844)
 
-- **Phong cách**: Mái hiên di động sọc xanh lá - trắng kem kinh điển của các quán ăn vỉa hè Sài Gòn / miền Nam.
-- **Kích thước file**: $1282 \times 448$ px RGBA (đã crop gọn sát viền bạt, không chứa khoảng trống thừa).
-- **Vị trí gắn trong Scene**:
-  - Gắn tại mép trên cùng của khung cửa sổ quầy (`top: 0; left: 0; width: 100%; height: 64px`).
-  - Lớp hiển thị: Z-index 18 (nằm trên cảnh nền ngõ hẻm z=1, dưới gờ quầy z=22 và tay giao món z=26).
-  - Đổ bóng nhẹ (`drop-shadow: 0 4px 8px rgba(0, 0, 0, 0.4)`) xuống lòng hẻm phía dưới.
-- **Tính năng Gameplay**:
-  - Ban đầu quán mộc chưa có mái che (`upgrades.canopy = 0`).
-  - Khi mở khóa nâng cấp Mái Hiên (`upgrades.canopy = 1`), mái bạt lập tức xuất hiện che mát cho quầy, giúp tăng lượng khách ghé quán vào những ngày nắng gắt hoặc mưa rào.
+Tất cả ảnh được chụp từ gameplay thực tế tại [`docs/mobile_gate_evidence/pilot/`](file:///C:/Users/truonggiang.vo01/.gemini/antigravity/scratch/xom-nho/docs/mobile_gate_evidence/pilot):
 
----
-
-## 4. QUY CÁCH ĐỘNG TÁC TRAO MÓN (STAFF HANDOFF PILOT)
-
-- **Phong cách**: Đôi tay người phục vụ vươn qua mặt quầy gỗ đưa thức ăn nóng hổi đến tay khách.
-- **Kích thước file**: $1200 \times 896$ px RGBA, hiển thị ở chiều rộng $210$ px trên điện thoại.
-- **Bao bì thể hiện**: Ổ bánh mì giòn được gói gọn trong túi giấy kraft nâu mộc mạc, buộc sợi thun đỏ quanh thân bánh đúng phong cách bánh mì truyền thống Việt Nam (không in chữ cố định để người chơi tự do đặt tên quán).
-- **Kích hoạt (Trigger)**: Xuất hiện tự động khi khâu chế biến hoàn tất (`autoPrepState.stage === 'done'`) và khách hàng nói lời cảm ơn kèm hiệu ứng lấp lánh `✨`.
+1. **[`pilot_01_walkin_student.png`](file:///C:/Users/truonggiang.vo01/.gemini/antigravity/scratch/xom-nho/docs/mobile_gate_evidence/pilot/pilot_01_walkin_student.png)**: Em Nam (học sinh chuẩn 2 tay, đứng sau gờ quầy, chân được che tự nhiên).
+2. **[`pilot_02_walkin_office.png`](file:///C:/Users/truonggiang.vo01/.gemini/antigravity/scratch/xom-nho/docs/mobile_gate_evidence/pilot/pilot_02_walkin_office.png)**: Chị Mai (văn phòng thanh lịch, đứng sau quầy).
+3. **[`pilot_03_walkin_driver.png`](file:///C:/Users/truonggiang.vo01/.gemini/antigravity/scratch/xom-nho/docs/mobile_gate_evidence/pilot/pilot_03_walkin_driver.png)**: Chú Bảy (tài xế xe ôm, đứng sau quầy).
+4. **[`pilot_04_walkin_elder.png`](file:///C:/Users/truonggiang.vo01/.gemini/antigravity/scratch/xom-nho/docs/mobile_gate_evidence/pilot/pilot_04_walkin_elder.png)**: Bác Năm (tập thể dục, quạt nan, đứng sau quầy).
+5. **[`pilot_05_staff_handoff_banhmi.png`](file:///C:/Users/truonggiang.vo01/.gemini/antigravity/scratch/xom-nho/docs/mobile_gate_evidence/pilot/pilot_05_staff_handoff_banhmi.png)**: Trao ổ bánh mì chả nóng giòn qua quầy.
+6. **[`pilot_05_staff_handoff_drink.png`](file:///C:/Users/truonggiang.vo01/.gemini/antigravity/scratch/xom-nho/docs/mobile_gate_evidence/pilot/pilot_05_staff_handoff_drink.png)**: Trao ly trà tắc quai chữ T mát lạnh qua quầy.
+7. **[`pilot_natural_shift.webm`](file:///C:/Users/truonggiang.vo01/.gemini/antigravity/scratch/xom-nho/docs/mobile_gate_evidence/pilot/pilot_natural_shift.webm)**: Video ghi hình một ca bán tự nhiên có cả món ăn và thức uống, thể hiện chuyển động và trao món mượt mà.

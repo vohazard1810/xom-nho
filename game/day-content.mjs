@@ -12,9 +12,50 @@ export const UPGRADE_CATALOG = Object.freeze({
 });
 export const FRESH_INGREDIENTS = new Set(['bread', 'cha', 'vegetable', 'ice', 'kumquat', 'soy_milk', 'egg']);
 
-const visitorNames = ['Cô Bảy', 'Chú Tư', 'Dì Hạnh', 'Anh Bảo', 'Chị Lành', 'Bác Phúc', 'Cô Vân', 'Chú Mười', 'Bạn Thảo', 'Anh Khoa', 'Dì Năm', 'Bác Tám', 'Chị Ngọc', 'Chú Bình'];
-const softQuote = ['Cho tôi một phần nhé, quán mình thơm quá!', 'Nay ghé ủng hộ quán một phần nha!'];
-const rushQuote = ['Làm nhanh giúp mình nhé, đang vội đi làm!', 'Mình còn cuốc xe nữa, cho mình mua mang đi!'];
+export const WALK_IN_ARCHETYPES = {
+  teen: {
+    archetype: 'teen',
+    visualVariantId: 'walkin_variant_0',
+    names: ['Em Nam', 'Em Bình', 'Bạn Thảo', 'Em Tuấn', 'Bé Vy'],
+    quotes: {
+      NORMAL: 'Cho em một phần mang đi nhanh để kịp giờ vào lớp nha!',
+      RUSH: 'Em sắp trễ giờ học rồi, làm nhanh giùm em nha anh!',
+      FRIENDLY: 'Quán hôm nay đông vui quá, cho em phần quen thuộc nha!'
+    }
+  },
+  office: {
+    archetype: 'office',
+    visualVariantId: 'walkin_variant_1',
+    names: ['Chị Mai', 'Anh Khoa', 'Chị Ngọc', 'Anh Bảo', 'Chị Lành'],
+    quotes: {
+      NORMAL: 'Cho mình một phần ăn sáng mang đến văn phòng nhé.',
+      RUSH: 'Mình sắp vào giờ họp đầu tuần rồi, lấy nhanh giùm mình nghen!',
+      FRIENDLY: 'Món của quán làm sạch sẽ tươm tất lắm, mình ghé ủng hộ tiếp nè.'
+    }
+  },
+  driver: {
+    archetype: 'driver',
+    visualVariantId: 'walkin_variant_2',
+    names: ['Chú Bảy', 'Chú Mười', 'Chú Bình', 'Anh Lâm xe ôm', 'Bác Tư grab'],
+    quotes: {
+      NORMAL: 'Lấy cho chú phần ăn sáng lót dạ trước cuốc xe nhé.',
+      RUSH: 'Khách nổ cuốc gấp rồi, cho chú xin mang đi liền nha con!',
+      FRIENDLY: 'Sáng ra ghé quán làm miếng bánh mì/ly nước cho tỉnh táo chạy xe.'
+    }
+  },
+  elder: {
+    archetype: 'elder',
+    visualVariantId: 'walkin_variant_3',
+    names: ['Bác Năm', 'Cô Vân', 'Dì Hạnh', 'Bác Phúc', 'Bác Tám'],
+    quotes: {
+      NORMAL: 'Sáng nay tập thể dục về thấy quán thơm quá, lấy bác một phần nha.',
+      RUSH: 'Lấy bác phần sớm để bác còn về kịp mở cửa nhà nhé.',
+      FRIENDLY: 'Quán dạo này khang trang sạch sẽ ghê, xóm mình ai cũng khen!'
+    }
+  }
+};
+
+const archetypeKeys = ['teen', 'office', 'driver', 'elder'];
 
 export function dayConfig(day) {
   if (day === 1) return { marketPrices: null, event: 'opening', forecast: 'Ngày đầu mở quán, khách trong xóm ghé thử.', demandDelta: 0, costDelta: 0, tipBonus: 0 };
@@ -42,20 +83,26 @@ export function rosterForDay(day, rating = 3, seatingLevel = 0, canopy = 0) {
   const count = Math.max(6, Math.min(20, 8 + extra));
   const recipes = ['BANH_MI_CHA', 'TRA_TAC', 'SUA_DAU_DA', 'BANH_MI_CHA', 'TRA_TAC', 'BANH_MI_TRUNG'];
   return Array.from({ length: count }, (_, i) => {
-    const index = (day * 7 + i) % visitorNames.length;
+    // Select archetype deterministically first
+    const archKey = archetypeKeys[(day * 3 + i) % archetypeKeys.length];
+    const arch = WALK_IN_ARCHETYPES[archKey];
+    const nameIndex = (day * 7 + i) % arch.names.length;
+    const name = arch.names[nameIndex];
     const temperament = (day + i * 3) % 5 === 0 ? 'RUSH' : (day + i) % 4 === 0 ? 'FRIENDLY' : 'NORMAL';
     const recipe = recipes[(day + i) % recipes.length];
+    const dialogue = arch.quotes[temperament] || arch.quotes.NORMAL;
+
     return {
       id: `walkin_d${day}_${i}`,
-      personId: `visitor_${index}`,
-      visualVariantId: `walkin_variant_${index % 4}`,
-      name: visitorNames[index],
+      personId: `${archKey}_${nameIndex}`,
+      visualVariantId: arch.visualVariantId,
+      name,
       isRegular: false,
       recipe,
       arrivalMinute: 25 + Math.round(i * 290 / Math.max(1, count - 1)),
       priceSensitivity: config.event === 'payday' ? 'LOW' : config.event === 'roadwork' ? (i % 2 ? 'HIGH' : 'MEDIUM') : temperament === 'RUSH' ? 'LOW' : (i % 3 === 0 ? 'HIGH' : 'MEDIUM'),
       temperament,
-      dialogue: (temperament === 'RUSH' ? rushQuote : softQuote)[i % 2]
+      dialogue
     };
   });
 }

@@ -51,7 +51,9 @@ const WALKIN_SPRITES = {
 };
 
 const CANOPY_AWNING_IMG = '../assets/pilot/awning_canopy.png';
-const STAFF_HANDOFF_IMG = '../assets/pilot/staff_handoff.png';
+const COUNTER_SHELF_FOREGROUND_IMG = '../assets/environment/counter_shelf_foreground.png';
+const STAFF_HANDOFF_BANHMI_IMG = '../assets/pilot/staff_handoff_banhmi.png';
+const STAFF_HANDOFF_DRINK_IMG = '../assets/pilot/staff_handoff_drink.png';
 
 const DISH_IMAGES = {
   BANH_MI_CHA: '../assets/dishes/banh_mi_cha.png',
@@ -657,7 +659,6 @@ function renderShop() {
         <!-- Customer in queue -->
         ${cust ? `
           <div class="customer-actor-wrap ${cust.status === 'SERVED' ? 'served-leaving' : ''}">
-            <div class="customer-contact-shadow"></div>
             ${isBeti ? `
               <img src="${BETI_SPRITES.order[betiFrameIdx % 4]}" class="actor-sprite beti-sprite" alt="Bé Tí">
             ` : isCoChin ? `
@@ -681,11 +682,12 @@ function renderShop() {
           </div>
         `}
 
-        <div class="counter-sill-bar"></div>
+        <!-- Foreground Counter Shelf (Occludes customer legs/feet, placing customer behind the counter) -->
+        <img src="${COUNTER_SHELF_FOREGROUND_IMG}" class="counter-shelf-foreground" alt="Mặt bàn quầy gỗ">
 
         ${autoPrepState && autoPrepState.stage === 'done' ? `
           <div class="staff-handoff-overlay popIn">
-            <img src="${STAFF_HANDOFF_IMG}" class="staff-handoff-img" alt="Trao món tận tay">
+            <img src="${['TRA_TAC', 'SUA_DAU_DA'].includes(autoPrepState.item) ? STAFF_HANDOFF_DRINK_IMG : STAFF_HANDOFF_BANHMI_IMG}" class="staff-handoff-img" alt="Trao món tận tay">
           </div>
         ` : ''}
 

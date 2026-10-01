@@ -4,11 +4,11 @@
     "width": 390,
     "height": 844
   },
-  "started": "2026-10-01T11:40:47.058990",
+  "started": "2026-10-01T16:34:52.286250",
   "days": [
     {
       "day": 1,
-      "seconds": 53.03,
+      "seconds": 53.08,
       "served": 6,
       "missed": 2,
       "cash": 127000,
@@ -17,7 +17,7 @@
     },
     {
       "day": 2,
-      "seconds": 51.24,
+      "seconds": 51.16,
       "served": 6,
       "missed": 1,
       "cash": 164000,
@@ -26,7 +26,7 @@
     },
     {
       "day": 3,
-      "seconds": 63.19,
+      "seconds": 63.16,
       "served": 10,
       "missed": 2,
       "cash": 278000,
@@ -44,7 +44,7 @@
     },
     {
       "day": 5,
-      "seconds": 69.35,
+      "seconds": 69.01,
       "served": 10,
       "missed": 5,
       "cash": 505000,
@@ -53,7 +53,7 @@
     },
     {
       "day": 6,
-      "seconds": 69.16,
+      "seconds": 69.05,
       "served": 10,
       "missed": 5,
       "cash": 611000,
@@ -62,7 +62,7 @@
     },
     {
       "day": 7,
-      "seconds": 74.78,
+      "seconds": 74.85,
       "served": 10,
       "missed": 8,
       "cash": 720000,

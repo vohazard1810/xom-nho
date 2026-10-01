@@ -382,7 +382,7 @@ export function action(state, type, payload) {
     if (s.openingTime === 'early_6am' && s.currentDay >= 2) {
       s.dayCustomers.unshift({
         id: `early_d${s.currentDay}`, personId: `early_d${s.currentDay}`,
-        visualVariantId: 'walkin_variant_0', name: 'Cô đi chợ sớm', isRegular: false,
+        visualVariantId: 'walkin_variant_3', name: 'Cô đi chợ sớm', isRegular: false,
         recipe: 'TRA_TAC', arrivalMinute: -60, priceSensitivity: 'MEDIUM', temperament: 'FRIENDLY',
         dialogue: 'Mở sớm quá hay! Cho cô ly trà tắc mang đi nghen.'
       });
@@ -510,7 +510,7 @@ export function action(state, type, payload) {
       if (payload.choice === 'yes') {
         s.cash -= 3000;
         s.operatingExpenses += 3000;
-        s.dayCustomers.push({ id: `sign_d${s.currentDay}`, personId: 'visitor_sign', visualVariantId: 'walkin_variant_2', name: 'Cô tìm quán trong hẻm', isRegular: false, recipe: 'TRA_TAC', arrivalMinute: 265, priceSensitivity: 'MEDIUM', temperament: 'NORMAL', dialogue: 'May có bảng chỉ đường, cô mới tìm được quán!' });
+        s.dayCustomers.push({ id: `sign_d${s.currentDay}`, personId: 'visitor_sign', visualVariantId: 'walkin_variant_1', name: 'Chị tìm quán trong hẻm', isRegular: false, recipe: 'TRA_TAC', arrivalMinute: 265, priceSensitivity: 'MEDIUM', temperament: 'NORMAL', dialogue: 'May có bảng chỉ đường, chị mới tìm được quán!' });
         s.dayCustomers.sort((a, b) => a.arrivalMinute - b.arrivalMinute);
       }
       s.activeDecision = null;
