@@ -39,6 +39,20 @@ const BETI_SPRITES = {
 const CO_CHIN_IMG = '../assets/characters/named/co_chin/co_chin_standing.png';
 const ANH_TUNG_IMG = '../assets/characters/named/anh_tung/anh_tung_standing.png';
 
+const WALKIN_SPRITES = {
+  walkin_variant_0: '../assets/pilot/walkin_student.png',
+  walkin_variant_1: '../assets/pilot/walkin_office.png',
+  walkin_variant_2: '../assets/pilot/walkin_driver.png',
+  walkin_variant_3: '../assets/pilot/walkin_elder.png',
+  walkin_student: '../assets/pilot/walkin_student.png',
+  walkin_office: '../assets/pilot/walkin_office.png',
+  walkin_driver: '../assets/pilot/walkin_driver.png',
+  walkin_elder: '../assets/pilot/walkin_elder.png'
+};
+
+const CANOPY_AWNING_IMG = '../assets/pilot/awning_canopy.png';
+const STAFF_HANDOFF_IMG = '../assets/pilot/staff_handoff.png';
+
 const DISH_IMAGES = {
   BANH_MI_CHA: '../assets/dishes/banh_mi_cha.png',
   TRA_TAC: '../assets/dishes/tra_tac.png',
@@ -636,6 +650,9 @@ function renderShop() {
       <!-- Street view & Counter window -->
       <div class="street-counter-scene">
         <img src="../assets/environment/alley_counter_clean.jpg" class="scene-background" alt="Con hẻm">
+        ${(state.upgrades?.canopy > 0 || state.previewCanopy) ? `
+          <img src="${CANOPY_AWNING_IMG}" class="shop-canopy-awning" alt="Mái hiên di động">
+        ` : ''}
 
         <!-- Customer in queue -->
         ${cust ? `
@@ -648,10 +665,7 @@ function renderShop() {
             ` : isAnhTung ? `
               <img src="${ANH_TUNG_IMG}" class="actor-sprite anh-tung-sprite" alt="Anh Tùng">
             ` : `
-              <div class="walkin-avatar-placeholder" data-visual-variant="${escapeHtml(cust.visualVariantId || 'walkin_variant_0')}">
-                <span class="walkin-avatar-icon">👤</span>
-                <span class="walkin-name-tag">${escapeHtml(cust.name)}</span>
-              </div>
+              <img src="${WALKIN_SPRITES[cust.visualVariantId] || WALKIN_SPRITES.walkin_variant_0}" class="actor-sprite walkin-sprite" alt="${escapeHtml(cust.name)}">
             `}
 
             <!-- Customer speech bubble -->
@@ -668,6 +682,12 @@ function renderShop() {
         `}
 
         <div class="counter-sill-bar"></div>
+
+        ${autoPrepState && autoPrepState.stage === 'done' ? `
+          <div class="staff-handoff-overlay popIn">
+            <img src="${STAFF_HANDOFF_IMG}" class="staff-handoff-img" alt="Trao món tận tay">
+          </div>
+        ` : ''}
 
         ${floatingCash ? `<div class="floating-cash-burst">${floatingCash}</div>` : ''}
       </div>
@@ -1063,4 +1083,9 @@ if (state.screen === 'SHOP') {
 }
 if (state.screen === 'DAY_RESULT') scheduleNextDay();
 
-window.__xomNho = { send, getState: () => state };
+window.__xomNho = {
+  send,
+  getState: () => state,
+  render,
+  setAutoPrepState: (val) => { autoPrepState = val; }
+};
