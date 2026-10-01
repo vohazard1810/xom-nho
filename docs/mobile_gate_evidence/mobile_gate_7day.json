@@ -1,0 +1,75 @@
+{
+  "status": "PASS",
+  "viewport": {
+    "width": 390,
+    "height": 844
+  },
+  "started": "2026-10-01T10:47:09.359760",
+  "days": [
+    {
+      "day": 1,
+      "seconds": 53.3,
+      "served": 6,
+      "missed": 2,
+      "cash": 127000,
+      "rating": 3,
+      "touchChecks": 37
+    },
+    {
+      "day": 2,
+      "seconds": 51.4,
+      "served": 6,
+      "missed": 1,
+      "cash": 164000,
+      "rating": 3.5,
+      "touchChecks": 40
+    },
+    {
+      "day": 3,
+      "seconds": 63.22,
+      "served": 10,
+      "missed": 2,
+      "cash": 278000,
+      "rating": 4,
+      "touchChecks": 40
+    },
+    {
+      "day": 4,
+      "seconds": 65.13,
+      "served": 10,
+      "missed": 3,
+      "cash": 393000,
+      "rating": 4,
+      "touchChecks": 40
+    },
+    {
+      "day": 5,
+      "seconds": 69.02,
+      "served": 10,
+      "missed": 5,
+      "cash": 505000,
+      "rating": 4,
+      "touchChecks": 41
+    },
+    {
+      "day": 6,
+      "seconds": 69.09,
+      "served": 10,
+      "missed": 5,
+      "cash": 611000,
+      "rating": 4,
+      "touchChecks": 43
+    },
+    {
+      "day": 7,
+      "seconds": 75.09,
+      "served": 10,
+      "missed": 8,
+      "cash": 720000,
+      "rating": 4,
+      "touchChecks": 41
+    }
+  ],
+  "errors": [],
+  "imageFailures": []
+}

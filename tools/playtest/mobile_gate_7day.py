@@ -50,21 +50,30 @@ async def action(page, name, payload=None):
 
 
 async def assert_touch_targets(page, label):
-    # Inspect *every* enabled button, including those below the fold.
-    buttons = page.locator(".decision-modal-backdrop button") if await page.locator(".decision-modal-backdrop").count() else page.locator("button")
-    visible = []
-    for index in range(await buttons.count()):
-        button = buttons.nth(index)
-        if not await button.is_visible() or not await button.is_enabled():
-            continue
-        await button.scroll_into_view_if_needed()
-        dimensions = await button.evaluate("""b => {
-          const r = b.getBoundingClientRect();
-          return { text: b.textContent.trim().slice(0, 35), width: r.width, height: r.height,
-            reachable: document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2) === b ||
-              b.contains(document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2)) };
-        }""")
-        visible.append(dimensions)
+    # Inspect *every* enabled button atomically so background simulation renders do not detach elements mid-iteration
+    visible = await page.evaluate("""() => {
+        const backdrop = document.querySelector(".decision-modal-backdrop");
+        const container = backdrop || document;
+        const buttons = Array.from(container.querySelectorAll("button"));
+        return buttons.filter(b => {
+            if (b.disabled) return false;
+            const style = window.getComputedStyle(b);
+            if (style.display === 'none' || style.visibility === 'hidden' || style.opacity === '0') return false;
+            const r = b.getBoundingClientRect();
+            return r.width > 0 && r.height > 0;
+        }).map(b => {
+            b.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+            const r = b.getBoundingClientRect();
+            const elAtPoint = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+            const reachable = elAtPoint === b || (elAtPoint && b.contains(elAtPoint)) || (elAtPoint && elAtPoint.contains(b));
+            return {
+                text: b.textContent.trim().slice(0, 35),
+                width: Math.round(r.width),
+                height: Math.round(r.height),
+                reachable: Boolean(reachable)
+            };
+        });
+    }""")
     bad = [b for b in visible if b["height"] < 44 or b["width"] < 44 or not b["reachable"]]
     assert visible, f"No interactive buttons on {label}"
     assert not bad, f"Undersized controls on {label}: {bad}"

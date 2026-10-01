@@ -982,7 +982,7 @@ $.addEventListener('click', e => {
   const p = b.dataset.payload;
 
   if (t === 'SET_SHOP_NAME') {
-    send('SET_SHOP_NAME', $('#shop-name-input')?.value || '');
+    send('SET_SHOP_NAME', document.querySelector('#shop-name-input')?.value || '');
     if (state.shopName) send('NAVIGATE');
     return;
   }
