@@ -189,6 +189,8 @@ export function fresh() {
     isPaused: false, // Paused when decision is active
     manualPaused: false,
     service: null, // Persisted preparation, delivery and reaction phase
+    cookingTutorialDone: false,
+    assistEnabled: false,
     managedShift: false,
     
     // Customer roster & queue progression
@@ -690,6 +692,7 @@ export function action(state, type, payload) {
     // Automatically prepare and serve the active customer
     if (s.screen !== 'SHOP' || !s.activeCustomer) return fail('Không có khách tại quầy.');
     if (s.activeCustomer.status !== 'ARRIVED' || s.isPaused) return fail('Đơn này chưa sẵn sàng hoặc đã xử lý.');
+    if (s.service?.version === 2 && s.service.phase !== 'HANDOFF') return fail('Làm món rồi giao khách trước khi thu tiền.');
     const cust = s.activeCustomer;
     const personId = cust.personId || cust.id;
     const recipeId = cust.recipe;
@@ -886,6 +889,7 @@ export function action(state, type, payload) {
     s.onlineFees = 0;
     s.onlineEnabledToday = false;
     s.staffHiredToday = false;
+    s.assistEnabled = false;
     s.sideJobIncome = 0;
     s.tips = 0;
     s.spent = 0;

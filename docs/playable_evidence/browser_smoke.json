@@ -1,22 +1,40 @@
 {
   "status": "PASS",
+  "mode": "manual-ingredient-cook-serve",
   "uiDay1": {
     "cash": 127000,
     "served": 6,
     "missed": 2
   },
   "viewports": [
-    360,
-    390,
-    430
+    {
+      "width": 360,
+      "height": 640,
+      "controls": 11
+    },
+    {
+      "width": 390,
+      "height": 700,
+      "controls": 11
+    },
+    {
+      "width": 430,
+      "height": 932,
+      "controls": 11
+    }
   ],
   "errors": [],
   "failures": [],
-  "realReload": true,
-  "priority": true,
-  "boost": true,
-  "pause": true,
+  "realReload": [
+    "SELECT",
+    "READY",
+    "DAY_RESULT"
+  ],
+  "wrongTapSafe": true,
+  "idleDoesNotServe": true,
+  "drinkPlayed": true,
+  "priorityPlayed": true,
+  "boostPlayed": true,
   "resultCountdownPreserved": true,
-  "suggestBasket": true,
   "videoRecorded": false
 }

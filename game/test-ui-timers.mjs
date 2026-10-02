@@ -6,7 +6,7 @@ globalThis.clearTimeout = key => callbacks.delete(key);
 globalThis.setInterval = (fn, delay) => { const key = ++id; callbacks.set(key, { fn, delay }); return key; };
 globalThis.clearInterval = key => callbacks.delete(key);
 const events = {};
-const app = { innerHTML: '', addEventListener(name, fn) { events[name] = fn; } };
+const app = { innerHTML: '', dataset: {}, addEventListener(name, fn) { events[name] = fn; } };
 globalThis.document = { querySelector(sel) { return sel === '#app' ? app : null; } };
 const data = new Map();
 globalThis.localStorage = { getItem: k => data.get(k) ?? null, setItem: (k, v) => data.set(k, v), removeItem: k => data.delete(k) };
