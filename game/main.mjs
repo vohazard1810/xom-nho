@@ -173,9 +173,13 @@ function getCustomerEmotion(cust) {
   }
 }
 
-function getCustomerSprite(c) {
+function getCustomerSprite(c, pose = 'ORDER') {
   if (!c) return '';
-  if (c.id === 'be_ti') return BETI_SPRITES.order[betiFrameIdx % 4];
+  if (c.id === 'be_ti') {
+    if (pose === 'RECEIVE') return ASSET_BASE + 'order_four_frame_pilot/actor_crop/order_02_raise_approved.png';
+    if (pose === 'REACT') return ASSET_BASE + 'order_four_frame_pilot/actor_crop/order_04_expectant.png';
+    return BETI_SPRITES.order[betiFrameIdx % 4];
+  }
   if (c.id === 'co_chin') return CO_CHIN_IMG;
   if (c.id === 'anh_tung') return ANH_TUNG_IMG;
   return WALKIN_SPRITES[c.visualVariantId] || WALKIN_SPRITES[c.archetype] || WALKIN_SPRITES.walkin_variant_0;
@@ -387,35 +391,37 @@ function runAutoPrepSequence() {
     return;
   }
 
-  // 4. Watercolor 3-Stage Auto-Prep Animation Sequence
+  // 4. Watercolor Auto-Prep & Counter Tray Handoff Sequence
   // Speed is doubled when Focus Boost is active
   const isBoosted = Boolean(state.focusBoost && state.focusBoost.active);
-  const stepDelay = isBoosted ? 220 : 450;
-  const commitDelay = isBoosted ? 200 : 400;
-  const leaveDelay = isBoosted ? 750 : 1400;
+  const stepDelay = isBoosted ? 200 : 400;
+  const receiveDelay = isBoosted ? 400 : 850;
+  const leaveDelay = isBoosted ? 650 : 1300;
 
-  // Stage 1 (0ms): Base layer (bread base / ice cup)
-  autoPrepState = { stage: 'layer1', progress: 33, item: recipeId, isExtra };
+  // Stage 1 (0ms): Base layer on cutting board (ORDER state)
+  autoPrepState = { stage: 'layer1', progress: 33, item: recipeId, isExtra, customerPose: 'ORDER' };
   playTap('bread');
   render();
 
-  // Stage 2: Middle filling/juice layer (cha slices / kumquat syrup / soy milk)
+  // Stage 2: Middle filling/juice layer on cutting board (ORDER state)
   prepTimer1 = setTimeout(() => {
-    autoPrepState = { stage: 'layer2', progress: 70, item: recipeId, isExtra };
+    autoPrepState = { stage: 'layer2', progress: 70, item: recipeId, isExtra, customerPose: 'ORDER' };
     playTap('cha');
     render();
 
-    // Stage 3: Complete dish with herbs / chill / garnish
+    // Stage 3: Prep finished! Dish is placed onto Counter Pass Tray (RECEIVE state)
+    // The prep board clears immediately (zero dish duplication)
     prepTimer2 = setTimeout(() => {
-      autoPrepState = { stage: 'done', progress: 100, item: recipeId, isExtra };
+      autoPrepState = { stage: 'deliver_to_tray', progress: 100, item: recipeId, isExtra, customerPose: 'RECEIVE' };
       playChime();
-      playCoins();
       render();
 
-      // Transaction commit
+      // Stage 4: Customer takes dish from tray and reacts (REACT state)
+      // Tray becomes empty, customer holds dish, thank you dialogue appears
       prepTimer3 = setTimeout(() => {
         const earned = menuItem.sellPrice;
         send('SERVE_AUTO');
+        playCoins();
         floatingCash = '+' + money(earned + (state.servedOrders.at(-1)?.tip || 0));
 
         let quote = 'Cảm ơn chú nhiều nghen, món ngon vừa miệng lắm!';
@@ -438,6 +444,7 @@ function runAutoPrepSequence() {
         }
 
         customerReaction = { quote, status: 'happy' };
+        autoPrepState = { stage: 'customer_react', progress: 100, item: recipeId, isExtra, customerPose: 'REACT' };
         render();
 
         leaveTimer = setTimeout(() => {
@@ -447,7 +454,7 @@ function runAutoPrepSequence() {
           send('CUSTOMER_LEAVE');
           render();
         }, leaveDelay);
-      }, commitDelay);
+      }, receiveDelay);
     }, stepDelay);
   }, stepDelay);
 }
@@ -683,6 +690,11 @@ function renderShop() {
   const isCoChin = cust && cust.id === 'co_chin';
   const isAnhTung = cust && cust.id === 'anh_tung';
   const custEmotion = cust ? getCustomerEmotion(cust) : null;
+  const currentPose = autoPrepState?.customerPose || 'ORDER';
+  const currentItem = autoPrepState?.item || cust?.recipe;
+  const dishImg = currentItem ? (DISH_IMAGES[currentItem] || '') : '';
+  const dishOnTray = Boolean(autoPrepState && autoPrepState.stage === 'deliver_to_tray');
+  const isLeaving = Boolean(cust && cust.status === 'SERVED' && !customerReaction);
 
   return `
     <header class="top-nav">
@@ -739,20 +751,20 @@ function renderShop() {
 
         <!-- Customer in service spot at counter window -->
         ${cust ? `
-          <div class="customer-actor-wrap ${cust.status === 'SERVED' ? 'served-leaving' : ''}">
-            <img src="${getCustomerSprite(cust)}" class="actor-sprite ${isBeti ? 'beti-sprite' : (isCoChin ? 'co-chin-sprite' : (isAnhTung ? 'anh-tung-sprite' : 'walkin-sprite'))}" alt="${escapeHtml(cust.name)}">
+          <div class="customer-actor-wrap ${isLeaving ? 'served-leaving' : ''} ${currentPose === 'RECEIVE' ? 'pose-receive' : (currentPose === 'REACT' ? 'pose-react' : 'pose-order')}">
+            <img src="${getCustomerSprite(cust, currentPose)}" class="actor-sprite ${isBeti ? 'beti-sprite' : (isCoChin ? 'co-chin-sprite' : (isAnhTung ? 'anh-tung-sprite' : (cust.archetype === 'teen' ? 'teen-sprite' : 'walkin-sprite')))}" alt="${escapeHtml(cust.name)}">
 
             <!-- Customer speech bubble with emotion & patience -->
             <div class="customer-bubble">
               <div class="bubble-header-row">
-                <span class="bubble-emotion-icon">${custEmotion.icon}</span>
+                <span class="bubble-emotion-icon">${currentPose === 'REACT' ? '😊' : custEmotion.icon}</span>
                 <strong>${escapeHtml(cust.name)}${cust.temperament === 'RUSH' ? ' · Đang vội' : cust.temperament === 'FRIENDLY' ? ' · Vui vẻ' : ''}</strong>
               </div>
-              <span class="bubble-dialogue-text">"${escapeHtml(customerReaction ? customerReaction.quote : cust.dialogue)}"</span>
+              <span class="bubble-dialogue-text">"${escapeHtml((currentPose === 'REACT' && customerReaction) ? customerReaction.quote : cust.dialogue)}"</span>
               <div class="patience-mini-bar">
                 <div class="patience-fill" style="width: ${custEmotion.pct}%; background-color: ${custEmotion.color};"></div>
               </div>
-              ${autoPrepState && autoPrepState.stage === 'done' ? `<div class="bubble-sparkle">✨ Cảm ơn quán!</div>` : ''}
+              ${currentPose === 'REACT' ? `<div class="bubble-sparkle">✨ Cảm ơn quán!</div>` : ''}
             </div>
           </div>
         ` : `
@@ -764,11 +776,24 @@ function renderShop() {
         <!-- Foreground Counter Shelf (Occludes customer legs/feet, placing customer behind the counter) -->
         <img src="${COUNTER_SHELF_FOREGROUND_IMG}" class="counter-shelf-foreground" alt="Mặt bàn quầy gỗ">
 
-        ${autoPrepState && autoPrepState.stage === 'done' ? `
-          <div class="staff-handoff-overlay popIn">
-            <img src="${autoPrepState.item === 'SUA_DAU_DA' ? STAFF_HANDOFF_SOYMILK_IMG : (autoPrepState.item === 'TRA_TAC' ? STAFF_HANDOFF_DRINK_IMG : STAFF_HANDOFF_BANHMI_IMG)}" class="staff-handoff-img" alt="Trao món tận tay">
+        ${currentPose === 'REACT' && dishImg ? `
+          <div class="customer-held-dish popIn">
+            <img src="${dishImg}" class="held-dish-img" alt="${recipes[currentItem]?.name || 'Món ăn'}">
           </div>
         ` : ''}
+
+        <!-- Counter Pass Tray (Khay trên quầy): Rustic wooden tray on top of counter shelf -->
+        <div class="counter-pass-tray ${dishOnTray ? 'has-dish' : 'is-empty'}">
+          <div class="tray-wood-rim"></div>
+          ${dishOnTray && dishImg ? `
+            <div class="tray-dish-holder popIn">
+              <img src="${dishImg}" class="tray-dish-img" alt="${recipes[currentItem]?.name || 'Món ăn'}">
+              <span class="tray-steam-wisp">~</span>
+            </div>
+          ` : `
+            <span class="tray-label">Khay quầy</span>
+          `}
+        </div>
 
         ${floatingCash ? `<div class="floating-cash-burst">${floatingCash}</div>` : ''}
       </div>
@@ -824,7 +849,8 @@ function renderShop() {
             ${autoPrepState ? (
               autoPrepState.stage === 'layer1' ? 'Lớp 1/3: Chuẩn bị vỏ/ly...' :
               autoPrepState.stage === 'layer2' ? 'Lớp 2/3: Thêm nhân/rót nước...' :
-              autoPrepState.stage === 'done' ? '✨ Hoàn tất món thơm lừng!' :
+              autoPrepState.stage === 'deliver_to_tray' ? '✨ Đã chuyển món lên khay quầy!' :
+              autoPrepState.stage === 'customer_react' ? '🎉 Khách nhận món ngon lành!' :
               autoPrepState.stage === 'menudisabled' ? 'Món không bán hôm nay!' :
               autoPrepState.stage === 'pricerejected' ? 'Khách chê giá đắt!' : 'Hết nguyên liệu!'
             ) : 'Thớt gỗ sẵn sàng · Đồ nghề tinh tươm'}
@@ -832,71 +858,46 @@ function renderShop() {
         </div>
 
         <div class="prep-visual-dock rustic-wood-dock">
-          ${autoPrepState && autoPrepState.item === 'BANH_MI_CHA' ? `
+          ${['layer1', 'layer2'].includes(autoPrepState?.stage) && autoPrepState.item === 'BANH_MI_CHA' ? `
             <div class="watercolor-prep-stage banh-mi-stage">
-              ${autoPrepState.stage === 'done' ? `
-                <div class="art-layer-finish">
-                  <img src="../assets/dishes/banh_mi_cha.png" class="dish-finish-img popIn" alt="Bánh mì chả hoàn chỉnh">
-                  <div class="finish-label">Ổ Bánh Mì Chả Nóng Giòn</div>
-                </div>
-              ` : `
-                <div class="art-layers-stack">
-                  <img src="../assets/ingredients/bread.png" class="art-layer art-bread ${autoPrepState.stage === 'layer1' ? 'layer-enter' : ''}" alt="Bánh mì">
-                  ${['layer2', 'done'].includes(autoPrepState.stage) ? `
-                    <img src="../assets/ingredients/cha.png" class="art-layer art-cha-slice slice-1 dropIn" alt="Chả lụa">
-                    ${autoPrepState.isExtra ? `
-                      <img src="../assets/ingredients/cha.png" class="art-layer art-cha-slice slice-2 dropIn" alt="Chả lụa thêm">
-                    ` : ''}
-                    <img src="../assets/ingredients/vegetable.png" class="art-layer art-veg dropIn" alt="Dưa ngò">
+              <div class="art-layers-stack">
+                <img src="../assets/ingredients/bread.png" class="art-layer art-bread ${autoPrepState.stage === 'layer1' ? 'layer-enter' : ''}" alt="Bánh mì">
+                ${autoPrepState.stage === 'layer2' ? `
+                  <img src="../assets/ingredients/cha.png" class="art-layer art-cha-slice slice-1 dropIn" alt="Chả lụa">
+                  ${autoPrepState.isExtra ? `
+                    <img src="../assets/ingredients/cha.png" class="art-layer art-cha-slice slice-2 dropIn" alt="Chả lụa thêm">
                   ` : ''}
-                </div>
-                <div class="prep-layer-caption">
-                  ${autoPrepState.stage === 'layer1' ? 'Vỏ bánh mì nướng giòn rụm' : (autoPrepState.isExtra ? 'Xếp 2 khoanh chả lụa dày đặc + dưa ngò' : 'Xếp chả lụa thơm ngậy + dưa ngò')}
-                </div>
-              `}
+                  <img src="../assets/ingredients/vegetable.png" class="art-layer art-veg dropIn" alt="Dưa ngò">
+                ` : ''}
+              </div>
+              <div class="prep-layer-caption">
+                ${autoPrepState.stage === 'layer1' ? 'Vỏ bánh mì nướng giòn rụm' : (autoPrepState.isExtra ? 'Xếp 2 khoanh chả lụa dày đặc + dưa ngò' : 'Xếp chả lụa thơm ngậy + dưa ngò')}
+              </div>
             </div>
-          ` : autoPrepState && autoPrepState.item === 'TRA_TAC' ? `
+          ` : ['layer1', 'layer2'].includes(autoPrepState?.stage) && autoPrepState.item === 'TRA_TAC' ? `
             <div class="watercolor-prep-stage drink-stage">
-              ${autoPrepState.stage === 'done' ? `
-                <div class="art-layer-finish">
-                  <img src="../assets/dishes/tra_tac.png" class="dish-finish-img popIn" alt="Trà tắc hoàn chỉnh">
-                  <div class="finish-label">Ly Trà Tắc Chua Ngọt Mát Lạnh</div>
-                </div>
-              ` : `
-                <div class="art-layers-stack drink-stack">
-                  <img src="../assets/ingredients/ice.png" class="art-layer art-ice ${autoPrepState.stage === 'layer1' ? 'layer-enter' : ''}" alt="Đá bi">
-                  ${['layer2', 'done'].includes(autoPrepState.stage) ? `
-                    <img src="../assets/ingredients/sugar_syrup.png" class="art-layer art-syrup dropIn" alt="Nước đường">
-                    <img src="../assets/ingredients/kumquat.png" class="art-layer art-kumquat dropIn" alt="Tắc tươi">
-                  ` : ''}
-                </div>
-                <div class="prep-layer-caption">
-                  ${autoPrepState.stage === 'layer1' ? 'Ly thủy tinh đầy ắp đá bi' : 'Vắt tắc tươi mọng nước + chan nước đường'}
-                </div>
-              `}
+              <div class="art-layers-stack drink-stack">
+                <img src="../assets/ingredients/ice.png" class="art-layer art-ice ${autoPrepState.stage === 'layer1' ? 'layer-enter' : ''}" alt="Đá bi">
+                ${autoPrepState.stage === 'layer2' ? `
+                  <img src="../assets/ingredients/sugar_syrup.png" class="art-layer art-syrup dropIn" alt="Nước đường">
+                  <img src="../assets/ingredients/kumquat.png" class="art-layer art-kumquat dropIn" alt="Tắc tươi">
+                ` : ''}
+              </div>
+              <div class="prep-layer-caption">
+                ${autoPrepState.stage === 'layer1' ? 'Ly thủy tinh đầy ắp đá bi' : 'Vắt tắc tươi mọng nước + chan nước đường'}
+              </div>
             </div>
-          ` : autoPrepState && autoPrepState.item === 'SUA_DAU_DA' ? `
+          ` : ['layer1', 'layer2'].includes(autoPrepState?.stage) && autoPrepState.item === 'SUA_DAU_DA' ? `
             <div class="watercolor-prep-stage drink-stage">
-              ${autoPrepState.stage === 'done' ? `
-                <div class="art-layer-finish">
-                  <img src="../assets/dishes/sua_dau.png" class="dish-finish-img popIn" alt="Sữa đậu hoàn chỉnh">
-                  <div class="finish-label">Ly Sữa Đậu Nành Béo Mát</div>
-                </div>
-              ` : `
-                <div class="art-layers-stack drink-stack">
-                  <img src="../assets/ingredients/ice.png" class="art-layer art-ice ${autoPrepState.stage === 'layer1' ? 'layer-enter' : ''}" alt="Đá bi">
-                  ${['layer2', 'done'].includes(autoPrepState.stage) ? `
-                    <img src="../assets/ingredients/soy_milk.png" class="art-layer art-soymilk dropIn" alt="Sữa đậu">
-                  ` : ''}
-                </div>
-                <div class="prep-layer-caption">
-                  ${autoPrepState.stage === 'layer1' ? 'Ly thủy tinh đầy ắp đá bi' : 'Rót sữa đậu nành béo thơm'}
-                </div>
-              `}
-            </div>
-          ` : autoPrepState && autoPrepState.item === 'BANH_MI_TRUNG' ? `
-            <div class="watercolor-prep-stage">
-              <div class="prep-idle-platter">Bánh mì ốp la đang được làm · ${autoPrepState.stage === 'done' ? 'Đã hoàn thành' : 'Tự chế biến...'}</div>
+              <div class="art-layers-stack drink-stack">
+                <img src="../assets/ingredients/ice.png" class="art-layer art-ice ${autoPrepState.stage === 'layer1' ? 'layer-enter' : ''}" alt="Đá bi">
+                ${autoPrepState.stage === 'layer2' ? `
+                  <img src="../assets/ingredients/soy_milk.png" class="art-layer art-soymilk dropIn" alt="Sữa đậu">
+                ` : ''}
+              </div>
+              <div class="prep-layer-caption">
+                ${autoPrepState.stage === 'layer1' ? 'Ly thủy tinh đầy ắp đá bi' : 'Rót sữa đậu nành béo thơm'}
+              </div>
             </div>
           ` : `
             <div class="prep-idle-platter rustic-board">
@@ -910,7 +911,7 @@ function renderShop() {
                   <span class="steam-wisp s3">~</span>
                 </div>
               </div>
-              <span class="idle-desc">Thớt gỗ sạch sẽ · Dao thớt sẵn sàng · Ly tách ngay ngắn</span>
+              <span class="idle-desc">${autoPrepState && autoPrepState.stage === 'deliver_to_tray' ? '✨ Thớt gỗ sạch sẽ · Đã đặt món lên khay quầy' : (autoPrepState && autoPrepState.stage === 'customer_react' ? '🎉 Khách đang nhận món · Thớt gỗ chuẩn bị đợt mới' : 'Thớt gỗ sạch sẽ · Dao thớt sẵn sàng · Ly tách ngay ngắn')}</span>
             </div>
           `}
         </div>
