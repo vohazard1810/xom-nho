@@ -54,6 +54,7 @@ const CANOPY_AWNING_IMG = '../assets/pilot/awning_canopy.png';
 const COUNTER_SHELF_FOREGROUND_IMG = '../assets/environment/counter_shelf_foreground.png';
 const STAFF_HANDOFF_BANHMI_IMG = '../assets/pilot/staff_handoff_banhmi.png';
 const STAFF_HANDOFF_DRINK_IMG = '../assets/pilot/staff_handoff_drink.png';
+const STAFF_HANDOFF_SOYMILK_IMG = '../assets/pilot/staff_handoff_soymilk.png';
 
 const DISH_IMAGES = {
   BANH_MI_CHA: '../assets/dishes/banh_mi_cha.png',
@@ -156,9 +157,58 @@ function persist() {
   saved = state;
 }
 
+let boostTimer = null;
+
+function getCustomerEmotion(cust) {
+  if (!cust) return { stage: 'CALM', icon: '😊', label: 'Bình tĩnh', color: '#16a34a', pct: 100 };
+  const pat = cust.patience !== undefined ? cust.patience : (cust.maxPatience || 100);
+  const max = cust.maxPatience || 100;
+  const pct = Math.max(0, Math.min(100, Math.round((pat / max) * 100)));
+  if (pct > 50) {
+    return { stage: 'CALM', icon: '😊', label: 'Bình tĩnh', color: '#16a34a', pct };
+  } else if (pct > 20) {
+    return { stage: 'IMPATIENT', icon: '⏳', label: 'Sốt ruột', color: '#ea580c', pct };
+  } else {
+    return { stage: 'WARNING', icon: '⚠️', label: 'Sắp bỏ về', color: '#dc2626', pct };
+  }
+}
+
+function getCustomerSprite(c) {
+  if (!c) return '';
+  if (c.id === 'be_ti') return BETI_SPRITES.order[betiFrameIdx % 4];
+  if (c.id === 'co_chin') return CO_CHIN_IMG;
+  if (c.id === 'anh_tung') return ANH_TUNG_IMG;
+  return WALKIN_SPRITES[c.visualVariantId] || WALKIN_SPRITES[c.archetype] || WALKIN_SPRITES.walkin_variant_0;
+}
+
+function startBoostClock() {
+  if (boostTimer) clearInterval(boostTimer);
+  boostTimer = setInterval(() => {
+    if (state.screen !== 'SHOP') {
+      clearInterval(boostTimer);
+      boostTimer = null;
+      return;
+    }
+    if (state.focusBoost) {
+      if (state.focusBoost.active) {
+        state.focusBoost.remainingSeconds = Math.max(0, state.focusBoost.remainingSeconds - 1);
+        if (state.focusBoost.remainingSeconds <= 0) {
+          state.focusBoost.active = false;
+          state.focusBoost.cooldownSeconds = 30;
+        }
+        render();
+      } else if (state.focusBoost.cooldownSeconds > 0) {
+        state.focusBoost.cooldownSeconds = Math.max(0, state.focusBoost.cooldownSeconds - 1);
+        render();
+      }
+    }
+  }, 1000);
+}
+
 function clearAllTimers() {
   if (simInterval) { clearInterval(simInterval); simInterval = null; }
   simulationSpeed = null;
+  if (boostTimer) { clearInterval(boostTimer); boostTimer = null; }
   if (betiAnimTimer) { clearInterval(betiAnimTimer); betiAnimTimer = null; }
   if (prepTimer1) { clearTimeout(prepTimer1); prepTimer1 = null; }
   if (prepTimer2) { clearTimeout(prepTimer2); prepTimer2 = null; }
@@ -228,6 +278,7 @@ function startSimulationLoop() {
       runAutoPrepSequence();
     }
   }
+  startBoostClock();
   restartSimulationClock();
 }
 
@@ -336,26 +387,32 @@ function runAutoPrepSequence() {
     return;
   }
 
-  // 4. Watercolor 3-Stage Auto-Prep Animation Sequence (1.4s total)
+  // 4. Watercolor 3-Stage Auto-Prep Animation Sequence
+  // Speed is doubled when Focus Boost is active
+  const isBoosted = Boolean(state.focusBoost && state.focusBoost.active);
+  const stepDelay = isBoosted ? 220 : 450;
+  const commitDelay = isBoosted ? 200 : 400;
+  const leaveDelay = isBoosted ? 750 : 1400;
+
   // Stage 1 (0ms): Base layer (bread base / ice cup)
   autoPrepState = { stage: 'layer1', progress: 33, item: recipeId, isExtra };
   playTap('bread');
   render();
 
-  // Stage 2 (450ms): Middle filling/juice layer (cha slices / kumquat syrup / soy milk)
+  // Stage 2: Middle filling/juice layer (cha slices / kumquat syrup / soy milk)
   prepTimer1 = setTimeout(() => {
     autoPrepState = { stage: 'layer2', progress: 70, item: recipeId, isExtra };
     playTap('cha');
     render();
 
-    // Stage 3 (900ms): Complete dish with herbs / chill / garnish
+    // Stage 3: Complete dish with herbs / chill / garnish
     prepTimer2 = setTimeout(() => {
       autoPrepState = { stage: 'done', progress: 100, item: recipeId, isExtra };
       playChime();
       playCoins();
       render();
 
-      // Transaction commit (1350ms)
+      // Transaction commit
       prepTimer3 = setTimeout(() => {
         const earned = menuItem.sellPrice;
         send('SERVE_AUTO');
@@ -389,10 +446,10 @@ function runAutoPrepSequence() {
           autoPrepState = null;
           send('CUSTOMER_LEAVE');
           render();
-        }, 1400);
-      }, 400);
-    }, 450);
-  }, 450);
+        }, leaveDelay);
+      }, commitDelay);
+    }, stepDelay);
+  }, stepDelay);
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -625,6 +682,7 @@ function renderShop() {
   const isBeti = cust && cust.id === 'be_ti';
   const isCoChin = cust && cust.id === 'co_chin';
   const isAnhTung = cust && cust.id === 'anh_tung';
+  const custEmotion = cust ? getCustomerEmotion(cust) : null;
 
   return `
     <header class="top-nav">
@@ -656,23 +714,44 @@ function renderShop() {
           <img src="${CANOPY_AWNING_IMG}" class="shop-canopy-awning" alt="Mái hiên di động">
         ` : ''}
 
-        <!-- Customer in queue -->
+        <!-- Waiting customers in queue along the alley pavement -->
+        ${state.waitingQueue && state.waitingQueue.length > 0 ? `
+          <div class="waiting-queue-actors">
+            ${state.waitingQueue.slice(0, 2).map((waitCust, idx) => {
+              const waitEmotion = getCustomerEmotion(waitCust);
+              const waitSprite = getCustomerSprite(waitCust);
+              const isPrio = state.prioritizedCustomerId === waitCust.id;
+              return `
+                <div class="queue-actor-wrap queue-pos-${idx} ${isPrio ? 'is-prioritized' : ''}" data-type="PRIORITIZE" data-payload="${waitCust.id}" title="Chạm để ưu tiên phục vụ">
+                  <img src="${waitSprite}" class="actor-sprite queue-sprite" alt="${escapeHtml(waitCust.name)}">
+                  <div class="queue-mini-bubble">
+                    <span class="emotion-icon">${waitEmotion.icon}</span>
+                    <div class="patience-mini-bar">
+                      <div class="patience-fill" style="width: ${waitEmotion.pct}%; background-color: ${waitEmotion.color};"></div>
+                    </div>
+                    ${isPrio ? `<span class="prio-tag">⭐ Ưu tiên</span>` : ''}
+                  </div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        ` : ''}
+
+        <!-- Customer in service spot at counter window -->
         ${cust ? `
           <div class="customer-actor-wrap ${cust.status === 'SERVED' ? 'served-leaving' : ''}">
-            ${isBeti ? `
-              <img src="${BETI_SPRITES.order[betiFrameIdx % 4]}" class="actor-sprite beti-sprite" alt="Bé Tí">
-            ` : isCoChin ? `
-              <img src="${CO_CHIN_IMG}" class="actor-sprite co-chin-sprite" alt="Cô Chín">
-            ` : isAnhTung ? `
-              <img src="${ANH_TUNG_IMG}" class="actor-sprite anh-tung-sprite" alt="Anh Tùng">
-            ` : `
-              <img src="${WALKIN_SPRITES[cust.visualVariantId] || WALKIN_SPRITES.walkin_variant_0}" class="actor-sprite walkin-sprite" alt="${escapeHtml(cust.name)}">
-            `}
+            <img src="${getCustomerSprite(cust)}" class="actor-sprite ${isBeti ? 'beti-sprite' : (isCoChin ? 'co-chin-sprite' : (isAnhTung ? 'anh-tung-sprite' : 'walkin-sprite'))}" alt="${escapeHtml(cust.name)}">
 
-            <!-- Customer speech bubble -->
+            <!-- Customer speech bubble with emotion & patience -->
             <div class="customer-bubble">
-              <strong>${escapeHtml(cust.name)}${cust.temperament === 'RUSH' ? ' · Đang vội' : cust.temperament === 'FRIENDLY' ? ' · Vui vẻ' : ''}:</strong>
-              <span>"${escapeHtml(customerReaction ? customerReaction.quote : cust.dialogue)}"</span>
+              <div class="bubble-header-row">
+                <span class="bubble-emotion-icon">${custEmotion.icon}</span>
+                <strong>${escapeHtml(cust.name)}${cust.temperament === 'RUSH' ? ' · Đang vội' : cust.temperament === 'FRIENDLY' ? ' · Vui vẻ' : ''}</strong>
+              </div>
+              <span class="bubble-dialogue-text">"${escapeHtml(customerReaction ? customerReaction.quote : cust.dialogue)}"</span>
+              <div class="patience-mini-bar">
+                <div class="patience-fill" style="width: ${custEmotion.pct}%; background-color: ${custEmotion.color};"></div>
+              </div>
               ${autoPrepState && autoPrepState.stage === 'done' ? `<div class="bubble-sparkle">✨ Cảm ơn quán!</div>` : ''}
             </div>
           </div>
@@ -687,29 +766,72 @@ function renderShop() {
 
         ${autoPrepState && autoPrepState.stage === 'done' ? `
           <div class="staff-handoff-overlay popIn">
-            <img src="${['TRA_TAC', 'SUA_DAU_DA'].includes(autoPrepState.item) ? STAFF_HANDOFF_DRINK_IMG : STAFF_HANDOFF_BANHMI_IMG}" class="staff-handoff-img" alt="Trao món tận tay">
+            <img src="${autoPrepState.item === 'SUA_DAU_DA' ? STAFF_HANDOFF_SOYMILK_IMG : (autoPrepState.item === 'TRA_TAC' ? STAFF_HANDOFF_DRINK_IMG : STAFF_HANDOFF_BANHMI_IMG)}" class="staff-handoff-img" alt="Trao món tận tay">
           </div>
         ` : ''}
 
         ${floatingCash ? `<div class="floating-cash-burst">${floatingCash}</div>` : ''}
       </div>
 
-      <!-- Auto-Prep Watercolor Workstation -->
+      <!-- Active Coordination Dock (Focus Boost & Queue Priority) -->
+      <div class="active-management-dock">
+        <div class="management-controls-row">
+          <button class="btn-focus-boost ${state.focusBoost?.active ? 'is-active' : (state.focusBoost?.cooldownSeconds > 0 ? 'is-cooldown' : '')}"
+                  data-type="FOCUS_BOOST"
+                  ${state.focusBoost?.active || state.focusBoost?.cooldownSeconds > 0 ? 'disabled' : ''}>
+            ${state.focusBoost?.active
+              ? `⚡ ĐANG TẬP TRUNG (${state.focusBoost.remainingSeconds}s · Chế biến x2)`
+              : (state.focusBoost?.cooldownSeconds > 0
+                ? `⏳ Hồi chiêu (${state.focusBoost.cooldownSeconds}s)`
+                : `⚡ Tập Trung Phục Vụ (x2)`)}
+          </button>
+        </div>
+        ${state.waitingQueue && state.waitingQueue.length > 0 ? `
+          <div class="queue-management-strip">
+            <div class="queue-strip-label">👥 Hàng chờ (${state.waitingQueue.length}):</div>
+            <div class="queue-cards-row">
+              ${state.waitingQueue.map(qCust => {
+                const qEmotion = getCustomerEmotion(qCust);
+                const isPrio = state.prioritizedCustomerId === qCust.id;
+                return `
+                  <div class="queue-cust-card ${isPrio ? 'is-prioritized' : ''}">
+                    <div class="queue-cust-info">
+                      <span class="queue-cust-avatar">${qEmotion.icon}</span>
+                      <div class="queue-cust-text">
+                        <strong>${escapeHtml(qCust.name)}</strong>
+                        <small>${recipes[qCust.recipe]?.name || qCust.recipe}</small>
+                      </div>
+                    </div>
+                    <div class="queue-cust-patience-bar">
+                      <div class="queue-cust-patience-fill" style="width: ${qEmotion.pct}%; background-color: ${qEmotion.color};"></div>
+                    </div>
+                    <button class="btn-prio-tag ${isPrio ? 'prio-active' : ''}" data-type="PRIORITIZE" data-payload="${qCust.id}">
+                      ${isPrio ? '⭐ Đang ưu tiên' : 'Ưu tiên'}
+                    </button>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          </div>
+        ` : ''}
+      </div>
+
+      <!-- Auto-Prep Rustic Wooden Workstation -->
       <div class="auto-prep-bench">
         <div class="prep-bench-header">
-          <span class="prep-bench-title">🔪 Bàn Chế Biến Quán Phố</span>
+          <span class="prep-bench-title">🔪 Bàn Thớt Quầy Phố</span>
           <span class="prep-status-text">
             ${autoPrepState ? (
-              autoPrepState.stage === 'layer1' ? 'Lớp 1/3: Vỏ bánh / Ly đá...' :
-              autoPrepState.stage === 'layer2' ? 'Lớp 2/3: Thêm nhân / Rót nước...' :
-              autoPrepState.stage === 'done' ? '✨ Món hoàn thành vàng ruộm!' :
+              autoPrepState.stage === 'layer1' ? 'Lớp 1/3: Chuẩn bị vỏ/ly...' :
+              autoPrepState.stage === 'layer2' ? 'Lớp 2/3: Thêm nhân/rót nước...' :
+              autoPrepState.stage === 'done' ? '✨ Hoàn tất món thơm lừng!' :
               autoPrepState.stage === 'menudisabled' ? 'Món không bán hôm nay!' :
               autoPrepState.stage === 'pricerejected' ? 'Khách chê giá đắt!' : 'Hết nguyên liệu!'
-            ) : 'Bàn thớt sạch sẽ · Dao thớt sẵn sàng'}
+            ) : 'Thớt gỗ sẵn sàng · Đồ nghề tinh tươm'}
           </span>
         </div>
 
-        <div class="prep-visual-dock">
+        <div class="prep-visual-dock rustic-wood-dock">
           ${autoPrepState && autoPrepState.item === 'BANH_MI_CHA' ? `
             <div class="watercolor-prep-stage banh-mi-stage">
               ${autoPrepState.stage === 'done' ? `
@@ -773,10 +895,22 @@ function renderShop() {
               `}
             </div>
           ` : autoPrepState && autoPrepState.item === 'BANH_MI_TRUNG' ? `
-            <div class="prep-idle-platter">Bánh mì ốp la đang được làm · ${autoPrepState.stage === 'done' ? 'Đã hoàn thành' : 'Tự chế biến...'}</div>
+            <div class="watercolor-prep-stage">
+              <div class="prep-idle-platter">Bánh mì ốp la đang được làm · ${autoPrepState.stage === 'done' ? 'Đã hoàn thành' : 'Tự chế biến...'}</div>
+            </div>
           ` : `
-            <div class="prep-idle-platter">
-              <span class="idle-desc">Thớt gỗ sạch sẽ · Dao thớt sẵn sàng · Ly cốc ngay ngắn</span>
+            <div class="prep-idle-platter rustic-board">
+              <div class="cutting-board-elements">
+                <span class="board-tool knife">🔪</span>
+                <span class="board-tool herbs">🌿</span>
+                <span class="board-tool cup">🥢</span>
+                <div class="board-steam">
+                  <span class="steam-wisp s1">~</span>
+                  <span class="steam-wisp s2">~</span>
+                  <span class="steam-wisp s3">~</span>
+                </div>
+              </div>
+              <span class="idle-desc">Thớt gỗ sạch sẽ · Dao thớt sẵn sàng · Ly tách ngay ngắn</span>
             </div>
           `}
         </div>
@@ -934,6 +1068,9 @@ function renderDayResult() {
           ${ledger.missedCount > 0 ? `
             <div class="missed-details-box">
               <div class="missed-header text-red">Tổng số đơn bỏ lỡ: <strong>${ledger.missedCount} đơn</strong></div>
+              ${ledger.missedByReason?.WAIT_TOO_LONG?.length ? `
+                <div class="missed-subline">• Khách chờ quá lâu bỏ về: <b>${ledger.missedByReason.WAIT_TOO_LONG.map(o => o.name).join(', ')}</b></div>
+              ` : ''}
               ${ledger.missedByReason?.OUT_OF_STOCK?.length ? `
                 <div class="missed-subline">• Hết nguyên liệu: <b>${ledger.missedByReason.OUT_OF_STOCK.map(o => o.name).join(', ')}</b></div>
               ` : ''}
@@ -1064,6 +1201,18 @@ $.addEventListener('click', e => {
     return;
   }
 
+  if (t === 'FOCUS_BOOST') {
+    send('FOCUS_BOOST');
+    render();
+    return;
+  }
+
+  if (t === 'PRIORITIZE') {
+    send('PRIORITIZE', { customerId: p });
+    render();
+    return;
+  }
+
   send(t, p);
 });
 
@@ -1089,5 +1238,6 @@ window.__xomNho = {
   send,
   getState: () => state,
   render,
-  setAutoPrepState: (val) => { autoPrepState = val; }
+  setAutoPrepState: (val) => { autoPrepState = val; },
+  clearAllTimers
 };

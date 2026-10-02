@@ -36,79 +36,103 @@ export const recipes = Object.freeze({
   ...extraRecipe
 });
 
-// 8 Fixture Customers for the Day 1 rhythm test
+// 8 Fixture Customers for the Day 1 rhythm test (Morning rush with 3 arrivals close together)
 export const fixtureCustomers = Object.freeze([
   {
     id: 'bac_ba',
     name: 'Bác Ba',
+    personId: 'elder_bac_ba',
+    visualVariantId: 'walkin_elder',
     isRegular: false,
     recipe: 'BANH_MI_CHA',
     arrivalMinute: 30, // 08:30
     priceSensitivity: 'MEDIUM',
+    temperament: 'NORMAL',
     dialogue: 'Bán cho tui ổ bánh mì chả ăn sáng nha chú!'
   },
   {
     id: 'chi_hai',
     name: 'Chị Hai',
+    personId: 'office_chi_hai',
+    visualVariantId: 'walkin_office',
     isRegular: false,
     recipe: 'TRA_TAC',
     arrivalMinute: 75, // 09:15
     priceSensitivity: 'MEDIUM',
+    temperament: 'NORMAL',
     dialogue: 'Cho chị một ly trà tắc nhiều đá mát lạnh nghen!'
   },
   {
     id: 'be_ti',
     name: 'Bé Tí',
+    personId: 'be_ti',
+    visualVariantId: 'be_ti',
     isRegular: true,
     recipe: 'BANH_MI_CHA',
-    arrivalMinute: 120, // 10:00
+    arrivalMinute: 120, // 10:00 (Tan trường sớm, mở đầu cao điểm 3 khách)
     priceSensitivity: 'LOW',
+    temperament: 'FRIENDLY',
     specialRequest: 'EXTRA_CHA',
     dialogue: 'Chú ơi cho con ổ Bánh mì chả, chú cho con xin thêm chả nghen!'
   },
   {
     id: 'co_chin',
     name: 'Cô Chín',
+    personId: 'co_chin',
+    visualVariantId: 'co_chin',
     isRegular: true,
     recipe: 'TRA_TAC',
-    arrivalMinute: 180, // 11:00
+    arrivalMinute: 123, // 10:03 (Cao điểm sáng: đến khi quán đang làm món cho Bé Tí)
     priceSensitivity: 'MEDIUM',
+    temperament: 'FRIENDLY',
     dialogue: 'Cô đi chợ về ngang, làm cô ly trà tắc chua ngọt thanh mát nghe con!'
   },
   {
     id: 'anh_tung',
     name: 'Anh Tùng',
+    personId: 'anh_tung',
+    visualVariantId: 'anh_tung',
     isRegular: true,
     recipe: 'SUA_DAU_DA',
-    arrivalMinute: 225, // 11:45
+    arrivalMinute: 126, // 10:06 (Cao điểm sáng: khách thứ 3 dồn dập vào hàng chờ)
     priceSensitivity: 'LOW',
+    temperament: 'RUSH',
     dialogue: 'Cho anh ly Sữa đậu đá mát rượi em ơi! Đang vội chạy cuốc khách trưa!'
   },
   {
     id: 'bac_nam',
     name: 'Bác Năm',
+    personId: 'elder_bac_nam',
+    visualVariantId: 'walkin_elder',
     isRegular: false,
     recipe: 'BANH_MI_CHA',
-    arrivalMinute: 255, // 12:15
+    arrivalMinute: 240, // 12:00
     priceSensitivity: 'HIGH',
+    temperament: 'NORMAL',
     dialogue: 'Làm bác ổ bánh mì dằn bụng buổi trưa chú em ơi.'
   },
   {
     id: 'co_bay',
     name: 'Cô Bảy',
+    personId: 'office_co_bay',
+    visualVariantId: 'walkin_office',
     isRegular: false,
     recipe: 'TRA_TAC',
-    arrivalMinute: 285, // 12:45
+    arrivalMinute: 280, // 12:40
     priceSensitivity: 'HIGH',
+    temperament: 'NORMAL',
     dialogue: 'Nắng nôi quá, cho ly trà tắc giải khát đi con!'
   },
   {
     id: 'chu_tu',
     name: 'Chú Tư',
+    personId: 'driver_chu_tu',
+    visualVariantId: 'walkin_driver',
     isRegular: false,
     recipe: 'BANH_MI_CHA',
-    arrivalMinute: 315, // 13:15
+    arrivalMinute: 320, // 13:20
     priceSensitivity: 'HIGH',
+    temperament: 'NORMAL',
     dialogue: 'Còn bánh mì không chú? Làm tui một ổ mang đi.'
   }
 ]);
@@ -163,9 +187,18 @@ export function fresh() {
     speed: 1, // 1 or 2
     isPaused: false, // Paused when decision is active
     
-    // Customer roster & progression
+    // Customer roster & queue progression
     customerIndex: 0,
+    spawnedIndex: 0,
     activeCustomer: null, // Current customer at counter
+    waitingQueue: [], // Customers waiting in line at the counter
+    prioritizedCustomerId: null, // If set, this customer in waitingQueue is served next
+    focusBoost: {
+      active: false,
+      remainingSeconds: 0,
+      cooldownSeconds: 0,
+      multiplier: 2.0
+    },
     extraCha: null, // null | true | false
     activeDecision: null, // null or { id: 'EXTRA_CHA', title: string, options: [...] }
     
@@ -418,10 +451,12 @@ export function action(state, type, payload) {
         idx++;
       }
       s.customerIndex = idx; // Starts with Bé Tí (index 2)
+      s.spawnedIndex = idx;
     } else {
       // Clock stores minutes relative to 08:00, including the early 06:00 opening.
       s.clock = s.openingTime === 'early_6am' ? -120 : 0;
       s.customerIndex = 0;
+      s.spawnedIndex = 0;
     }
   } else if (type === 'SET_SPEED') {
     if (s.screen !== 'SHOP') return fail('Chỉ đổi tốc độ trong giờ bán.');
@@ -437,10 +472,22 @@ export function action(state, type, payload) {
     // The UI controls x2 through its interval. Simulation minutes per tick stay fixed.
     s.clock = Math.min(360, s.clock + delta);
 
-    // Self-healing customer departure recovery:
+    // 1. Update Focus Boost timers
+    if (s.focusBoost) {
+      if (s.focusBoost.active) {
+        s.focusBoost.remainingSeconds = Math.max(0, s.focusBoost.remainingSeconds - 1);
+        if (s.focusBoost.remainingSeconds <= 0) {
+          s.focusBoost.active = false;
+        }
+      } else if (s.focusBoost.cooldownSeconds > 0) {
+        s.focusBoost.cooldownSeconds = Math.max(0, s.focusBoost.cooldownSeconds - 1);
+      }
+    }
+
+    // 2. Self-healing customer departure recovery:
     // If customer finished serving/rejecting and UI timer was lost (e.g. page reload),
     // automatically clear customer after 4 simulation ticks.
-    if (s.activeCustomer && ['SERVED', 'OUT_OF_STOCK', 'MENU_DISABLED', 'PRICE_REJECTED'].includes(s.activeCustomer.status)) {
+    if (s.activeCustomer && ['SERVED', 'OUT_OF_STOCK', 'MENU_DISABLED', 'PRICE_REJECTED', 'WAIT_TOO_LONG'].includes(s.activeCustomer.status)) {
       s.activeCustomer.ticksInCompletedState = (s.activeCustomer.ticksInCompletedState || 0) + 1;
       if (s.activeCustomer.ticksInCompletedState >= 4) {
         s.activeCustomer = null;
@@ -448,7 +495,7 @@ export function action(state, type, payload) {
       }
     }
     
-    // Check Market News Ticker at minute 195 (11:15 AM)
+    // 3. Check Market News Ticker at minute 195 (11:15 AM)
     if (s.clock >= 195 && !s.newsSeen) {
       s.newsSeen = true;
       s.newsTicker = {
@@ -472,30 +519,117 @@ export function action(state, type, payload) {
       };
     }
     
-    // Spawn next customer if no active customer and clock matches
-    if (!s.activeCustomer && s.customerIndex < s.dayCustomers.length) {
-      const nextCust = s.dayCustomers[s.customerIndex];
+    // 4. Spawn arrivals into waitingQueue or activeCustomer
+    while (s.spawnedIndex < s.dayCustomers.length && s.customerIndex < s.dayCustomers.length) {
+      const nextCust = s.dayCustomers[s.spawnedIndex];
       if (s.clock >= nextCust.arrivalMinute) {
-        s.activeCustomer = {
+        const maxPat = nextCust.temperament === 'RUSH' ? 80 : nextCust.temperament === 'FRIENDLY' ? 180 : 120;
+        const custInstance = {
           ...nextCust,
-          status: 'ARRIVED'
+          patience: maxPat,
+          maxPatience: maxPat,
+          status: 'WAITING',
+          isPrioritized: false,
+          ticksWaiting: 0
         };
-        // If Bé Tí with special request: trigger pause decision
-        if (nextCust.id === 'be_ti' && s.extraCha === null) {
-          s.isPaused = true;
-          s.activeDecision = {
-            id: 'EXTRA_CHA',
-            title: 'Bé Tí Xin Thêm Chả',
-            message: 'Chú ơi cho con ổ Bánh mì chả, chú cho con xin thêm chả nghen!',
-            options: [
-              { key: 'yes', label: '👍 Thêm chả cho con (+1 chả)', extraCost: 5000 },
-              { key: 'no', label: '✋ Bán phần thường nha con', extraCost: 0 }
-            ]
-          };
+
+        if (!s.activeCustomer) {
+          custInstance.status = 'ARRIVED';
+          s.activeCustomer = custInstance;
+          if (custInstance.id === 'be_ti' && s.extraCha === null) {
+            s.isPaused = true;
+            s.activeDecision = {
+              id: 'EXTRA_CHA',
+              title: 'Bé Tí Xin Thêm Chả',
+              message: 'Chú ơi cho con ổ Bánh mì chả, chú cho con xin thêm chả nghen!',
+              options: [
+                { key: 'yes', label: '👍 Thêm chả cho con (+1 chả)', extraCost: 5000 },
+                { key: 'no', label: '✋ Bán phần thường nha con', extraCost: 0 }
+              ]
+            };
+          }
+        } else {
+          s.waitingQueue.push(custInstance);
         }
+        s.spawnedIndex += 1;
+      } else {
+        break;
       }
     }
-    if (s.clock >= 360 && !s.activeCustomer) return action(s, 'CLOSE');
+
+    // 5. Update patience for waiting customers
+    for (let i = s.waitingQueue.length - 1; i >= 0; i--) {
+      const waiting = s.waitingQueue[i];
+      waiting.ticksWaiting += 1;
+      const drain = waiting.temperament === 'RUSH' ? 1.5 : waiting.temperament === 'FRIENDLY' ? 0.6 : 1.0;
+      waiting.patience = Math.max(0, waiting.patience - drain);
+
+      if (waiting.patience <= 0) {
+        const pid = waiting.personId || waiting.id;
+        s.missedOrders.push({
+          ticketId: waiting.id + '_' + s.clock + '_wait',
+          personId: pid,
+          name: waiting.name,
+          recipe: waiting.recipe,
+          reason: 'WAIT_TOO_LONG',
+          note: 'Khách sốt ruột bỏ đi vì chờ quá lâu.',
+          timestampMinute: s.clock
+        });
+        s.facts[pid] = {
+          ...(s.facts[pid] || {}),
+          missed_orders: ((s.facts[pid]?.missed_orders) || 0) + 1
+        };
+        s.waitingQueue.splice(i, 1);
+        s.customerIndex += 1;
+      }
+    }
+
+    // 6. Promote next customer if activeCustomer is empty
+    if (!s.activeCustomer && s.waitingQueue.length > 0) {
+      let nextIdx = 0;
+      if (s.prioritizedCustomerId) {
+        const prioIdx = s.waitingQueue.findIndex(c => c.id === s.prioritizedCustomerId);
+        if (prioIdx !== -1) {
+          nextIdx = prioIdx;
+          s.prioritizedCustomerId = null;
+        }
+      }
+      const [promoted] = s.waitingQueue.splice(nextIdx, 1);
+      promoted.status = 'ARRIVED';
+      s.activeCustomer = promoted;
+      if (promoted.id === 'be_ti' && s.extraCha === null) {
+        s.isPaused = true;
+        s.activeDecision = {
+          id: 'EXTRA_CHA',
+          title: 'Bé Tí Xin Thêm Chả',
+          message: 'Chú ơi cho con ổ Bánh mì chả, chú cho con xin thêm chả nghen!',
+          options: [
+            { key: 'yes', label: '👍 Thêm chả cho con (+1 chả)', extraCost: 5000 },
+            { key: 'no', label: '✋ Bán phần thường nha con', extraCost: 0 }
+          ]
+        };
+      }
+    }
+
+    if (s.clock >= 360 && (!s.activeCustomer || s.customerIndex >= s.dayCustomers.length) && (!s.waitingQueue || s.waitingQueue.length === 0 || s.customerIndex >= s.dayCustomers.length)) return action(s, 'CLOSE');
+  } else if (type === 'PRIORITIZE') {
+    if (s.screen !== 'SHOP') return fail('Chỉ ưu tiên đơn trong giờ bán.');
+    const targetId = payload?.customerId;
+    if (!targetId) return fail('Cần chọn khách hàng để ưu tiên.');
+    const target = s.waitingQueue.find(c => c.id === targetId);
+    if (!target) return fail('Khách không có trong hàng chờ hoặc đang được làm món.');
+    for (const c of s.waitingQueue) {
+      c.isPrioritized = (c.id === targetId);
+    }
+    s.prioritizedCustomerId = targetId;
+  } else if (type === 'FOCUS_BOOST') {
+    if (s.screen !== 'SHOP') return fail('Chỉ dùng tập trung phục vụ trong giờ bán.');
+    if (!s.focusBoost) s.focusBoost = { active: false, remainingSeconds: 0, cooldownSeconds: 0, multiplier: 2.0 };
+    if (s.focusBoost.active) return fail('Đang trong thời gian tập trung phục vụ.');
+    if (s.focusBoost.cooldownSeconds > 0) return fail('Đang hồi chiêu, vui lòng chờ.');
+    s.focusBoost.active = true;
+    s.focusBoost.remainingSeconds = 12;
+    s.focusBoost.cooldownSeconds = 30;
   } else if (type === 'DECIDE') {
     // Resolves a pending decision, e.g. payload: { choice: 'yes' | 'no' }
     if (s.screen !== 'SHOP' || !s.activeDecision || !s.isPaused) return fail('Không có quyết định đang chờ.');
@@ -623,10 +757,38 @@ export function action(state, type, payload) {
     s.activeCustomer.status = 'SERVED';
   } else if (type === 'CUSTOMER_LEAVE') {
     if (s.screen !== 'SHOP' || !s.activeCustomer) return fail('Không có khách đang rời.');
-    if (!['SERVED', 'OUT_OF_STOCK', 'MENU_DISABLED', 'PRICE_REJECTED'].includes(s.activeCustomer.status)) return fail('Khách chưa được xử lý.');
+    if (!['SERVED', 'OUT_OF_STOCK', 'MENU_DISABLED', 'PRICE_REJECTED', 'WAIT_TOO_LONG'].includes(s.activeCustomer.status)) return fail('Khách chưa được xử lý.');
     s.activeCustomer = null;
     s.customerIndex += 1;
-    if (s.clock >= 360) return action(s, 'CLOSE');
+
+    // Promote next customer from waitingQueue if available
+    if (s.waitingQueue && s.waitingQueue.length > 0) {
+      let nextIdx = 0;
+      if (s.prioritizedCustomerId) {
+        const prioIdx = s.waitingQueue.findIndex(c => c.id === s.prioritizedCustomerId);
+        if (prioIdx !== -1) {
+          nextIdx = prioIdx;
+          s.prioritizedCustomerId = null;
+        }
+      }
+      const [promoted] = s.waitingQueue.splice(nextIdx, 1);
+      promoted.status = 'ARRIVED';
+      s.activeCustomer = promoted;
+      if (promoted.id === 'be_ti' && s.extraCha === null) {
+        s.isPaused = true;
+        s.activeDecision = {
+          id: 'EXTRA_CHA',
+          title: 'Bé Tí Xin Thêm Chả',
+          message: 'Chú ơi cho con ổ Bánh mì chả, chú cho con xin thêm chả nghen!',
+          options: [
+            { key: 'yes', label: '👍 Thêm chả cho con (+1 chả)', extraCost: 5000 },
+            { key: 'no', label: '✋ Bán phần thường nha con', extraCost: 0 }
+          ]
+        };
+      }
+    }
+
+    if (s.clock >= 360 && !s.activeCustomer && (!s.waitingQueue || s.waitingQueue.length === 0)) return action(s, 'CLOSE');
   } else if (type === 'CLOSE') {
     if (s.screen !== 'SHOP') return fail('Quán chưa mở.');
     // Closing early is a management decision: everyone not yet served is a
@@ -658,13 +820,13 @@ export function action(state, type, payload) {
     const total = s.servedOrders.length + s.missedOrders.length;
     // Demand growth or bad weather cannot lower rating by itself. Voluntary
     // early closure, high pricing and menu removals remain controllable.
-    const avoidable = s.missedOrders.filter(o => o.reason === 'PRICE_TOO_HIGH' || o.reason === 'MISSED_EARLY_CLOSING' || o.reason === 'MENU_DISABLED' && s.knownRecipeIds.includes(o.recipe)).length;
+    const avoidable = s.missedOrders.filter(o => o.reason === 'PRICE_TOO_HIGH' || o.reason === 'MISSED_EARLY_CLOSING' || o.reason === 'WAIT_TOO_LONG' || (o.reason === 'MENU_DISABLED' && s.knownRecipeIds.includes(o.recipe))).length;
     const reachableOrders = Math.min(total, Math.floor(s.upgrades.vehicleCapacity / 3));
     const capacityServiceRate = reachableOrders ? s.servedOrders.length / reachableOrders : 0;
     const ratingCeiling = s.upgrades.vehicleCapacity <= 20 ? 3.5 : s.upgrades.vehicleCapacity <= 30 ? 4 : 5;
     s.rating = s.currentDay === 1 ? 3 : Math.max(1, Math.min(ratingCeiling, (s.rating ?? 3) + (avoidable > total / 3 ? -.5 : capacityServiceRate >= .8 && s.servedOrders.length >= 5 && avoidable === 0 ? .5 : 0)));
     s.screen = 'DAY_RESULT';
-    const feedback = [...s.missedOrders.map(o => ({ personId: o.personId, name: o.name, reason: o.reason, text: o.reason === 'OUT_OF_STOCK' ? 'Tiếc quá, quán hết món rồi; mai mình ghé sớm nhé.' : o.reason === 'PRICE_TOO_HIGH' ? 'Giá hôm nay cao quá, để bữa khác ghé.' : o.reason === 'MENU_DISABLED' ? 'Hôm nay không có món mình thích rồi.' : 'Mình ghé mà quán chưa bán hoặc đã đóng.' })), ...s.servedOrders.map(o => ({ personId: o.personId, name: o.name, reason: 'SERVED', text: o.tip ? 'Ngon quá, gửi quán thêm chút tiền cà phê!' : o.personId === 'be_ti' && s.extraCha ? 'Nhiều chả quá, con thích lắm!' : 'Món vừa miệng, cảm ơn quán nha!' }))];
+    const feedback = [...s.missedOrders.map(o => ({ personId: o.personId, name: o.name, reason: o.reason, text: o.reason === 'OUT_OF_STOCK' ? 'Tiếc quá, quán hết món rồi; mai mình ghé sớm nhé.' : o.reason === 'WAIT_TOO_LONG' ? 'Quán làm lâu quá, trễ giờ làm của tôi rồi!' : o.reason === 'PRICE_TOO_HIGH' ? 'Giá hôm nay cao quá, để bữa khác ghé.' : o.reason === 'MENU_DISABLED' ? 'Hôm nay không có món mình thích rồi.' : 'Mình ghé mà quán chưa bán hoặc đã đóng.' })), ...s.servedOrders.map(o => ({ personId: o.personId, name: o.name, reason: 'SERVED', text: o.tip ? 'Ngon quá, gửi quán thêm chút tiền cà phê!' : o.personId === 'be_ti' && s.extraCha ? 'Nhiều chả quá, con thích lắm!' : 'Món vừa miệng, cảm ơn quán nha!' }))];
     s.lastDayReport = { day: s.currentDay, feedback, forecastTomorrow: dayConfig(s.currentDay + 1).forecast, served: s.servedOrders.length, missed: s.missedOrders.length, cash: s.cash, revenue: s.revenue, cogs: s.servedOrders.reduce((n, o) => n + o.cogs, 0), spoilage: s.spoilageLoss, rating: s.rating };
     s.dayHistory.push(s.lastDayReport);
   } else if (type === 'NEXT_DAY') {
@@ -683,6 +845,10 @@ export function action(state, type, payload) {
     s.revenue = 0;
     s.clock = 0;
     s.customerIndex = 0;
+    s.spawnedIndex = 0;
+    s.waitingQueue = [];
+    s.prioritizedCustomerId = null;
+    s.focusBoost = { active: false, remainingSeconds: 0, cooldownSeconds: 0, multiplier: 2.0 };
     s.activeCustomer = null;
     s.activeDecision = null;
     s.extraCha = null;
@@ -752,6 +918,7 @@ export function calculateLedger(state) {
   const missedOrders = state.missedOrders || [];
   const missedByReason = {
     OUT_OF_STOCK: missedOrders.filter(o => o.reason === 'OUT_OF_STOCK'),
+    WAIT_TOO_LONG: missedOrders.filter(o => o.reason === 'WAIT_TOO_LONG'),
     MENU_DISABLED: missedOrders.filter(o => o.reason === 'MENU_DISABLED'),
     PRICE_TOO_HIGH: missedOrders.filter(o => o.reason === 'PRICE_TOO_HIGH'),
     MISSED_LATE_OPENING: missedOrders.filter(o => o.reason === 'MISSED_LATE_OPENING'),
