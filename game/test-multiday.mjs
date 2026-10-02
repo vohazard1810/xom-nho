@@ -46,7 +46,7 @@ for (let day = 2; day <= 21; day++) {
   assert.equal(s.currentDay, day);
   assert.equal(s.dayStartingCash, day1Ending);
   assert.equal(s.shopName, 'Quán Hẻm Nhỏ');
-  assert.equal(s.marketPrices.kumquat, 3000);
+  assert.equal(s.marketPrices.kumquat, s.dayEvent.marketPrices.kumquat);
   if (day === 2) s = apply(s, 'UPGRADE', 'bike_basket');
   if (day === 3) s = apply(s, 'UPGRADE', 'counter');
   if (day === 4) s = apply(s, 'UPGRADE', 'seating');
@@ -82,7 +82,7 @@ for (let day = 2; day <= 21; day++) {
   const l = calculateLedger(s);
   assert.equal(l.finalCashInDrawer, s.cash, `Day ${day} cash reconciliation`);
   assert.equal(l.grossOperatingProfit, l.totalSalesRevenue - l.cogsSoldItemsOnly);
-  assert.equal(l.resultAfterSpoilageAndExpenses, l.grossOperatingProfit - l.spoilageLoss - l.operatingExpenses);
+  assert.equal(l.resultAfterSpoilageAndExpenses, l.grossOperatingProfit + l.tipsCollected - l.spoilageLoss - l.operatingExpenses - l.onlineFees + l.sideJobIncome);
   assert.equal(l.servedCount + l.missedCount, s.dayCustomers.length);
   assert.ok(Object.values(s.stock).every(q => q >= 0));
   assert.ok(s.cash >= 0);

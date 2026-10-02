@@ -31,7 +31,7 @@ assert.equal(s.screen, 'SHOP');
 s.clock = 357;
 s = run(s, 'TICK', 3);
 assert.equal(s.screen, 'DAY_RESULT');
-assert.equal(s.lastDayReport.feedback.length, 0, 'Feedback comes from actual transactions');
+assert.equal(s.lastDayReport.feedback.length, 8, 'Closing records every unresolved customer, even if a stale counter says everyone is done');
 s = run(s, 'NEXT_DAY');
 assert.equal(s.screen, 'XOM_OI');
 assert.equal(s.login.visitDays, 2);
@@ -83,7 +83,7 @@ s = run(s, 'CLOSE');
 const ledger = calculateLedger(s);
 assert.equal(ledger.onlineFees, 2000);
 assert.equal(ledger.finalCashInDrawer, s.cash);
-assert.equal(ledger.resultAfterSpoilageAndExpenses, ledger.grossOperatingProfit - ledger.spoilageLoss - ledger.operatingExpenses - ledger.onlineFees + ledger.sideJobIncome);
+assert.equal(ledger.resultAfterSpoilageAndExpenses, ledger.grossOperatingProfit + ledger.tipsCollected - ledger.spoilageLoss - ledger.operatingExpenses - ledger.onlineFees + ledger.sideJobIncome);
 assert.ok(s.lastDayReport.feedback.some(f => f.name === 'Đơn mang đi 1'));
 assert.ok(recipes.BANH_MI_TRUNG);
 // Roadwork is a single optional in-shift decision, with a signaled cost and

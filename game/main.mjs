@@ -1,3 +1,4 @@
+import { advanceShift, serviceVisual } from './shift-engine.mjs';
 import {
   ingredients,
   recipes,
@@ -22,12 +23,6 @@ const $ = document.querySelector('#app');
 // Sprite asset base paths
 const ASSET_BASE = '../assets/characters/named/be_ti/candidates/alternate_model_v1/';
 const BETI_SPRITES = {
-  normal: [
-    ASSET_BASE + 'queue_wait_normal_pilot/actor_crop/queue_wait_normal_01.png',
-    ASSET_BASE + 'queue_wait_normal_pilot/actor_crop/queue_wait_normal_02.png',
-    ASSET_BASE + 'queue_wait_normal_pilot/actor_crop/queue_wait_normal_03.png',
-    ASSET_BASE + 'queue_wait_normal_pilot/actor_crop/queue_wait_normal_04.png'
-  ],
   order: [
     ASSET_BASE + 'order_four_frame_pilot/actor_crop/order_01_mid_raise.png',
     ASSET_BASE + 'order_four_frame_pilot/actor_crop/order_02_raise_approved.png',
@@ -52,14 +47,12 @@ const WALKIN_SPRITES = {
 
 const CANOPY_AWNING_IMG = '../assets/pilot/awning_canopy.png';
 const COUNTER_SHELF_FOREGROUND_IMG = '../assets/environment/counter_shelf_foreground.png';
-const STAFF_HANDOFF_BANHMI_IMG = '../assets/pilot/staff_handoff_banhmi.png';
-const STAFF_HANDOFF_DRINK_IMG = '../assets/pilot/staff_handoff_drink.png';
-const STAFF_HANDOFF_SOYMILK_IMG = '../assets/pilot/staff_handoff_soymilk.png';
 
 const DISH_IMAGES = {
   BANH_MI_CHA: '../assets/dishes/takeaway_banh_mi.png',
   TRA_TAC: '../assets/dishes/takeaway_tra_tac.png',
-  SUA_DAU_DA: '../assets/dishes/takeaway_sua_dau.png'
+  SUA_DAU_DA: '../assets/dishes/takeaway_sua_dau.png',
+  BANH_MI_TRUNG: '../assets/dishes/takeaway_banh_mi.png'
 };
 
 const ingredientMeta = {
@@ -73,10 +66,13 @@ const ingredientMeta = {
   egg: { name: 'Trứng gà', icon: '🥚', unit: 'quả', img: null }
 };
 
+// One shared context avoids exhausting browser audio resources.
+let audioCtx;
+const getAudioContext = () => audioCtx ||= new (window.AudioContext || window.webkitAudioContext)();
 // Audio synthesis
 function playChime() {
   try {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const ctx = getAudioContext();
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
     osc.type = 'sine';
@@ -93,7 +89,7 @@ function playChime() {
 
 function playCoins() {
   try {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const ctx = getAudioContext();
     [0, 0.06, 0.12].forEach((delay, idx) => {
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
@@ -111,7 +107,7 @@ function playCoins() {
 
 function playTap(type = 'default') {
   try {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const ctx = getAudioContext();
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
     osc.type = 'triangle';
@@ -127,7 +123,7 @@ function playTap(type = 'default') {
 }
 
 // Storage helpers
-const load = () => [0, 1].map(i => decode(localStorage.getItem(SAVE_KEY + ':' + i))).filter(Boolean).sort((a, b) => b.revision - a.revision)[0] || null;
+const load = () => { try { return [0, 1].map(i => decode(localStorage.getItem(SAVE_KEY + ':' + i))).filter(Boolean).sort((a, b) => b.revision - a.revision)[0] || null; } catch { return null; } };
 let saved = load();
 let state = saved || fresh();
 let message = '';
@@ -135,17 +131,11 @@ let message = '';
 // Simulation and Animation State
 let simInterval = null;
 let betiFrameIdx = 0;
-let betiAnimTimer = null;
 let autoPrepState = null; // { stage: 'bread'|'cha'|'veg'|'done', progress: number, item: recipeId, isExtra: boolean }
 let floatingCash = null; // e.g. "+25.000đ"
 let customerReaction = null; // { quote: string, status: 'happy'|'disappointed' }
-let prepTimer1 = null;
-let prepTimer2 = null;
-let prepTimer3 = null;
-let leaveTimer = null;
-let simulationSpeed = null;
 let resultTimer = null;
-let resultDetailsOpen = false;
+let resultDetailsOpen = Boolean(state.resultDetailsOpen);
 const vnCalendarDate = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
 
 const money = n => new Intl.NumberFormat('vi-VN').format(n) + 'đ';
@@ -153,11 +143,9 @@ const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, char => ({ '
 const shopTitle = () => escapeHtml(state.shopName || 'Xóm Nhỏ');
 
 function persist() {
-  localStorage.setItem(SAVE_KEY + ':' + (state.revision % 2), encode(state));
+  try { localStorage.setItem(SAVE_KEY + ':' + (state.revision % 2), encode(state)); } catch { message = 'Trình duyệt không cho lưu trên máy. Giữ trang này mở để tiếp tục ca.'; }
   saved = state;
 }
-
-let boostTimer = null;
 
 function getCustomerEmotion(cust) {
   if (!cust) return { stage: 'CALM', icon: '😊', label: 'Bình tĩnh', color: '#16a34a', pct: 100 };
@@ -185,256 +173,75 @@ function getCustomerSprite(c, pose = 'ORDER') {
   return WALKIN_SPRITES[c.visualVariantId] || WALKIN_SPRITES[c.archetype] || WALKIN_SPRITES.walkin_variant_0;
 }
 
-function startBoostClock() {
-  if (boostTimer) clearInterval(boostTimer);
-  boostTimer = setInterval(() => {
-    if (state.screen !== 'SHOP') {
-      clearInterval(boostTimer);
-      boostTimer = null;
-      return;
-    }
-    if (state.focusBoost) {
-      if (state.focusBoost.active) {
-        state.focusBoost.remainingSeconds = Math.max(0, state.focusBoost.remainingSeconds - 1);
-        if (state.focusBoost.remainingSeconds <= 0) {
-          state.focusBoost.active = false;
-          state.focusBoost.cooldownSeconds = 30;
-        }
-        render();
-      } else if (state.focusBoost.cooldownSeconds > 0) {
-        state.focusBoost.cooldownSeconds = Math.max(0, state.focusBoost.cooldownSeconds - 1);
-        render();
-      }
-    }
-  }, 1000);
+function clearAllTimers() {
+  if (simInterval) clearInterval(simInterval);
+  if (resultTimer) clearInterval(resultTimer);
+  simInterval = resultTimer = null;
 }
 
-function clearAllTimers() {
-  if (simInterval) { clearInterval(simInterval); simInterval = null; }
-  simulationSpeed = null;
-  if (boostTimer) { clearInterval(boostTimer); boostTimer = null; }
-  if (betiAnimTimer) { clearInterval(betiAnimTimer); betiAnimTimer = null; }
-  if (prepTimer1) { clearTimeout(prepTimer1); prepTimer1 = null; }
-  if (prepTimer2) { clearTimeout(prepTimer2); prepTimer2 = null; }
-  if (prepTimer3) { clearTimeout(prepTimer3); prepTimer3 = null; }
-  if (leaveTimer) { clearTimeout(leaveTimer); leaveTimer = null; }
-  if (resultTimer) { clearTimeout(resultTimer); resultTimer = null; }
+function updateServiceView() {
+  autoPrepState = serviceVisual(state);
+  const c = state.activeCustomer;
+  customerReaction = null;
+  floatingCash = null;
+  if (state.service?.phase !== 'REACTION' || !c) return;
+  if (c.status === 'SERVED') {
+    const order = state.servedOrders.at(-1);
+    floatingCash = '+' + money((order?.sellPrice || 0) + (order?.tip || 0) - (order?.onlineFee || 0));
+    customerReaction = { status: 'happy', quote: c.id === 'be_ti' && state.extraCha ? 'Nhiều chả quá, con thích lắm! Mai con ghé tiếp!' : c.temperament === 'RUSH' ? 'Kịp giờ rồi! Cảm ơn quán, mình đi đây!' : order?.tip ? 'Ngon quá, gửi quán thêm chút tiền cà phê nha!' : 'Cảm ơn quán, món vừa miệng lắm!' };
+  } else customerReaction = { status: 'disappointed', quote: c.status === 'MENU_DISABLED' ? 'Hôm nay quán không bán món này hả? Để mình ghé bữa khác.' : c.status === 'PRICE_REJECTED' ? 'Giá này hơi quá túi tiền của mình rồi.' : 'Hết món rồi hả? Mai mình ghé sớm hơn vậy.' };
 }
+
 function scheduleNextDay() {
-  if (resultTimer) clearTimeout(resultTimer);
-  if (state.screen !== 'DAY_RESULT' || resultDetailsOpen) return;
-  resultTimer = setTimeout(() => {
-    resultTimer = null;
-    if (state.screen === 'DAY_RESULT' && !resultDetailsOpen) send('NEXT_DAY');
-  }, 12000);
+  if (resultTimer || state.screen !== 'DAY_RESULT') return;
+  state.resultRemainingMs ??= 12000;
+  resultTimer = setInterval(() => {
+    if (state.screen !== 'DAY_RESULT') { clearInterval(resultTimer); resultTimer = null; return; }
+    if (resultDetailsOpen || document.hidden) return;
+    state.resultRemainingMs = Math.max(0, state.resultRemainingMs - 250);
+    state.revision += 1;
+    persist();
+    const label = document.querySelector('#next-day-countdown');
+    if (label) label.textContent = Math.ceil(state.resultRemainingMs / 1000);
+    if (!state.resultRemainingMs) send('NEXT_DAY');
+  }, 250);
 }
 
 function send(type, payload) {
   if (type === 'REPLAY') {
     clearAllTimers();
-    localStorage.removeItem(SAVE_KEY + ':0');
-    localStorage.removeItem(SAVE_KEY + ':1');
-    autoPrepState = null;
-    floatingCash = null;
-    customerReaction = null;
+    try { localStorage.removeItem(SAVE_KEY + ':0'); localStorage.removeItem(SAVE_KEY + ':1'); } catch {}
     state = fresh();
-    persist();
-    render();
-    return;
-  }
-
-  const r = action(state, type, payload);
-  if (r.error) {
-    message = r.error;
-    render();
-    return;
-  }
-
-  state = r.state;
-  message = '';
-  persist();
-  if (type === 'NEXT_DAY') resultDetailsOpen = false;
-
-  // Handle simulation lifecycle when entering/leaving SHOP
-  if (state.screen === 'SHOP') {
-    if (!simInterval) startSimulationLoop();
-    else if (simulationSpeed !== state.speed) restartSimulationClock();
+    resultDetailsOpen = false;
   } else {
-    clearAllTimers();
+    const r = action(state, type, payload);
+    if (r.error) { message = r.error; render(); return; }
+    state = r.state;
   }
-
+  message = '';
+  if (type === 'NEXT_DAY') resultDetailsOpen = false;
+  updateServiceView();
+  persist();
+  if (state.screen === 'SHOP') startSimulationLoop();
+  else { clearAllTimers(); if (state.screen === 'DAY_RESULT') scheduleNextDay(); }
   render();
-  if (state.screen === 'DAY_RESULT') scheduleNextDay();
 }
 
 function startSimulationLoop() {
   if (simInterval) return;
-  // Recover one unfinished customer once on boot; ordinary state updates must
-  // not schedule a second departure for the same order.
-  if (state.activeCustomer) {
-    const custStatus = state.activeCustomer.status;
-    if (['SERVED', 'OUT_OF_STOCK', 'MENU_DISABLED', 'PRICE_REJECTED'].includes(custStatus)) {
-      leaveTimer = setTimeout(() => {
-        leaveTimer = null;
-        send('CUSTOMER_LEAVE');
-      }, 600);
-    } else if (custStatus === 'ARRIVED' && !state.isPaused && !autoPrepState) {
-      runAutoPrepSequence();
-    }
-  }
-  startBoostClock();
-  restartSimulationClock();
-}
-
-let currentPrepCustId = null;
-
-function restartSimulationClock() {
-  if (simInterval) clearInterval(simInterval);
-  simulationSpeed = state.speed;
-  const intervalMs = state.speed === 2 ? 140 : 280;
-  
+  updateServiceView();
   simInterval = setInterval(() => {
-    if (state.screen !== 'SHOP') {
-      clearInterval(simInterval);
-      return;
-    }
-    
-    // ONLY pause when mandatory decision modal is open or app in background
-    if (state.isPaused || (typeof document !== 'undefined' && document.hidden)) {
-      return;
-    }
-
-    // 1. Advance Game Clock & Customer Arrivals / Patience
-    send('TICK', 1);
-
-    // 2. Active Customer Prep & Delivery Pipeline
-    tickAutoPrepPipeline();
-  }, intervalMs);
-}
-
-function tickAutoPrepPipeline() {
-  const cust = state.activeCustomer;
-  if (!cust) {
-    if (autoPrepState) autoPrepState = null;
-    return;
-  }
-
-  // If customer is already processed or leaving
-  if (['SERVED', 'OUT_OF_STOCK', 'MENU_DISABLED', 'PRICE_REJECTED', 'WAIT_TOO_LONG'].includes(cust.status)) {
-    return;
-  }
-
-  const recipeId = cust.recipe;
-  const isExtra = cust.id === 'be_ti' && state.extraCha === true;
-  const needs = recipeNeeds(recipeId, isExtra);
-  const menuItem = state.menu[recipeId];
-  const recipeDef = recipes[recipeId];
-
-  // 1. Check Menu Disabled
-  if (!menuItem || !menuItem.enabled) {
-    autoPrepState = { stage: 'menudisabled', progress: 100, item: recipeId, isExtra };
+    if (document.hidden || state.screen !== 'SHOP' || state.isPaused || state.manualPaused) return;
+    const before = state.activeCustomer?.id + ':' + state.service?.phase;
+    const revenue = state.revenue;
+    state = advanceShift(state, 200);
+    updateServiceView();
+    if (state.revenue > revenue) playCoins();
+    else if (before !== state.activeCustomer?.id + ':' + state.service?.phase && state.service?.phase === 'HANDOFF') playChime();
+    persist();
     render();
-    setTimeout(() => {
-      send('SERVE_AUTO');
-      customerReaction = { quote: `Ủa nay quán không bán ${recipeDef?.name || 'món này'} hả chú? Tiếc ghê!`, status: 'disappointed' };
-      render();
-      setTimeout(() => { customerReaction = null; autoPrepState = null; send('CUSTOMER_LEAVE'); render(); }, 1200);
-    }, 600);
-    return;
-  }
-
-  // 2. Check Price Rejection
-  if (menuItem.sellPrice > recipeDef.basePrice && cust.priceSensitivity === 'HIGH') {
-    autoPrepState = { stage: 'pricerejected', progress: 100, item: recipeId, isExtra };
-    render();
-    setTimeout(() => {
-      send('SERVE_AUTO');
-      customerReaction = { quote: `Ủa nay ${recipeDef?.name || 'món này'} lên tới ${money(menuItem.sellPrice)} dữ vậy chú? Mắc quá!`, status: 'angry' };
-      render();
-      setTimeout(() => { customerReaction = null; autoPrepState = null; send('CUSTOMER_LEAVE'); render(); }, 1200);
-    }, 600);
-    return;
-  }
-
-  // 3. Check Stock
-  if (!hasEnoughStock(state.stock, needs)) {
-    autoPrepState = { stage: 'outofstock', progress: 100, item: recipeId, isExtra };
-    render();
-    setTimeout(() => {
-      send('SERVE_AUTO');
-      customerReaction = { quote: 'Hết hàng rồi hả chú? Tiếc quá, để mai con ghé sớm ủng hộ tiếp nha!', status: 'disappointed' };
-      render();
-      setTimeout(() => { customerReaction = null; autoPrepState = null; send('CUSTOMER_LEAVE'); render(); }, 1200);
-    }, 600);
-    return;
-  }
-
-  // 4. Active Prep Progress
-  if (!autoPrepState || currentPrepCustId !== cust.id) {
-    currentPrepCustId = cust.id;
-    autoPrepState = { stage: 'layer1', progress: 0, item: recipeId, isExtra, customerPose: 'ORDER' };
-    playTap('bread');
-    render();
-    return;
-  }
-
-  // Dynamic Boost Multiplier (Takes effect immediately mid-order!)
-  const multiplier = (state.focusBoost && state.focusBoost.active) ? 2.0 : 1.0;
-  // Step advance: ~12.5% per tick at 1x (~8 ticks = 2.2s), ~25% per tick at 2x (~4 ticks = 1.1s)
-  autoPrepState.progress = Math.min(100, autoPrepState.progress + (12.5 * multiplier));
-
-  if (autoPrepState.progress < 35) {
-    autoPrepState.stage = 'layer1';
-    autoPrepState.customerPose = 'ORDER';
-  } else if (autoPrepState.progress < 70) {
-    if (autoPrepState.stage === 'layer1') playTap('cha');
-    autoPrepState.stage = 'layer2';
-    autoPrepState.customerPose = 'ORDER';
-  } else if (autoPrepState.progress < 85) {
-    if (autoPrepState.stage === 'layer2') playChime();
-    // Dish placed on counter tray! Prep dock clears!
-    autoPrepState.stage = 'deliver_to_tray';
-    autoPrepState.customerPose = 'RECEIVE';
-  } else if (autoPrepState.progress < 100) {
-    // Customer reacts! Dish remains ON THE TRAY!
-    autoPrepState.stage = 'customer_react';
-    autoPrepState.customerPose = 'REACT';
-    if (!customerReaction) {
-      playCoins();
-      send('SERVE_AUTO');
-      const earned = menuItem.sellPrice;
-      floatingCash = '+' + money(earned + (state.servedOrders.at(-1)?.tip || 0));
-
-      let quote = 'Cảm ơn chú nhiều nghen, món ngon vừa miệng lắm!';
-      if (cust.id === 'be_ti') {
-        quote = isExtra
-          ? 'Oa chả ngập tràn luôn, con cảm ơn chú nhiều lắm! Mai con ghé tiếp!'
-          : 'Bánh mì giòn rụm thơm phức, con cảm ơn chú nghen!';
-      } else if (cust.id === 'co_chin') {
-        quote = 'Trà tắc mát rượi thanh tao, đã khát thiệt đó con ơi!';
-      } else if (cust.id === 'anh_tung') {
-        quote = 'Sữa đậu béo bùi mát lạnh, tỉnh cả người em ơi! Anh chạy cuốc trưa đây!';
-      } else if (cust.priceSensitivity === 'LOW' && menuItem.sellPrice > recipeDef.basePrice) {
-        quote = 'Giá nay hơi nhỉnh xíu ha chú, mà thèm quá nên mua luôn nè!';
-      } else if (menuItem.sellPrice < recipeDef.basePrice) {
-        quote = 'Quán bán giá mềm mà chất lượng ghê, để bác rủ thêm người ủng hộ!';
-      } else if (cust.temperament === 'RUSH') {
-        quote = 'Kịp giờ rồi! Cảm ơn quán, mình đi đây!';
-      } else if (cust.temperament === 'FRIENDLY') {
-        quote = 'Ngon quá, gửi thêm quán ít tiền cà phê nha!';
-      }
-      customerReaction = { quote, status: 'happy' };
-    }
-  } else {
-    // 100% reached: Dish disappears from tray! Customer departs!
-    autoPrepState = null;
-    customerReaction = null;
-    floatingCash = null;
-    currentPrepCustId = null;
-    send('CUSTOMER_LEAVE');
-  }
-
-  render();
+    if (state.screen !== 'SHOP') { clearAllTimers(); scheduleNextDay(); }
+  }, 200);
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -484,16 +291,17 @@ function renderXomOi() {
           ${state.rating !== null && state.rating < 3 ? '<br>⚠️ Sao quán đang thấp: khách bình dân sẽ dè giá cao, dự kiến ít người ghé hơn.' : ''}
           <br>Sức chở ${state.upgrades.vehicleCapacity} đơn vị: trần sao hiện tại ${state.upgrades.vehicleCapacity <= 20 ? '3,5' : state.upgrades.vehicleCapacity <= 30 ? '4,0' : '5,0'}; nâng xe để phục vụ nhiều khách hơn.
           <br>Tem ghé xóm: ${state.login?.visitDays || 0} ngày lịch, nghỉ chơi không mất tem.</div>
+          ${state.lastDayReport?.recommendation ? `<p class="story-hint">${escapeHtml(state.lastDayReport.recommendation)}</p>` : ''}
           ${state.lastDayReport ? `<details class="story-hint"><summary>Xem lại ngày ${state.lastDayReport.day}: ${state.lastDayReport.served} khách được phục vụ · két ${money(state.lastDayReport.cash)}</summary><ul>${state.lastDayReport.feedback.slice(0, 3).map(f => `<li>${escapeHtml(f.name)}: ${escapeHtml(f.text)}</li>`).join('')}</ul></details>` : ''}
           <div class="upgrade-list"><h3>🔧 Nâng cấp trước khi đi chợ</h3>
             ${Object.entries(UPGRADE_CATALOG).map(([id, u]) => `
-              <button class="btn-secondary" data-type="UPGRADE" data-payload="${id}" ${state.currentDay < (u.unlockDay || 2) || state.upgrades[id] >= u.maxLevel || state.cash < (state.upgrades[id] === 1 ? (u.nextCost || u.cost) : u.cost) ? 'disabled' : ''}>
-                ${u.name} · ${money(state.upgrades[id] === 1 ? (u.nextCost || u.cost) : u.cost)} — ${u.description} (${state.upgrades[id]}/${u.maxLevel})${state.currentDay < (u.unlockDay || 2) ? ` · Mở ngày ${u.unlockDay}` : ''}
+              <button class="btn-secondary" data-type="UPGRADE" data-payload="${id}" ${state.currentDay < (u.unlockDay || 2) || (id === 'cargo' && state.upgrades.bike_basket < 2) || (state.upgrades[id] || 0) >= u.maxLevel || state.cash < (state.upgrades[id] === 1 ? (u.nextCost || u.cost) : u.cost) ? 'disabled' : ''}>
+                ${u.name} · ${money(state.upgrades[id] === 1 ? (u.nextCost || u.cost) : u.cost)} — ${u.description} (${state.upgrades[id] || 0}/${u.maxLevel})${state.currentDay < (u.unlockDay || 2) ? ` · Mở ngày ${u.unlockDay}` : ''}
               </button>
             `).join('')}
           </div>
           ${state.currentDay >= 3 ? `<button class="btn-secondary" data-type="LEARN_RECIPE" data-payload="BANH_MI_TRUNG" ${!state.upgrades.counter || state.knownRecipeIds.includes('BANH_MI_TRUNG') || state.cash < 12000 ? 'disabled' : ''}>📒 Học bánh mì ốp la · 12.000đ (cần nới quầy)${state.knownRecipeIds.includes('BANH_MI_TRUNG') ? ' · Đã học' : ''}</button>` : ''}
-          ${state.currentDay >= 8 ? `<button class="btn-secondary" data-type="HIRE_STAFF" ${state.staffHiredToday || state.cash < 8000 ? 'disabled' : ''}>🧑‍🍳 Thuê người phụ ca này · lương 8.000đ; có thể nhận 2 khách giờ trưa, vẫn cần đủ nguyên liệu</button>` : ''}
+          ${state.currentDay >= 8 ? `<button class="btn-secondary" data-type="HIRE_STAFF" ${state.staffHiredToday || state.cash < 8000 ? 'disabled' : ''}>🧑‍🍳 Thuê người phụ ca này · lương 8.000đ; làm món nhanh hơn 35%, vẫn cần đủ nguyên liệu</button>` : ''}
           ${state.currentDay >= 15 ? `<button class="btn-secondary" data-type="ENABLE_ONLINE" ${state.onlineEnabledToday ? 'disabled' : ''}>🛵 Nhận 2 đơn mang đi · phí 2.000đ/đơn thành công, dùng chung hàng tồn</button>` : ''}
           ${state.cash < 11000 && !state.sideJobIncome ? `<button class="btn-secondary" data-type="SIDE_JOB">🧹 Phụ cô hàng xóm dọn sân · nhận 15.000đ vốn nhập hàng</button>` : ''}
           ${state.sideJobIncome ? `<p>Hôm nay đã làm việc phụ: +${money(state.sideJobIncome)}. Khoản này ghi riêng với tiền bán món.</p>` : ''}
@@ -546,7 +354,7 @@ function renderMarket() {
           <span>🌟 Chọn Gói Gợi Ý Day 1 (55.000đ)</span>
           <small>3 Bánh mì, 4 Chả, 3 Dưa, 3 Đá, 3 Đường, 2 Tắc, 1 Sữa (19 đơn vị)</small>
         </button>
-      </div>` : `<p class="market-note">Ngày ${state.currentDay}: chọn số lượng dựa trên lượng khách dự kiến. Hàng khô còn từ hôm qua: ${Object.entries(state.stock).filter(([id, qty]) => qty > 0).map(([id, qty]) => `${ingredientMeta[id]?.name}: ${qty}`).join(', ') || 'không có'}.</p>`}
+      </div>` : `<div class="bundle-quick-row"><button class="btn-bundle" data-type="SUGGEST_BASKET">Chọn giỏ gợi ý hôm nay<small>Theo khách dự kiến, món đã bật, tiền và sức chở. Bạn có thể chỉnh lại.</small></button></div><p class="market-note">Ngày ${state.currentDay}: chọn số lượng dựa trên lượng khách dự kiến. Hàng khô còn từ hôm qua: ${Object.entries(state.stock).filter(([id, qty]) => qty > 0).map(([id, qty]) => `${ingredientMeta[id]?.name}: ${qty}`).join(', ') || 'không có'}.</p>`}
 
       <div class="market-list">
         ${Object.entries(ingredients).filter(([id]) => state.currentDay > 1 || id !== 'egg').map(([id, item]) => {
@@ -660,7 +468,7 @@ function renderShop() {
   // late starts at +120. Do not add the opening offset twice.
   const totalMinutes = 480 + state.clock;
   const hours = Math.floor(totalMinutes / 60);
-  const minutes = totalMinutes % 60;
+  const minutes = Math.floor(totalMinutes % 60);
   const timeFormatted = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
 
   const cust = state.activeCustomer;
@@ -678,6 +486,7 @@ function renderShop() {
     <header class="top-nav">
       <div class="brand-title">${shopTitle()}</div>
       <div class="clock-display">
+        <small>Ngày ${state.currentDay} · ${state.servedOrders.length}/${state.dayCustomers.length} khách</small>
         <span>⏰ ${timeFormatted}</span>
         <div class="speed-toggle">
           <button class="speed-btn ${state.speed === 1 ? 'active' : ''}" data-type="SPEED" data-payload="1">x1</button>
@@ -685,7 +494,7 @@ function renderShop() {
         </div>
       </div>
       <div class="top-nav-right" style="display: flex; align-items: center; gap: 8px;">
-        <button class="btn-icon-replay" data-type="REPLAY" title="Chơi lại" style="background: none; border: none; font-size: 16px; cursor: pointer; color: #fbd38d; min-width: 44px; min-height: 44px; display: flex; align-items: center; justify-content: center;">🔄</button>
+        <button class="btn-icon-replay" data-type="TOGGLE_PAUSE" title="Tạm dừng hoặc tiếp tục ca" style="background: none; border: none; font-size: 16px; cursor: pointer; color: #fbd38d; min-width: 44px; min-height: 44px; display: flex; align-items: center; justify-content: center;">${state.manualPaused ? '▶' : 'Ⅱ'}</button>
         <div class="wallet-badge" style="position: relative;">
           💵 ${money(state.cash)}
           ${floatingCash ? `<div class="floating-cash-burst">${floatingCash}</div>` : ''}
@@ -694,6 +503,8 @@ function renderShop() {
     </header>
 
     <div class="shop-stage-container">
+      ${state.manualPaused ? '<div class="pause-notice">Ca đang tạm dừng. Bấm ▶ để tiếp tục.</div>' : ''}
+      ${message ? `<div class="alert-message">${escapeHtml(message)}</div>` : ''}
       ${state.newsTicker ? `
         <div class="news-ticker-banner">
           <span>📢 ${state.newsTicker.text}</span>
@@ -715,7 +526,7 @@ function renderShop() {
               const waitSprite = getCustomerSprite(waitCust);
               const isPrio = state.prioritizedCustomerId === waitCust.id;
               return `
-                <div class="queue-actor-wrap queue-pos-${idx} ${isPrio ? 'is-prioritized' : ''}" data-type="PRIORITIZE" data-payload="${waitCust.id}" title="Chạm để ưu tiên phục vụ">
+                <div class="queue-actor-wrap queue-pos-${idx} ${isPrio ? 'is-prioritized' : ''}" data-type="PRIORITIZE" data-payload="${waitCust.id}" role="button" tabindex="0" aria-label="Ưu tiên ${escapeHtml(waitCust.name)}" title="Chạm để ưu tiên phục vụ">
                   <img src="${waitSprite}" class="actor-sprite queue-sprite" alt="${escapeHtml(waitCust.name)}">
                   <div class="queue-mini-bubble">
                     <span class="emotion-icon">${waitEmotion.icon}</span>
@@ -735,19 +546,19 @@ function renderShop() {
           <div class="customer-actor-wrap ${isLeaving ? 'served-leaving' : ''} ${currentPose === 'RECEIVE' ? 'pose-receive' : (currentPose === 'REACT' ? 'pose-react' : 'pose-order')}">
             <img src="${getCustomerSprite(cust, currentPose)}" class="actor-sprite ${isBeti ? 'beti-sprite' : (isCoChin ? 'co-chin-sprite' : (isAnhTung ? 'anh-tung-sprite' : (cust.archetype === 'teen' ? 'teen-sprite' : 'walkin-sprite')))}" alt="${escapeHtml(cust.name)}">
 
-            <!-- Customer speech bubble with emotion & patience -->
+          </div>
+            <!-- Speech is a scene-level layer so foreground art cannot wash it out. -->
             <div class="customer-bubble">
               <div class="bubble-header-row">
                 <span class="bubble-emotion-icon">${currentPose === 'REACT' ? '😊' : custEmotion.icon}</span>
                 <strong>${escapeHtml(cust.name)}${cust.temperament === 'RUSH' ? ' · Đang vội' : cust.temperament === 'FRIENDLY' ? ' · Vui vẻ' : ''}</strong>
               </div>
-              <span class="bubble-dialogue-text">"${escapeHtml((currentPose === 'REACT' && customerReaction) ? customerReaction.quote : cust.dialogue)}"</span>
+              <span class="bubble-dialogue-text">"${escapeHtml(customerReaction ? customerReaction.quote : cust.dialogue)}"</span>
               <div class="patience-mini-bar">
                 <div class="patience-fill" style="width: ${custEmotion.pct}%; background-color: ${custEmotion.color};"></div>
               </div>
-              ${currentPose === 'REACT' ? `<div class="bubble-sparkle">✨ Cảm ơn quán!</div>` : ''}
+              ${currentPose === 'REACT' ? `<div class="bubble-sparkle">Cảm ơn quán!</div>` : ''}
             </div>
-          </div>
         ` : `
           <div class="empty-street-idle">
             <span>Tiếng ve kêu râm ran... Quán đang chờ khách ghé</span>
@@ -773,15 +584,16 @@ function renderShop() {
         <div class="management-controls-row">
           <button class="btn-focus-boost ${state.focusBoost?.active ? 'is-active' : (state.focusBoost?.cooldownSeconds > 0 ? 'is-cooldown' : '')}"
                   data-type="FOCUS_BOOST"
-                  ${state.focusBoost?.active || state.focusBoost?.cooldownSeconds > 0 ? 'disabled' : ''}>
+                  ${state.isPaused || state.manualPaused || state.focusBoost?.active || state.focusBoost?.cooldownSeconds > 0 ? 'disabled' : ''}>
             ${state.focusBoost?.active
-              ? `⚡ ĐANG TẬP TRUNG (${state.focusBoost.remainingSeconds}s · Chế biến x2)`
+              ? `⚡ ĐANG TẬP TRUNG (${Math.ceil(state.focusBoost.remainingSeconds)}s · Chế biến x2)`
               : (state.focusBoost?.cooldownSeconds > 0
-                ? `⏳ Hồi chiêu (${state.focusBoost.cooldownSeconds}s)`
+                ? `⏳ Hồi chiêu (${Math.ceil(state.focusBoost.cooldownSeconds)}s)`
                 : `⚡ Tập Trung Phục Vụ (x2)`)}
           </button>
         </div>
         ${state.waitingQueue && state.waitingQueue.length > 0 ? `
+          <p class="queue-help">Ưu tiên đổi đơn kế tiếp. Món đang làm vẫn tiếp tục; tập trung giúp làm nhanh hơn.</p>
           <div class="queue-management-strip">
             <div class="queue-strip-label">👥 Hàng chờ (${state.waitingQueue.length}):</div>
             <div class="queue-cards-row">
@@ -791,10 +603,10 @@ function renderShop() {
                 return `
                   <div class="queue-cust-card ${isPrio ? 'is-prioritized' : ''}">
                     <div class="queue-cust-info">
-                      <span class="queue-cust-avatar">${qEmotion.icon}</span>
+                      <img class="queue-cust-avatar" src="${getCustomerSprite(qCust)}" alt="">
                       <div class="queue-cust-text">
                         <strong>${escapeHtml(qCust.name)}</strong>
-                        <small>${recipes[qCust.recipe]?.name || qCust.recipe}</small>
+                        <small>${recipes[qCust.recipe]?.name || qCust.recipe} · ${qEmotion.label}</small>
                       </div>
                     </div>
                     <div class="queue-cust-patience-bar">
@@ -814,16 +626,16 @@ function renderShop() {
       <!-- Auto-Prep Rustic Wooden Workstation -->
       <div class="auto-prep-bench">
         <div class="prep-bench-header">
-          <span class="prep-bench-title">🌿 Bàn Pha Chế Quán Phố</span>
+          <span class="prep-bench-title">${cust ? escapeHtml(recipes[cust.recipe]?.name) : 'Bàn chế biến'}</span>
           <span class="prep-status-text">
             ${autoPrepState ? (
-              autoPrepState.stage === 'layer1' ? 'Lớp 1/3: Chuẩn bị vỏ/ly...' :
-              autoPrepState.stage === 'layer2' ? 'Lớp 2/3: Thêm nhân/rót nước...' :
+              autoPrepState.stage === 'layer1' ? 'Đang chuẩn bị' :
+              autoPrepState.stage === 'layer2' ? 'Đang hoàn thiện món' :
               autoPrepState.stage === 'deliver_to_tray' ? '✨ Đã chuyển món lên khay quầy!' :
               autoPrepState.stage === 'customer_react' ? '🎉 Khách nhận món ngon lành!' :
               autoPrepState.stage === 'menudisabled' ? 'Món không bán hôm nay!' :
               autoPrepState.stage === 'pricerejected' ? 'Khách chê giá đắt!' : 'Hết nguyên liệu!'
-            ) : 'Thớt gỗ sẵn sàng · Đồ nghề tinh tươm'}
+            ) : cust ? `Đang chuẩn bị ${recipes[cust.recipe]?.name || 'món'}` : 'Sẵn sàng đón khách'}
           </span>
         </div>
 
@@ -842,7 +654,6 @@ function renderShop() {
               </div>
               <div class="prep-layer-caption">
                 ${autoPrepState.stage === 'layer1' ? 'Vỏ bánh mì nướng giòn rụm' : (autoPrepState.isExtra ? 'Xếp 2 khoanh chả lụa dày đặc + dưa ngò' : 'Xếp chả lụa thơm ngậy + dưa ngò')}
-              </div>
             </div>
           ` : ['layer1', 'layer2'].includes(autoPrepState?.stage) && autoPrepState.item === 'TRA_TAC' ? `
             <div class="watercolor-prep-stage drink-stage">
@@ -871,17 +682,7 @@ function renderShop() {
             </div>
           ` : `
             <div class="prep-idle-platter rustic-board">
-              <div class="cutting-board-elements">
-                <img src="../assets/ingredients/bread.png" class="idle-board-mini-ing" alt="Bánh mì" title="Bánh mì">
-                <img src="../assets/ingredients/cha.png" class="idle-board-mini-ing" alt="Chả lụa" title="Chả lụa">
-                <img src="../assets/ingredients/vegetable.png" class="idle-board-mini-ing" alt="Dưa ngò" title="Dưa ngò">
-                <div class="board-steam">
-                  <span class="steam-wisp s1">~</span>
-                  <span class="steam-wisp s2">~</span>
-                  <span class="steam-wisp s3">~</span>
-                </div>
-              </div>
-              <span class="idle-desc">${autoPrepState && autoPrepState.stage === 'deliver_to_tray' ? '✨ Thớt gỗ sạch sẽ · Đã đặt món lên khay quầy' : (autoPrepState && autoPrepState.stage === 'customer_react' ? '🎉 Khách đang nhận món · Thớt gỗ chuẩn bị đợt mới' : 'Thớt gỗ sạch sẽ · Đồ nghề tinh tươm · Ly tách ngay ngắn')}</span>
+              <span class="idle-desc">${autoPrepState && autoPrepState.stage === 'deliver_to_tray' ? '✨ Thớt gỗ sạch sẽ · Đã đặt món lên khay quầy' : (autoPrepState && autoPrepState.stage === 'customer_react' ? '🎉 Khách đang nhận món · Thớt gỗ chuẩn bị đợt mới' : cust ? `Chuẩn bị ${recipes[cust.recipe]?.name || 'món'}` : 'Chờ khách tiếp theo')}</span>
             </div>
           `}
         </div>
@@ -948,8 +749,9 @@ function renderDayResult() {
           <p>Doanh thu ${money(ledger.totalSalesRevenue)} · Lãi gộp ${money(ledger.grossOperatingProfit)} · Tiền két ${money(ledger.finalCashInDrawer)}</p>
           <h4>Khách nói gì hôm nay?</h4>
           <ul class="journal-list">${(state.lastDayReport?.feedback || []).filter(f => f.reason !== 'SERVED').slice(0, 2).concat((state.lastDayReport?.feedback || []).filter(f => f.reason === 'SERVED').slice(0, 1)).map(f => `<li><b>${escapeHtml(f.name)}:</b> ${escapeHtml(f.text)}</li>`).join('') || '<li>Hôm nay chưa có phản hồi.</li>'}</ul>
+          <p><b>Gợi ý:</b> ${escapeHtml(state.lastDayReport?.recommendation || '')}</p>
           <p><b>Ngày mai:</b> ${escapeHtml(state.lastDayReport?.forecastTomorrow || '')}</p>
-          <small>Tự sang màn chuẩn bị ngày ${state.currentDay + 1} sau 12 giây. Chạm xem sổ để dừng đếm.</small>
+          <small>Tự sang màn chuẩn bị ngày ${state.currentDay + 1} sau <b id="next-day-countdown">${Math.ceil((state.resultRemainingMs ?? 12000) / 1000)}</b> giây. Chạm xem sổ để dừng đếm.</small>
         </div>
         <details id="day-ledger-details" ${resultDetailsOpen ? 'open' : ''}><summary class="btn-secondary">Xem sổ chi tiết & toàn bộ feedback</summary>
 
@@ -965,7 +767,7 @@ function renderDayResult() {
             <strong>-${money(ledger.spentOnMorningStock)}</strong>
           </div>
           ${ledger.upgradeOutlay ? `<div class="ledger-row minus"><span>Chi nâng cấp quán:</span><strong>-${money(ledger.upgradeOutlay)}</strong></div>` : ''}
-          ${ledger.operatingExpenses ? `<div class="ledger-row minus"><span>Chi chuẩn bị mở sớm:</span><strong>-${money(ledger.operatingExpenses)}</strong></div>` : ''}
+          ${ledger.operatingExpenses ? `<div class="ledger-row minus"><span>Chi vận hành (nhân viên, sự kiện):</span><strong>-${money(ledger.operatingExpenses)}</strong></div>` : ''}
           ${ledger.onlineFees ? `<div class="ledger-row minus"><span>Phí đơn mang đi:</span><strong>-${money(ledger.onlineFees)}</strong></div>` : ''}
           ${ledger.sideJobIncome ? `<div class="ledger-row plus"><span>Tiền việc phụ trong xóm:</span><strong>+${money(ledger.sideJobIncome)}</strong></div>` : ''}
           <div class="ledger-row plus">
@@ -1002,7 +804,7 @@ function renderDayResult() {
           </div>
           <hr class="ledger-divider">
           <div class="ledger-row highlight profit">
-            <span>👉 LỢI NHUẬN GỘP (GROSS OPERATING PROFIT):</span>
+            <span>👉 LỢI NHUẬN GỘP:</span>
             <strong>${ledger.grossOperatingProfit >= 0 ? '+' : ''}${money(ledger.grossOperatingProfit)}</strong>
           </div>
           <div class="ledger-row sub">
@@ -1010,7 +812,7 @@ function renderDayResult() {
             <strong>${money(ledger.retainedStockValueAtCost)}</strong>
           </div>
           <div class="ledger-row sub"><span>Nguyên liệu tươi hỏng cuối ngày:</span><strong>${money(ledger.spoilageLoss)}</strong></div>
-          <div class="ledger-row sub"><span>Kết quả sau hao hụt, chi vận hành, phí giao và việc phụ:</span><strong>${money(ledger.resultAfterSpoilageAndExpenses)}</strong></div>
+          <div class="ledger-row sub"><span>Kết quả gồm tip, hao hụt, chi vận hành và việc phụ:</span><strong>${money(ledger.resultAfterSpoilageAndExpenses)}</strong></div>
         </div>
 
         <!-- 3. Lãi gộp theo món -->
@@ -1091,13 +893,33 @@ function renderDayResult() {
   `;
 }
 
+let renderedScreen = null;
+function patchNode(old, next) {
+  if (old.nodeType !== next.nodeType || old.nodeName !== next.nodeName) { old.replaceWith(next.cloneNode(true)); return; }
+  if (old.nodeType === 3 || old.nodeType === 8) { if (old.nodeValue !== next.nodeValue) old.nodeValue = next.nodeValue; return; }
+  for (const attr of [...old.attributes]) if (!next.hasAttribute(attr.name)) old.removeAttribute(attr.name);
+  for (const attr of [...next.attributes]) if (old.getAttribute(attr.name) !== attr.value) old.setAttribute(attr.name, attr.value);
+  if (old.nodeName === 'INPUT' && old.type === 'checkbox') old.checked = next.checked;
+  const a = [...old.childNodes], b = [...next.childNodes];
+  for (let i = 0; i < Math.max(a.length, b.length); i++) {
+    if (!b[i]) a[i].remove();
+    else if (!a[i]) old.appendChild(b[i].cloneNode(true));
+    else patchNode(a[i], b[i]);
+  }
+}
 function render() {
-  if (state.screen === 'HOME') $.innerHTML = renderHome();
-  else if (state.screen === 'XOM_OI') $.innerHTML = renderXomOi();
-  else if (state.screen === 'MARKET') $.innerHTML = renderMarket();
-  else if (state.screen === 'MENU') $.innerHTML = renderMenuSetup();
-  else if (state.screen === 'SHOP') $.innerHTML = renderShop();
-  else if (state.screen === 'DAY_RESULT') $.innerHTML = renderDayResult();
+  const html = ({ HOME: renderHome, XOM_OI: renderXomOi, MARKET: renderMarket, MENU: renderMenuSetup, SHOP: renderShop, DAY_RESULT: renderDayResult }[state.screen])();
+  // Preserve buttons, images and CSS animation nodes between clock updates.
+  if (renderedScreen === state.screen && document.createElement) {
+    const draft = document.createElement('main');
+    draft.innerHTML = html;
+    const a = [...$.childNodes], b = [...draft.childNodes];
+    for (let i = 0; i < Math.max(a.length, b.length); i++) {
+      if (!b[i]) a[i].remove();
+      else if (!a[i]) $.appendChild(b[i].cloneNode(true));
+      else patchNode(a[i], b[i]);
+    }
+  } else { $.innerHTML = html; renderedScreen = state.screen; }
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -1128,6 +950,7 @@ $.addEventListener('click', e => {
   }
 
   if (t === 'REPLAY') {
+    if (!window.confirm('Chơi lại sẽ xóa tiến độ quán trên máy này. Bạn muốn bắt đầu lại?')) return;
     send('REPLAY');
     return;
   }
@@ -1190,13 +1013,18 @@ $.addEventListener('click', e => {
 $.addEventListener('toggle', e => {
   if (e.target?.id !== 'day-ledger-details') return;
   resultDetailsOpen = e.target.open;
-  if (resultDetailsOpen) {
-    if (resultTimer) clearTimeout(resultTimer);
-    resultTimer = null;
-  } else scheduleNextDay();
+  state.resultDetailsOpen = resultDetailsOpen;
+  state.revision += 1;
+  persist();
 }, true);
-
+$.addEventListener('keydown', e => {
+  if (e.target?.id === 'shop-name-input' && e.key === 'Enter') {
+    send('SET_SHOP_NAME', e.target.value);
+    if (state.shopName) send('NAVIGATE');
+  }
+});
 // Initial boot
+updateServiceView();
 const loginClaim = action(state, 'CLAIM_LOGIN', vnCalendarDate());
 if (!loginClaim.error && loginClaim.state !== state) { state = loginClaim.state; persist(); }
 render();

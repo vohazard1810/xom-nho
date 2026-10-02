@@ -8,7 +8,8 @@ export const UPGRADE_CATALOG = Object.freeze({
   bike_basket: { name: 'Rổ đèo hàng', cost: 30000, nextCost: 45000, description: 'Sức chở 20 → 30 → 45 đơn vị', maxLevel: 2 },
   counter: { name: 'Nới quầy', cost: 25000, description: 'Mở slot thứ 4 và món bánh mì ốp la', maxLevel: 1 },
   seating: { name: 'Ghế nhựa thêm', cost: 20000, description: 'Thêm 2 chỗ ngồi, thu hút thêm khách', maxLevel: 2 },
-  canopy: { name: 'Mái che quán', cost: 35000, description: 'Từ ngày 5: giữ thêm 1 khách vào ngày mưa', maxLevel: 1, unlockDay: 5 }
+  canopy: { name: 'Mái che quán', cost: 35000, description: 'Giữ khách trú mưa và tránh chậm chế biến vì mưa', maxLevel: 1, unlockDay: 5 },
+  cargo: { name: 'Thùng hàng xe máy', cost: 95000, description: 'Thêm 30 đơn vị sức chở, cần rổ hàng cấp 2', maxLevel: 1, unlockDay: 10 }
 });
 export const FRESH_INGREDIENTS = new Set(['bread', 'cha', 'vegetable', 'ice', 'kumquat', 'soy_milk', 'egg']);
 
@@ -88,24 +89,24 @@ export const TWENTY_ONE_DAY_EVENTS = [
 
 export function dayConfig(day) {
   if (day === 1) return { marketPrices: null, ...TWENTY_ONE_DAY_EVENTS[0] };
-  const eventIdx = Math.min(day - 1, TWENTY_ONE_DAY_EVENTS.length - 1);
+  const eventIdx = (day - 1) % TWENTY_ONE_DAY_EVENTS.length;
   const choice = TWENTY_ONE_DAY_EVENTS[eventIdx] || TWENTY_ONE_DAY_EVENTS[(day - 1) % TWENTY_ONE_DAY_EVENTS.length];
   
   // Market price dynamics
   const prices = {
-    kumquat: 3000,
-    sugar_syrup: day >= 5 ? 3000 : 2000,
+    kumquat: choice.event === 'market_deal' ? 2000 : choice.event === 'hot_weather' ? 4000 : 3000,
+    sugar_syrup: choice.event === 'market_deal' ? 2000 : day >= 5 ? 3000 : 2000,
     ...(day >= 4 && day % 3 === 1 ? { egg: 4000 } : {})
   };
 
   return {
     ...choice,
     marketPrices: prices,
-    forecast: `Tin chợ: tắc ${prices.kumquat?.toLocaleString('vi-VN') || '3.000'}đ/trái${day >= 5 ? ', nước đường 3.000đ/muỗng' : ''}. ${choice.forecast}`
+    forecast: `Tin chợ: tắc ${prices.kumquat.toLocaleString('vi-VN')}đ/trái, nước đường ${prices.sugar_syrup.toLocaleString('vi-VN')}đ/muỗng. ${choice.forecast}`
   };
 }
 
-export function rosterForDay(day, rating = 3, seatingLevel = 0, canopy = 0) {
+export function rosterForDay(day, rating = 3, seatingLevel = 0, canopy = 0, knownRecipes = null) {
   if (day === 1) return null; // Day 1 retains its approved eight-customer fixture.
   const config = dayConfig(day);
   const reputationDemand = rating >= 4 ? 2 : rating < 2 ? -3 : rating < 3 ? -1 : 0;
@@ -118,18 +119,20 @@ export function rosterForDay(day, rating = 3, seatingLevel = 0, canopy = 0) {
     const arch = WALK_IN_ARCHETYPES[archKey];
     const nameIndex = (day * 7 + i) % arch.names.length;
     const name = arch.names[nameIndex];
-    const temperament = (day + i * 3) % 5 === 0 ? 'RUSH' : (day + i) % 4 === 0 ? 'FRIENDLY' : 'NORMAL';
-    const recipe = recipes[(day + i) % recipes.length];
+    const temperament = day >= 3 && i === 2 ? 'RUSH' : (day + i * 3) % 5 === 0 ? 'RUSH' : (day + i) % 4 === 0 ? 'FRIENDLY' : 'NORMAL';
+    let recipe = config.event === 'hot_weather' ? (i % 3 ? 'TRA_TAC' : 'SUA_DAU_DA') : recipes[(day + i) % recipes.length];
+    if (knownRecipes && !knownRecipes.includes(recipe)) recipe = 'BANH_MI_CHA';
     const dialogue = arch.quotes[temperament] || arch.quotes.NORMAL;
 
     return {
       id: `walkin_d${day}_${i}`,
       personId: `${archKey}_${nameIndex}`,
       visualVariantId: arch.visualVariantId,
+      archetype: arch.archetype,
       name,
       isRegular: false,
       recipe,
-      arrivalMinute: 25 + Math.round(i * 290 / Math.max(1, count - 1)),
+      arrivalMinute: day >= 3 ? (i < 3 ? 25 + [0, 5, 8][i] : 100 + Math.round((i - 3) * 215 / Math.max(1, count - 4))) : 25 + Math.round(i * 290 / Math.max(1, count - 1)),
       priceSensitivity: config.event === 'payday' || config.event === 'month_end_bonus' ? 'LOW' : config.event === 'roadwork' ? (i % 2 ? 'HIGH' : 'MEDIUM') : temperament === 'RUSH' ? 'LOW' : (i % 3 === 0 ? 'HIGH' : 'MEDIUM'),
       temperament,
       dialogue

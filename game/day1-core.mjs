@@ -95,6 +95,7 @@ export const fixtureCustomers = Object.freeze([
     isRegular: true,
     recipe: 'SUA_DAU_DA',
     arrivalMinute: 126, // 10:06 (Cao điểm sáng: khách thứ 3 dồn dập vào hàng chờ)
+    maxPatience: 120, // First-day tutorial is forgiving; later rush guests wait less.
     priceSensitivity: 'LOW',
     temperament: 'RUSH',
     dialogue: 'Cho anh ly Sữa đậu đá mát rượi em ơi! Đang vội chạy cuốc khách trưa!'
@@ -158,7 +159,7 @@ export function fresh() {
     onlineFees: 0,
     lastDayReport: null,
     rating: null,
-    upgrades: { vehicleCapacity: 20, counterSlots: 3, seatingLevel: 0, bike_basket: 0, counter: 0, seating: 0, canopy: 0 },
+    upgrades: { vehicleCapacity: 20, counterSlots: 3, seatingLevel: 0, bike_basket: 0, counter: 0, seating: 0, canopy: 0, cargo: 0 },
     marketPrices: Object.fromEntries(Object.entries(ingredients).map(([id, item]) => [id, item.price])),
     dayEvent: dayConfig(1),
     dayCustomers: structuredClone(fixtureCustomers),
@@ -186,6 +187,9 @@ export function fresh() {
     clock: 0, // In-game minutes elapsed (0 to 360)
     speed: 1, // 1 or 2
     isPaused: false, // Paused when decision is active
+    manualPaused: false,
+    service: null, // Persisted preparation, delivery and reaction phase
+    managedShift: false,
     
     // Customer roster & queue progression
     customerIndex: 0,
@@ -264,6 +268,23 @@ export const calculateRecipeCost = (needs) => {
   return Object.entries(needs).reduce((sum, [ing, qty]) => sum + (ingredients[ing]?.price || 0) * qty, 0);
 };
 
+// A convenience, not a purchase: players can inspect and edit every quantity.
+export function suggestBasket(s) {
+  const basket = Object.fromEntries(Object.keys(ingredients).map(id => [id, 0]));
+  const available = { ...s.stock };
+  for (const customer of s.dayCustomers) {
+    if (!s.knownRecipeIds.includes(customer.recipe) || !s.menu[customer.recipe]?.enabled) continue;
+    const needs = recipeNeeds(customer.recipe, customer.id === 'be_ti');
+    const additions = Object.fromEntries(Object.entries(needs).map(([id, qty]) => [id, Math.max(0, qty - (available[id] || 0))]));
+    const trial = { ...basket };
+    for (const [id, qty] of Object.entries(additions)) trial[id] += qty;
+    if (totalBasketUnits(trial) > s.upgrades.vehicleCapacity || totalBasketCost(trial, s.marketPrices) > s.cash) continue;
+    Object.assign(basket, trial);
+    for (const [id, qty] of Object.entries(needs)) available[id] = (available[id] || 0) + additions[id] - qty;
+  }
+  return basket;
+}
+
 const copy = s => structuredClone(s);
 
 export function action(state, type, payload) {
@@ -318,6 +339,9 @@ export function action(state, type, payload) {
     };
     if (totalBasketUnits(bundle) > s.upgrades.vehicleCapacity) return fail('Vượt sức chở.');
     s.basket = bundle;
+  } else if (type === 'SUGGEST_BASKET') {
+    if (s.screen !== 'MARKET') return fail('Chỉ chuẩn bị giỏ hàng ở chợ.');
+    s.basket = suggestBasket(s);
   } else if (type === 'BUY') {
     if (s.screen !== 'MARKET') return fail('Chỉ mua hàng ở chợ.');
     const cost = totalBasketCost(s.basket, s.marketPrices);
@@ -337,19 +361,21 @@ export function action(state, type, payload) {
     if (s.screen !== 'XOM_OI' || s.currentDay < 2 || !Object.hasOwn(UPGRADE_CATALOG, payload)) return fail('Nâng cấp chỉ mua vào buổi sáng từ ngày 2.');
     const def = UPGRADE_CATALOG[payload];
     if (s.currentDay < (def.unlockDay || 2)) return fail('Chưa đến ngày mở nâng cấp này.');
-    if (s.upgrades[payload] >= def.maxLevel) return fail('Đã nâng cấp tối đa.');
+    if (payload === 'cargo' && s.upgrades.bike_basket < 2) return fail('Cần rổ đèo hàng cấp 2 trước khi lắp thùng hàng.');
+    if ((s.upgrades[payload] || 0) >= def.maxLevel) return fail('Đã nâng cấp tối đa.');
     const upgradeCost = s.upgrades[payload] === 1 ? (def.nextCost || def.cost) : def.cost;
     if (s.cash < upgradeCost) return fail('Không đủ tiền mặt để nâng cấp.');
     s.cash -= upgradeCost;
     s.upgradeSpent += upgradeCost;
-    s.upgrades[payload] += 1;
+    s.upgrades[payload] = (s.upgrades[payload] || 0) + 1;
     if (payload === 'bike_basket') s.upgrades.vehicleCapacity = s.upgrades.bike_basket === 1 ? 30 : 45;
+    if (payload === 'cargo') s.upgrades.vehicleCapacity += 30;
     if (payload === 'counter') {
       s.upgrades.counterSlots = 4;
     }
     if (payload === 'seating' || payload === 'canopy') {
       const extras = s.dayCustomers.filter(c => c.isOnline || c.id.startsWith('staff_peak_'));
-      s.dayCustomers = [...rosterForDay(s.currentDay, s.rating ?? 3, s.upgrades.seating, s.upgrades.canopy), ...extras].sort((a, b) => a.arrivalMinute - b.arrivalMinute);
+      s.dayCustomers = [...rosterForDay(s.currentDay, s.rating ?? 3, s.upgrades.seating, s.upgrades.canopy, s.knownRecipeIds), ...extras].sort((a, b) => a.arrivalMinute - b.arrivalMinute);
     }
   } else if (type === 'HIRE_STAFF') {
     if (s.screen !== 'XOM_OI' || s.currentDay < 8 || s.staffHiredToday || s.cash < 8000) return fail('Từ ngày 8 có thể thuê người phụ với lương 8.000đ/ca.');
@@ -406,6 +432,8 @@ export function action(state, type, payload) {
     if (enabledDishes.length === 0) return fail('Cần bật ít nhất 1 món trong thực đơn.');
     if (s.openingTime === 'early_6am' && s.currentDay >= 2 && s.cash < s.dayEvent.costDelta) return fail('Không đủ tiền chuẩn bị mở quán sớm hôm nay.');
     s.screen = 'SHOP';
+    s.service = null;
+    s.manualPaused = false;
     s.activeCustomer = null;
     s.isPaused = false;
     s.activeDecision = null;
@@ -435,6 +463,7 @@ export function action(state, type, payload) {
       while (idx < s.dayCustomers.length && s.dayCustomers[idx].arrivalMinute < 120) {
         const missedCust = s.dayCustomers[idx];
         s.missedOrders.push({
+          customerId: missedCust.id,
           ticketId: missedCust.id + '_late_opening',
           personId: missedCust.personId || missedCust.id,
           name: missedCust.name,
@@ -462,10 +491,13 @@ export function action(state, type, payload) {
     if (s.screen !== 'SHOP') return fail('Chỉ đổi tốc độ trong giờ bán.');
     if (![1, 2].includes(payload)) return fail('Tốc độ không hợp lệ.');
     s.speed = payload;
+  } else if (type === 'TOGGLE_PAUSE') {
+    if (s.screen !== 'SHOP') return fail('Quán chưa mở.');
+    s.manualPaused = !s.manualPaused;
   } else if (type === 'TICK') {
     // Simulation step: deltaMinutes (typically 1 to 5 in-game minutes)
     if (s.screen !== 'SHOP') return fail('Quán chưa mở.');
-    if (s.isPaused) return { state: s }; // Paused when decision is active
+    if (s.isPaused || s.manualPaused) return { state: s };
     
     const delta = Number(payload);
     if (!Number.isFinite(delta) || delta <= 0 || delta > 60) return fail('Bước thời gian không hợp lệ.');
@@ -473,7 +505,7 @@ export function action(state, type, payload) {
     s.clock = Math.min(360, s.clock + delta);
 
     // 1. Update Focus Boost timers
-    if (s.focusBoost) {
+    if (s.focusBoost && !s.managedShift) {
       if (s.focusBoost.active) {
         s.focusBoost.remainingSeconds = Math.max(0, s.focusBoost.remainingSeconds - 1);
         if (s.focusBoost.remainingSeconds <= 0) {
@@ -487,7 +519,7 @@ export function action(state, type, payload) {
     // 2. Self-healing customer departure recovery:
     // If customer finished serving/rejecting and UI timer was lost (e.g. page reload),
     // automatically clear customer after 4 simulation ticks.
-    if (s.activeCustomer && ['SERVED', 'OUT_OF_STOCK', 'MENU_DISABLED', 'PRICE_REJECTED', 'WAIT_TOO_LONG'].includes(s.activeCustomer.status)) {
+    if (!s.managedShift && s.activeCustomer && ['SERVED', 'OUT_OF_STOCK', 'MENU_DISABLED', 'PRICE_REJECTED', 'WAIT_TOO_LONG'].includes(s.activeCustomer.status)) {
       s.activeCustomer.ticksInCompletedState = (s.activeCustomer.ticksInCompletedState || 0) + 1;
       if (s.activeCustomer.ticksInCompletedState >= 4) {
         s.activeCustomer = null;
@@ -523,7 +555,7 @@ export function action(state, type, payload) {
     while (s.spawnedIndex < s.dayCustomers.length && s.customerIndex < s.dayCustomers.length) {
       const nextCust = s.dayCustomers[s.spawnedIndex];
       if (s.clock >= nextCust.arrivalMinute) {
-        const maxPat = nextCust.temperament === 'RUSH' ? 80 : nextCust.temperament === 'FRIENDLY' ? 180 : 120;
+        const maxPat = (nextCust.maxPatience ?? (nextCust.temperament === 'RUSH' ? 55 : nextCust.temperament === 'FRIENDLY' ? 180 : 120)) * (1 + .1 * s.upgrades.seating);
         const custInstance = {
           ...nextCust,
           patience: maxPat,
@@ -560,13 +592,15 @@ export function action(state, type, payload) {
     // 5. Update patience for waiting customers
     for (let i = s.waitingQueue.length - 1; i >= 0; i--) {
       const waiting = s.waitingQueue[i];
-      waiting.ticksWaiting += 1;
+      const waited = Math.max(0, Math.min(delta, s.clock - waiting.arrivalMinute));
+      waiting.ticksWaiting += waited;
       const drain = waiting.temperament === 'RUSH' ? 1.5 : waiting.temperament === 'FRIENDLY' ? 0.6 : 1.0;
-      waiting.patience = Math.max(0, waiting.patience - drain);
+      waiting.patience = Math.max(0, waiting.patience - drain * waited);
 
       if (waiting.patience <= 0) {
         const pid = waiting.personId || waiting.id;
         s.missedOrders.push({
+          customerId: waiting.id,
           ticketId: waiting.id + '_' + s.clock + '_wait',
           personId: pid,
           name: waiting.name,
@@ -580,6 +614,7 @@ export function action(state, type, payload) {
           missed_orders: ((s.facts[pid]?.missed_orders) || 0) + 1
         };
         s.waitingQueue.splice(i, 1);
+        if (s.prioritizedCustomerId === waiting.id) s.prioritizedCustomerId = null;
         s.customerIndex += 1;
       }
     }
@@ -624,6 +659,7 @@ export function action(state, type, payload) {
     s.prioritizedCustomerId = targetId;
   } else if (type === 'FOCUS_BOOST') {
     if (s.screen !== 'SHOP') return fail('Chỉ dùng tập trung phục vụ trong giờ bán.');
+    if (s.isPaused || s.manualPaused) return fail('Tiếp tục ca trước khi tập trung phục vụ.');
     if (!s.focusBoost) s.focusBoost = { active: false, remainingSeconds: 0, cooldownSeconds: 0, multiplier: 2.0 };
     if (s.focusBoost.active) return fail('Đang trong thời gian tập trung phục vụ.');
     if (s.focusBoost.cooldownSeconds > 0) return fail('Đang hồi chiêu, vui lòng chờ.');
@@ -665,7 +701,8 @@ export function action(state, type, payload) {
     // 1. Check if recipe is disabled in today's menu
     if (!menuItem || !menuItem.enabled) {
       s.missedOrders.push({
-        ticketId: cust.id + '_' + s.clock,
+        customerId: cust.id,
+      ticketId: cust.id + '_' + s.clock,
         personId,
         name: cust.name,
         recipe: recipeId,
@@ -688,7 +725,8 @@ export function action(state, type, payload) {
     // tier after the shop's reputation has dropped. Day 1 fixture unaffected.
     if (isHighPrice && (cust.priceSensitivity === 'HIGH' || (s.currentDay > 1 && s.rating < 3 && cust.priceSensitivity === 'MEDIUM'))) {
       s.missedOrders.push({
-        ticketId: cust.id + '_' + s.clock,
+        customerId: cust.id,
+      ticketId: cust.id + '_' + s.clock,
         personId,
         name: cust.name,
         recipe: recipeId,
@@ -708,7 +746,8 @@ export function action(state, type, payload) {
     // 3. Check inventory stock
     if (!hasEnoughStock(s.stock, needs)) {
       s.missedOrders.push({
-        ticketId: cust.id + '_' + s.clock,
+        customerId: cust.id,
+      ticketId: cust.id + '_' + s.clock,
         personId,
         name: cust.name,
         recipe: recipeId,
@@ -736,6 +775,7 @@ export function action(state, type, payload) {
     s.revenue += sellPrice;
     
     s.servedOrders.push({
+      customerId: cust.id,
       ticketId: cust.id + '_' + s.clock,
       personId,
       name: cust.name,
@@ -745,6 +785,9 @@ export function action(state, type, payload) {
       tip,
       onlineFee,
       isOnline: Boolean(cust.isOnline),
+      arrivedAt: cust.arrivalMinute,
+      startedAt: cust.startedAt ?? s.clock,
+      waitMinutes: Math.max(0, (cust.startedAt ?? s.clock) - cust.arrivalMinute),
       ingredientsUsed: needs,
       timestampMinute: s.clock
     });
@@ -759,6 +802,7 @@ export function action(state, type, payload) {
     if (s.screen !== 'SHOP' || !s.activeCustomer) return fail('Không có khách đang rời.');
     if (!['SERVED', 'OUT_OF_STOCK', 'MENU_DISABLED', 'PRICE_REJECTED', 'WAIT_TOO_LONG'].includes(s.activeCustomer.status)) return fail('Khách chưa được xử lý.');
     s.activeCustomer = null;
+    s.service = null;
     s.customerIndex += 1;
 
     // Promote next customer from waitingQueue if available
@@ -793,11 +837,11 @@ export function action(state, type, payload) {
     if (s.screen !== 'SHOP') return fail('Quán chưa mở.');
     // Closing early is a management decision: everyone not yet served is a
     // missed customer, while an already completed transaction remains recorded.
-    const completed = s.activeCustomer && ['SERVED', 'OUT_OF_STOCK', 'MENU_DISABLED', 'PRICE_REJECTED'].includes(s.activeCustomer.status);
-    const fromIndex = s.customerIndex + (completed ? 1 : 0);
-    for (let i = fromIndex; i < s.dayCustomers.length; i++) {
-      const customer = s.dayCustomers[i];
+    for (const customer of s.dayCustomers) {
+      // IDs are stable, while queue order can change through prioritization.
+      if ([...s.servedOrders, ...s.missedOrders].some(o => o.customerId === customer.id || o.ticketId?.startsWith(customer.id + '_') || (!o.ticketId && o.personId === customer.id))) continue;
       s.missedOrders.push({
+        customerId: customer.id,
         ticketId: customer.id + '_early_close',
         personId: customer.personId || customer.id,
         name: customer.name,
@@ -814,6 +858,8 @@ export function action(state, type, payload) {
     }
     s.customerIndex = s.dayCustomers.length;
     s.activeCustomer = null;
+    s.service = null;
+    s.waitingQueue = [];
     s.activeDecision = null;
     s.isPaused = false;
     clearFreshStock(s);
@@ -826,8 +872,9 @@ export function action(state, type, payload) {
     const ratingCeiling = s.upgrades.vehicleCapacity <= 20 ? 3.5 : s.upgrades.vehicleCapacity <= 30 ? 4 : 5;
     s.rating = s.currentDay === 1 ? 3 : Math.max(1, Math.min(ratingCeiling, (s.rating ?? 3) + (avoidable > total / 3 ? -.5 : capacityServiceRate >= .8 && s.servedOrders.length >= 5 && avoidable === 0 ? .5 : 0)));
     s.screen = 'DAY_RESULT';
+    s.resultRemainingMs = 12000;
     const feedback = [...s.missedOrders.map(o => ({ personId: o.personId, name: o.name, reason: o.reason, text: o.reason === 'OUT_OF_STOCK' ? 'Tiếc quá, quán hết món rồi; mai mình ghé sớm nhé.' : o.reason === 'WAIT_TOO_LONG' ? 'Quán làm lâu quá, trễ giờ làm của tôi rồi!' : o.reason === 'PRICE_TOO_HIGH' ? 'Giá hôm nay cao quá, để bữa khác ghé.' : o.reason === 'MENU_DISABLED' ? 'Hôm nay không có món mình thích rồi.' : 'Mình ghé mà quán chưa bán hoặc đã đóng.' })), ...s.servedOrders.map(o => ({ personId: o.personId, name: o.name, reason: 'SERVED', text: o.tip ? 'Ngon quá, gửi quán thêm chút tiền cà phê!' : o.personId === 'be_ti' && s.extraCha ? 'Nhiều chả quá, con thích lắm!' : 'Món vừa miệng, cảm ơn quán nha!' }))];
-    s.lastDayReport = { day: s.currentDay, feedback, forecastTomorrow: dayConfig(s.currentDay + 1).forecast, served: s.servedOrders.length, missed: s.missedOrders.length, cash: s.cash, revenue: s.revenue, cogs: s.servedOrders.reduce((n, o) => n + o.cogs, 0), spoilage: s.spoilageLoss, rating: s.rating };
+    s.lastDayReport = { day: s.currentDay, feedback, forecastTomorrow: dayConfig(s.currentDay + 1).forecast, recommendation: s.missedOrders.some(o => o.reason === 'WAIT_TOO_LONG') ? 'Khách phải chờ lâu: thử ưu tiên khách vội, dùng tập trung khi đông hoặc thuê người phụ.' : s.missedOrders.some(o => o.reason === 'OUT_OF_STOCK') ? 'Quán hết hàng: cân nhắc tăng sức chở và nhập theo các món khách hỏi nhiều.' : s.missedOrders.some(o => o.reason === 'PRICE_TOO_HIGH') ? 'Có khách chê giá cao: thử hạ giá món đó một mức vào ngày mai.' : s.missedOrders.some(o => o.reason === 'MISSED_LATE_OPENING') ? 'Khách sáng đã đi qua: thử mở sớm hơn và nhập đủ món ăn sáng.' : 'Giữ các món bán tốt và chừa tiền nhập hàng trước khi nâng cấp.', served: s.servedOrders.length, missed: s.missedOrders.length, cash: s.cash, revenue: s.revenue, cogs: s.servedOrders.reduce((n, o) => n + o.cogs, 0), spoilage: s.spoilageLoss, rating: s.rating };
     s.dayHistory.push(s.lastDayReport);
   } else if (type === 'NEXT_DAY') {
     if (s.screen !== 'DAY_RESULT') return fail('Hãy kết thúc ca bán trước khi qua ngày mới.');
@@ -850,6 +897,9 @@ export function action(state, type, payload) {
     s.prioritizedCustomerId = null;
     s.focusBoost = { active: false, remainingSeconds: 0, cooldownSeconds: 0, multiplier: 2.0 };
     s.activeCustomer = null;
+    s.service = null;
+    s.manualPaused = false;
+    s.resultDetailsOpen = false;
     s.activeDecision = null;
     s.extraCha = null;
     s.newsTicker = null;
@@ -862,7 +912,7 @@ export function action(state, type, payload) {
     s.basket = Object.fromEntries(Object.keys(ingredients).map(k => [k, 0]));
     s.dayEvent = dayConfig(s.currentDay);
     s.marketPrices = Object.fromEntries(Object.entries(ingredients).map(([id, item]) => [id, s.dayEvent.marketPrices?.[id] ?? item.price]));
-    s.dayCustomers = rosterForDay(s.currentDay, s.rating ?? 3, s.upgrades.seating, s.upgrades.canopy);
+    s.dayCustomers = rosterForDay(s.currentDay, s.rating ?? 3, s.upgrades.seating, s.upgrades.canopy, s.knownRecipeIds);
     s.openingTime = 'ontime_8am';
     s.screen = 'XOM_OI';
   } else {
@@ -941,7 +991,7 @@ export function calculateLedger(state) {
     totalSalesRevenue,
     cogsSoldItemsOnly,
     grossOperatingProfit,
-    resultAfterSpoilageAndExpenses: grossOperatingProfit - (state.spoilageLoss || 0) - operatingExpenses - onlineFees + sideJobIncome,
+    resultAfterSpoilageAndExpenses: grossOperatingProfit + tipsCollected - (state.spoilageLoss || 0) - operatingExpenses - onlineFees + sideJobIncome,
     retainedStockValueAtCost,
     dishBreakdown,
     servedCount: (state.servedOrders || []).length,
@@ -1005,6 +1055,9 @@ export function decode(raw) {
     }
     s.login ||= { lastClaimDate: null, visitDays: 0, stamps: [] };
     s.upgrades.canopy ||= 0;
+    s.upgrades.cargo ||= 0;
+    s.service ||= null;
+    s.manualPaused ||= false;
     s.staffHiredToday ||= false;
     s.onlineEnabledToday ||= false;
     s.onlineFees ||= 0;

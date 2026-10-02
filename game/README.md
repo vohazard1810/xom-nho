@@ -1,15 +1,22 @@
-# Xóm Nhỏ — mobile idle management prototype
+# Xóm Nhỏ — playable active idle prototype
 
-Từ gốc repo chạy `python3 -m http.server 8000` và mở `http://localhost:8000/game/`. Chơi trên điện thoại dọc 390×844 hoặc viewport tương đương. Tên quán được đặt khi bắt đầu và lưu bằng hai bản save có checksum trong localStorage.
+Chạy `python3 -m http.server 8000` từ gốc repo và mở `http://localhost:8000/game/`. Đặt tên quán, đọc tin xóm, nhập hàng và chọn menu/giá trước khi mở. Trong ca, có thể ưu tiên khách vội, tập trung phục vụ, x1/x2 hoặc tạm dừng. Sổ có feedback và tự chuyển tới buổi chuẩn bị kế tiếp; mở sổ chi tiết để dừng đếm.
 
-Day 1 giữ kết quả fixture v0.7 (8 khách, 55k nhập, 122k doanh thu, 127k tiền két, 67k lãi gộp). Ngày 2–7 có nâng cấp xe/quầy/ghế, món ốp la, giá nguyên liệu thay đổi, tin xóm và thời tiết, khách có tính cách, sao quán, hàng tươi hỏng và tồn khô theo lô. Engine chạy tiếp qua ngày 21 để kiểm chứng; luật và số liệu thử nghiệm nằm ở `game/day-content.mjs`. Xem `docs/GAMEPLAY_7_DAY_PROTOTYPE.md` để biết rõ giả định và công thức.
+Gameplay dùng chung `shift-engine.mjs` trên trình duyệt và trong test. Ca và tiến trình chế biến được lưu trên trình duyệt đang dùng; ngày đăng nhập tách khỏi ngày trong game. Không có tiến triển ca khi đóng trang. Có vòng ngày 1–21, nâng xe/quầy/ghế/mái che, học món, thuê nhân viên và nhận đơn mang đi.
 
-Chạy:
+Kiểm thử nhanh:
 
 ```sh
+node game/test-shift.mjs
 node game/test-day1.mjs
 node game/test-multiday.mjs
+node game/test-balance.mjs
+node game/test-progression.mjs
 node game/test-ui.mjs
+node game/test-ui-timers.mjs
+node tools/playtest/playable_smoke.cjs
 ```
 
-Gate browser 7 ngày: `python tools/playtest/mobile_gate_7day.py` trên checkout đầy đủ `assets/` và máy có Playwright Chromium/Edge. Script tự mở server, kiểm tra 390×844, tự chuyển ngày, F5, đối soát tiền, ảnh, nút chạm, lỗi JS và ghi video/screenshot. Xem `docs/MOBILE_GATE_HANDOFF.md`. Những script v0.7 cũ chỉ là tham chiếu Day 1. Art Day 2+, nhân vật và hoạt ảnh là placeholder để Antigravity sản xuất sau; chưa có bằng chứng visual gate cho bản nhiều ngày.
+Browser smoke cần Playwright và Chromium đã cài. Có thể chỉ định `PLAYWRIGHT_CHROMIUM_EXECUTABLE`. Nó tự mở server, dùng đồng hồ Playwright để kiểm tra ca ngắn, không ghi video. Full mobile gate 7 ngày chỉ chạy cho mốc lớn. Đóng gói bản tĩnh bằng `python tools/build-playable.py --out dist`.
+
+Xem `docs/PLAYABLE_GAMEPLAY_HANDOFF.md` và `docs/playable_evidence/browser_smoke.json` để biết thay đổi, bằng chứng và phạm vi chưa kiểm tra. Art hiện tại là bản dùng lại, để Antigravity hoàn thiện sau.
