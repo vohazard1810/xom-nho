@@ -4,6 +4,7 @@ import {
   fixtureCustomers,
   SAVE_KEY,
   BIKE_CAPACITY,
+  UPGRADE_CATALOG,
   fresh,
   totalBasketUnits,
   totalBasketCost,
@@ -38,10 +39,27 @@ const BETI_SPRITES = {
 const CO_CHIN_IMG = '../assets/characters/named/co_chin/co_chin_standing.png';
 const ANH_TUNG_IMG = '../assets/characters/named/anh_tung/anh_tung_standing.png';
 
+const WALKIN_SPRITES = {
+  walkin_variant_0: '../assets/pilot/walkin_student.png',
+  walkin_variant_1: '../assets/pilot/walkin_office.png',
+  walkin_variant_2: '../assets/pilot/walkin_driver.png',
+  walkin_variant_3: '../assets/pilot/walkin_elder.png',
+  walkin_student: '../assets/pilot/walkin_student.png',
+  walkin_office: '../assets/pilot/walkin_office.png',
+  walkin_driver: '../assets/pilot/walkin_driver.png',
+  walkin_elder: '../assets/pilot/walkin_elder.png'
+};
+
+const CANOPY_AWNING_IMG = '../assets/pilot/awning_canopy.png';
+const COUNTER_SHELF_FOREGROUND_IMG = '../assets/environment/counter_shelf_foreground.png';
+const STAFF_HANDOFF_BANHMI_IMG = '../assets/pilot/staff_handoff_banhmi.png';
+const STAFF_HANDOFF_DRINK_IMG = '../assets/pilot/staff_handoff_drink.png';
+const STAFF_HANDOFF_SOYMILK_IMG = '../assets/pilot/staff_handoff_soymilk.png';
+
 const DISH_IMAGES = {
-  BANH_MI_CHA: '../assets/dishes/banh_mi_cha.png',
-  TRA_TAC: '../assets/dishes/tra_tac.png',
-  SUA_DAU_DA: '../assets/dishes/sua_dau.png'
+  BANH_MI_CHA: '../assets/dishes/takeaway_banh_mi.png',
+  TRA_TAC: '../assets/dishes/takeaway_tra_tac.png',
+  SUA_DAU_DA: '../assets/dishes/takeaway_sua_dau.png'
 };
 
 const ingredientMeta = {
@@ -51,7 +69,8 @@ const ingredientMeta = {
   ice: { name: 'Đá bi', icon: '🧊', unit: 'ca', img: '../assets/ingredients/ice.png' },
   sugar_syrup: { name: 'Nước đường', icon: '🍯', unit: 'muỗng', img: '../assets/ingredients/sugar_syrup.png' },
   kumquat: { name: 'Tắc tươi', icon: '🍊', unit: 'trái', img: '../assets/ingredients/kumquat.png' },
-  soy_milk: { name: 'Sữa đậu', icon: '🥛', unit: 'bịch', img: '../assets/ingredients/soy_milk.png' }
+  soy_milk: { name: 'Sữa đậu', icon: '🥛', unit: 'bịch', img: '../assets/ingredients/soy_milk.png' },
+  egg: { name: 'Trứng gà', icon: '🥚', unit: 'quả', img: null }
 };
 
 // Audio synthesis
@@ -124,21 +143,90 @@ let prepTimer1 = null;
 let prepTimer2 = null;
 let prepTimer3 = null;
 let leaveTimer = null;
+let simulationSpeed = null;
+let resultTimer = null;
+let resultDetailsOpen = false;
+const vnCalendarDate = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
 
 const money = n => new Intl.NumberFormat('vi-VN').format(n) + 'đ';
+const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char]);
+const shopTitle = () => escapeHtml(state.shopName || 'Xóm Nhỏ');
 
 function persist() {
   localStorage.setItem(SAVE_KEY + ':' + (state.revision % 2), encode(state));
   saved = state;
 }
 
+let boostTimer = null;
+
+function getCustomerEmotion(cust) {
+  if (!cust) return { stage: 'CALM', icon: '😊', label: 'Bình tĩnh', color: '#16a34a', pct: 100 };
+  const pat = cust.patience !== undefined ? cust.patience : (cust.maxPatience || 100);
+  const max = cust.maxPatience || 100;
+  const pct = Math.max(0, Math.min(100, Math.round((pat / max) * 100)));
+  if (pct > 50) {
+    return { stage: 'CALM', icon: '😊', label: 'Bình tĩnh', color: '#16a34a', pct };
+  } else if (pct > 20) {
+    return { stage: 'IMPATIENT', icon: '⏳', label: 'Sốt ruột', color: '#ea580c', pct };
+  } else {
+    return { stage: 'WARNING', icon: '⚠️', label: 'Sắp bỏ về', color: '#dc2626', pct };
+  }
+}
+
+function getCustomerSprite(c, pose = 'ORDER') {
+  if (!c) return '';
+  if (c.id === 'be_ti') {
+    if (pose === 'RECEIVE') return ASSET_BASE + 'order_four_frame_pilot/actor_crop/order_02_raise_approved.png';
+    if (pose === 'REACT') return ASSET_BASE + 'order_four_frame_pilot/actor_crop/order_04_expectant.png';
+    return BETI_SPRITES.order[betiFrameIdx % 4];
+  }
+  if (c.id === 'co_chin') return CO_CHIN_IMG;
+  if (c.id === 'anh_tung') return ANH_TUNG_IMG;
+  return WALKIN_SPRITES[c.visualVariantId] || WALKIN_SPRITES[c.archetype] || WALKIN_SPRITES.walkin_variant_0;
+}
+
+function startBoostClock() {
+  if (boostTimer) clearInterval(boostTimer);
+  boostTimer = setInterval(() => {
+    if (state.screen !== 'SHOP') {
+      clearInterval(boostTimer);
+      boostTimer = null;
+      return;
+    }
+    if (state.focusBoost) {
+      if (state.focusBoost.active) {
+        state.focusBoost.remainingSeconds = Math.max(0, state.focusBoost.remainingSeconds - 1);
+        if (state.focusBoost.remainingSeconds <= 0) {
+          state.focusBoost.active = false;
+          state.focusBoost.cooldownSeconds = 30;
+        }
+        render();
+      } else if (state.focusBoost.cooldownSeconds > 0) {
+        state.focusBoost.cooldownSeconds = Math.max(0, state.focusBoost.cooldownSeconds - 1);
+        render();
+      }
+    }
+  }, 1000);
+}
+
 function clearAllTimers() {
   if (simInterval) { clearInterval(simInterval); simInterval = null; }
+  simulationSpeed = null;
+  if (boostTimer) { clearInterval(boostTimer); boostTimer = null; }
   if (betiAnimTimer) { clearInterval(betiAnimTimer); betiAnimTimer = null; }
   if (prepTimer1) { clearTimeout(prepTimer1); prepTimer1 = null; }
   if (prepTimer2) { clearTimeout(prepTimer2); prepTimer2 = null; }
   if (prepTimer3) { clearTimeout(prepTimer3); prepTimer3 = null; }
   if (leaveTimer) { clearTimeout(leaveTimer); leaveTimer = null; }
+  if (resultTimer) { clearTimeout(resultTimer); resultTimer = null; }
+}
+function scheduleNextDay() {
+  if (resultTimer) clearTimeout(resultTimer);
+  if (state.screen !== 'DAY_RESULT' || resultDetailsOpen) return;
+  resultTimer = setTimeout(() => {
+    resultTimer = null;
+    if (state.screen === 'DAY_RESULT' && !resultDetailsOpen) send('NEXT_DAY');
+  }, 12000);
 }
 
 function send(type, payload) {
@@ -165,33 +253,45 @@ function send(type, payload) {
   state = r.state;
   message = '';
   persist();
+  if (type === 'NEXT_DAY') resultDetailsOpen = false;
 
   // Handle simulation lifecycle when entering/leaving SHOP
   if (state.screen === 'SHOP') {
-    startSimulationLoop();
+    if (!simInterval) startSimulationLoop();
+    else if (simulationSpeed !== state.speed) restartSimulationClock();
   } else {
     clearAllTimers();
   }
 
   render();
+  if (state.screen === 'DAY_RESULT') scheduleNextDay();
 }
 
 function startSimulationLoop() {
-  if (simInterval) clearInterval(simInterval);
-  const intervalMs = state.speed === 2 ? 140 : 280;
-  
-  // Hydration recovery: if customer was already served/handled before reload, schedule departure
+  if (simInterval) return;
+  // Recover one unfinished customer once on boot; ordinary state updates must
+  // not schedule a second departure for the same order.
   if (state.activeCustomer) {
     const custStatus = state.activeCustomer.status;
     if (['SERVED', 'OUT_OF_STOCK', 'MENU_DISABLED', 'PRICE_REJECTED'].includes(custStatus)) {
       leaveTimer = setTimeout(() => {
+        leaveTimer = null;
         send('CUSTOMER_LEAVE');
-        render();
       }, 600);
     } else if (custStatus === 'ARRIVED' && !state.isPaused && !autoPrepState) {
       runAutoPrepSequence();
     }
   }
+  startBoostClock();
+  restartSimulationClock();
+}
+
+let currentPrepCustId = null;
+
+function restartSimulationClock() {
+  if (simInterval) clearInterval(simInterval);
+  simulationSpeed = state.speed;
+  const intervalMs = state.speed === 2 ? 140 : 280;
   
   simInterval = setInterval(() => {
     if (state.screen !== 'SHOP') {
@@ -199,24 +299,30 @@ function startSimulationLoop() {
       return;
     }
     
-    // If decision modal is active or auto-prep in progress, do not advance clock
-    if (state.isPaused || autoPrepState) {
+    // ONLY pause when mandatory decision modal is open or app in background
+    if (state.isPaused || (typeof document !== 'undefined' && document.hidden)) {
       return;
     }
 
-    // Advance clock
-    send('TICK', 3);
+    // 1. Advance Game Clock & Customer Arrivals / Patience
+    send('TICK', 1);
 
-    // If a customer just arrived and is ready for auto-prep
-    if (state.activeCustomer && state.activeCustomer.status === 'ARRIVED' && !state.isPaused && !autoPrepState) {
-      runAutoPrepSequence();
-    }
+    // 2. Active Customer Prep & Delivery Pipeline
+    tickAutoPrepPipeline();
   }, intervalMs);
 }
 
-function runAutoPrepSequence() {
+function tickAutoPrepPipeline() {
   const cust = state.activeCustomer;
-  if (!cust) return;
+  if (!cust) {
+    if (autoPrepState) autoPrepState = null;
+    return;
+  }
+
+  // If customer is already processed or leaving
+  if (['SERVED', 'OUT_OF_STOCK', 'MENU_DISABLED', 'PRICE_REJECTED', 'WAIT_TOO_LONG'].includes(cust.status)) {
+    return;
+  }
 
   const recipeId = cust.recipe;
   const isExtra = cust.id === 'be_ti' && state.extraCha === true;
@@ -224,128 +330,111 @@ function runAutoPrepSequence() {
   const menuItem = state.menu[recipeId];
   const recipeDef = recipes[recipeId];
 
-  // 1. Check if recipe is disabled on today's menu
+  // 1. Check Menu Disabled
   if (!menuItem || !menuItem.enabled) {
     autoPrepState = { stage: 'menudisabled', progress: 100, item: recipeId, isExtra };
     render();
-
-    prepTimer1 = setTimeout(() => {
+    setTimeout(() => {
       send('SERVE_AUTO');
-      customerReaction = {
-        quote: `Ủa nay quán không bán ${recipeDef?.name || 'món này'} hả chú? Tiếc ghê, để bữa khác con ghé lại nha!`,
-        status: 'disappointed'
-      };
+      customerReaction = { quote: `Ủa nay quán không bán ${recipeDef?.name || 'món này'} hả chú? Tiếc ghê!`, status: 'disappointed' };
       render();
-
-      leaveTimer = setTimeout(() => {
-        customerReaction = null;
-        autoPrepState = null;
-        send('CUSTOMER_LEAVE');
-        render();
-      }, 1500);
-    }, 700);
+      setTimeout(() => { customerReaction = null; autoPrepState = null; send('CUSTOMER_LEAVE'); render(); }, 1200);
+    }, 600);
     return;
   }
 
-  // 2. Check customer price sensitivity (HIGH sensitivity vs Tier 3 High Price)
+  // 2. Check Price Rejection
   if (menuItem.sellPrice > recipeDef.basePrice && cust.priceSensitivity === 'HIGH') {
     autoPrepState = { stage: 'pricerejected', progress: 100, item: recipeId, isExtra };
     render();
-
-    prepTimer1 = setTimeout(() => {
+    setTimeout(() => {
       send('SERVE_AUTO');
-      customerReaction = {
-        quote: `Ủa nay ${recipeDef?.name || 'món này'} lên tới ${money(menuItem.sellPrice)} dữ vậy chú? Mắc quá, thôi để bác đi chỗ khác!`,
-        status: 'angry'
-      };
+      customerReaction = { quote: `Ủa nay ${recipeDef?.name || 'món này'} lên tới ${money(menuItem.sellPrice)} dữ vậy chú? Mắc quá!`, status: 'angry' };
       render();
-
-      leaveTimer = setTimeout(() => {
-        customerReaction = null;
-        autoPrepState = null;
-        send('CUSTOMER_LEAVE');
-        render();
-      }, 1500);
-    }, 700);
+      setTimeout(() => { customerReaction = null; autoPrepState = null; send('CUSTOMER_LEAVE'); render(); }, 1200);
+    }, 600);
     return;
   }
 
-  // 3. Check inventory stock
+  // 3. Check Stock
   if (!hasEnoughStock(state.stock, needs)) {
     autoPrepState = { stage: 'outofstock', progress: 100, item: recipeId, isExtra };
     render();
-
-    prepTimer1 = setTimeout(() => {
+    setTimeout(() => {
       send('SERVE_AUTO');
-      customerReaction = {
-        quote: 'Hết hàng rồi hả chú? Tiếc quá, để mai con ghé sớm ủng hộ tiếp nha!',
-        status: 'disappointed'
-      };
+      customerReaction = { quote: 'Hết hàng rồi hả chú? Tiếc quá, để mai con ghé sớm ủng hộ tiếp nha!', status: 'disappointed' };
       render();
-
-      leaveTimer = setTimeout(() => {
-        customerReaction = null;
-        autoPrepState = null;
-        send('CUSTOMER_LEAVE');
-        render();
-      }, 1500);
-    }, 700);
+      setTimeout(() => { customerReaction = null; autoPrepState = null; send('CUSTOMER_LEAVE'); render(); }, 1200);
+    }, 600);
     return;
   }
 
-  // 4. Watercolor 3-Stage Auto-Prep Animation Sequence (1.4s total)
-  // Stage 1 (0ms): Base layer (bread base / ice cup)
-  autoPrepState = { stage: 'layer1', progress: 33, item: recipeId, isExtra };
-  playTap('bread');
-  render();
-
-  // Stage 2 (450ms): Middle filling/juice layer (cha slices / kumquat syrup / soy milk)
-  prepTimer1 = setTimeout(() => {
-    autoPrepState = { stage: 'layer2', progress: 70, item: recipeId, isExtra };
-    playTap('cha');
+  // 4. Active Prep Progress
+  if (!autoPrepState || currentPrepCustId !== cust.id) {
+    currentPrepCustId = cust.id;
+    autoPrepState = { stage: 'layer1', progress: 0, item: recipeId, isExtra, customerPose: 'ORDER' };
+    playTap('bread');
     render();
+    return;
+  }
 
-    // Stage 3 (900ms): Complete dish with herbs / chill / garnish
-    prepTimer2 = setTimeout(() => {
-      autoPrepState = { stage: 'done', progress: 100, item: recipeId, isExtra };
-      playChime();
+  // Dynamic Boost Multiplier (Takes effect immediately mid-order!)
+  const multiplier = (state.focusBoost && state.focusBoost.active) ? 2.0 : 1.0;
+  // Step advance: ~12.5% per tick at 1x (~8 ticks = 2.2s), ~25% per tick at 2x (~4 ticks = 1.1s)
+  autoPrepState.progress = Math.min(100, autoPrepState.progress + (12.5 * multiplier));
+
+  if (autoPrepState.progress < 35) {
+    autoPrepState.stage = 'layer1';
+    autoPrepState.customerPose = 'ORDER';
+  } else if (autoPrepState.progress < 70) {
+    if (autoPrepState.stage === 'layer1') playTap('cha');
+    autoPrepState.stage = 'layer2';
+    autoPrepState.customerPose = 'ORDER';
+  } else if (autoPrepState.progress < 85) {
+    if (autoPrepState.stage === 'layer2') playChime();
+    // Dish placed on counter tray! Prep dock clears!
+    autoPrepState.stage = 'deliver_to_tray';
+    autoPrepState.customerPose = 'RECEIVE';
+  } else if (autoPrepState.progress < 100) {
+    // Customer reacts! Dish remains ON THE TRAY!
+    autoPrepState.stage = 'customer_react';
+    autoPrepState.customerPose = 'REACT';
+    if (!customerReaction) {
       playCoins();
-      render();
+      send('SERVE_AUTO');
+      const earned = menuItem.sellPrice;
+      floatingCash = '+' + money(earned + (state.servedOrders.at(-1)?.tip || 0));
 
-      // Transaction commit (1350ms)
-      prepTimer3 = setTimeout(() => {
-        const earned = menuItem.sellPrice;
-        floatingCash = '+' + money(earned);
-        send('SERVE_AUTO');
+      let quote = 'Cảm ơn chú nhiều nghen, món ngon vừa miệng lắm!';
+      if (cust.id === 'be_ti') {
+        quote = isExtra
+          ? 'Oa chả ngập tràn luôn, con cảm ơn chú nhiều lắm! Mai con ghé tiếp!'
+          : 'Bánh mì giòn rụm thơm phức, con cảm ơn chú nghen!';
+      } else if (cust.id === 'co_chin') {
+        quote = 'Trà tắc mát rượi thanh tao, đã khát thiệt đó con ơi!';
+      } else if (cust.id === 'anh_tung') {
+        quote = 'Sữa đậu béo bùi mát lạnh, tỉnh cả người em ơi! Anh chạy cuốc trưa đây!';
+      } else if (cust.priceSensitivity === 'LOW' && menuItem.sellPrice > recipeDef.basePrice) {
+        quote = 'Giá nay hơi nhỉnh xíu ha chú, mà thèm quá nên mua luôn nè!';
+      } else if (menuItem.sellPrice < recipeDef.basePrice) {
+        quote = 'Quán bán giá mềm mà chất lượng ghê, để bác rủ thêm người ủng hộ!';
+      } else if (cust.temperament === 'RUSH') {
+        quote = 'Kịp giờ rồi! Cảm ơn quán, mình đi đây!';
+      } else if (cust.temperament === 'FRIENDLY') {
+        quote = 'Ngon quá, gửi thêm quán ít tiền cà phê nha!';
+      }
+      customerReaction = { quote, status: 'happy' };
+    }
+  } else {
+    // 100% reached: Dish disappears from tray! Customer departs!
+    autoPrepState = null;
+    customerReaction = null;
+    floatingCash = null;
+    currentPrepCustId = null;
+    send('CUSTOMER_LEAVE');
+  }
 
-        let quote = 'Cảm ơn chú nhiều nghen, món ngon vừa miệng lắm!';
-        if (cust.id === 'be_ti') {
-          quote = isExtra 
-            ? 'Oa chả ngập tràn luôn, con cảm ơn chú nhiều lắm! Mai con ghé tiếp!'
-            : 'Bánh mì giòn rụm thơm phức, con cảm ơn chú nghen!';
-        } else if (cust.id === 'co_chin') {
-          quote = 'Trà tắc mát rượi thanh tao, đã khát thiệt đó con ơi!';
-        } else if (cust.id === 'anh_tung') {
-          quote = 'Sữa đậu béo bùi mát lạnh, tỉnh cả người em ơi! Anh chạy cuốc trưa đây!';
-        } else if (cust.priceSensitivity === 'LOW' && menuItem.sellPrice > recipeDef.basePrice) {
-          quote = 'Giá nay hơi nhỉnh xíu ha chú, mà thèm quá nên mua luôn nè!';
-        } else if (menuItem.sellPrice < recipeDef.basePrice) {
-          quote = 'Quán bán giá mềm mà chất lượng ghê, để bác rủ thêm người ủng hộ!';
-        }
-
-        customerReaction = { quote, status: 'happy' };
-        render();
-
-        leaveTimer = setTimeout(() => {
-          floatingCash = null;
-          customerReaction = null;
-          autoPrepState = null;
-          send('CUSTOMER_LEAVE');
-          render();
-        }, 1400);
-      }, 400);
-    }, 450);
-  }, 450);
+  render();
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -357,7 +446,7 @@ function renderHome() {
     <div class="screen-home">
       <div class="cover-hero">
         <span class="cover-tag">🏮 PHIÊN BẢN CHƠI THỬ · IDLE MANAGEMENT</span>
-        <h1 class="cover-brand">XÓM NHỎ</h1>
+        <h1 class="cover-brand">${shopTitle()}</h1>
         <p class="cover-sub">Chuyện Làm Ăn Buôn Bán Quán Phố</p>
       </div>
       <div class="cover-card">
@@ -365,8 +454,13 @@ function renderHome() {
           Quản lý quán ăn nhỏ trong con hẻm Sài Gòn.<br>
           Dự tính nhu cầu, đặt giá bán, mở quán tự bán và xử lý tình huống phát sinh cùng bà con chòm xóm.
         </p>
-        <button class="btn-primary" data-type="NAVIGATE">🌿 Bắt Đầu Mở Quán Ngày 1</button>
-        ${saved ? `<button class="btn-secondary" data-type="RESUME">Tiếp Tục Ca Bán Đang Chơi</button>` : ''}
+        ${!state.shopName ? `
+          <label for="shop-name-input">Tên quán của bạn</label>
+          <input id="shop-name-input" class="shop-name-input" maxlength="24" placeholder="Ví dụ: Quán Đầu Hẻm" autocomplete="off">
+          <button class="btn-primary" data-type="SET_SHOP_NAME">🌿 Đặt Tên & Bắt Đầu</button>
+        ` : `<button class="btn-primary" data-type="NAVIGATE">🌿 Bắt Đầu Ngày ${state.currentDay}</button>`}
+        ${saved && state.screen === 'HOME' && saved.currentDay > 1 ? `<small>Đã lưu đến ngày ${saved.currentDay}</small>` : ''}
+        ${message ? `<div class="alert-message">${escapeHtml(message)}</div>` : ''}
         <button class="btn-tertiary" data-type="REPLAY">🔄 Đặt Lại / Chơi Lại Từ Đầu</button>
       </div>
     </div>
@@ -376,14 +470,35 @@ function renderHome() {
 function renderXomOi() {
   return `
     <header class="top-nav">
-      <div class="brand-title">XÓM NHỎ <small>Tin Buổi Sớm</small></div>
+      <div class="brand-title">${shopTitle()} <small>Tin Buổi Sớm</small></div>
       <div class="wallet-badge">💵 ${money(state.cash)}</div>
     </header>
     <div class="story-screen">
       <div class="story-card">
-        <h2>🌤️ Xóm Ơi · Tiếng Chổi Tre Quét Sớm</h2>
+        <h2>🌤️ Xóm Ơi · Ngày ${state.currentDay}</h2>
         <p>Nắng sớm len lỏi qua giàn hoa giấy tím trước hiên nhà. Mùi cà phê thơm lừng quyện cùng tiếng còi xe máy đầu hẻm báo hiệu một ngày buôn bán mới.</p>
-        
+        ${state.currentDay > 1 ? `
+          <div class="story-hint"><b>📰 Tin trước giờ mở:</b> ${escapeHtml(state.dayEvent.forecast)}<br>
+          Dự kiến ${state.dayCustomers.length} lượt khách · Sao quán ${state.rating?.toFixed(1) || 'chưa đánh giá'} ⭐.
+          Giá đã mua hôm trước giữ nguyên trong kho; giá mới chỉ áp dụng cho hàng mua hôm nay.
+          ${state.rating !== null && state.rating < 3 ? '<br>⚠️ Sao quán đang thấp: khách bình dân sẽ dè giá cao, dự kiến ít người ghé hơn.' : ''}
+          <br>Sức chở ${state.upgrades.vehicleCapacity} đơn vị: trần sao hiện tại ${state.upgrades.vehicleCapacity <= 20 ? '3,5' : state.upgrades.vehicleCapacity <= 30 ? '4,0' : '5,0'}; nâng xe để phục vụ nhiều khách hơn.
+          <br>Tem ghé xóm: ${state.login?.visitDays || 0} ngày lịch, nghỉ chơi không mất tem.</div>
+          ${state.lastDayReport ? `<details class="story-hint"><summary>Xem lại ngày ${state.lastDayReport.day}: ${state.lastDayReport.served} khách được phục vụ · két ${money(state.lastDayReport.cash)}</summary><ul>${state.lastDayReport.feedback.slice(0, 3).map(f => `<li>${escapeHtml(f.name)}: ${escapeHtml(f.text)}</li>`).join('')}</ul></details>` : ''}
+          <div class="upgrade-list"><h3>🔧 Nâng cấp trước khi đi chợ</h3>
+            ${Object.entries(UPGRADE_CATALOG).map(([id, u]) => `
+              <button class="btn-secondary" data-type="UPGRADE" data-payload="${id}" ${state.currentDay < (u.unlockDay || 2) || state.upgrades[id] >= u.maxLevel || state.cash < (state.upgrades[id] === 1 ? (u.nextCost || u.cost) : u.cost) ? 'disabled' : ''}>
+                ${u.name} · ${money(state.upgrades[id] === 1 ? (u.nextCost || u.cost) : u.cost)} — ${u.description} (${state.upgrades[id]}/${u.maxLevel})${state.currentDay < (u.unlockDay || 2) ? ` · Mở ngày ${u.unlockDay}` : ''}
+              </button>
+            `).join('')}
+          </div>
+          ${state.currentDay >= 3 ? `<button class="btn-secondary" data-type="LEARN_RECIPE" data-payload="BANH_MI_TRUNG" ${!state.upgrades.counter || state.knownRecipeIds.includes('BANH_MI_TRUNG') || state.cash < 12000 ? 'disabled' : ''}>📒 Học bánh mì ốp la · 12.000đ (cần nới quầy)${state.knownRecipeIds.includes('BANH_MI_TRUNG') ? ' · Đã học' : ''}</button>` : ''}
+          ${state.currentDay >= 8 ? `<button class="btn-secondary" data-type="HIRE_STAFF" ${state.staffHiredToday || state.cash < 8000 ? 'disabled' : ''}>🧑‍🍳 Thuê người phụ ca này · lương 8.000đ; có thể nhận 2 khách giờ trưa, vẫn cần đủ nguyên liệu</button>` : ''}
+          ${state.currentDay >= 15 ? `<button class="btn-secondary" data-type="ENABLE_ONLINE" ${state.onlineEnabledToday ? 'disabled' : ''}>🛵 Nhận 2 đơn mang đi · phí 2.000đ/đơn thành công, dùng chung hàng tồn</button>` : ''}
+          ${state.cash < 11000 && !state.sideJobIncome ? `<button class="btn-secondary" data-type="SIDE_JOB">🧹 Phụ cô hàng xóm dọn sân · nhận 15.000đ vốn nhập hàng</button>` : ''}
+          ${state.sideJobIncome ? `<p>Hôm nay đã làm việc phụ: +${money(state.sideJobIncome)}. Khoản này ghi riêng với tiền bán món.</p>` : ''}
+          ${message ? `<div class="alert-message">${escapeHtml(message)}</div>` : ''}
+        ` : `
         <div class="story-clues">
           <strong>📰 Tin tức trong xóm:</strong>
           <ul>
@@ -397,6 +512,7 @@ function renderXomOi() {
         <div class="story-hint">
           📢 <b>Bà Sáu đầu chợ rỉ tai:</b> <i>"Tắc bữa nay gom ép nước nhiều, giá chợ chiều có thể nhích lên 3.000đ/trái đó nghen chú!"</i>
         </div>
+        `}
 
         <button class="btn-primary" data-type="NAVIGATE" style="margin-top: 18px;">🛒 Ra Chợ Đầu Ngõ Nhập Hàng</button>
       </div>
@@ -406,42 +522,42 @@ function renderXomOi() {
 
 function renderMarket() {
   const currentBasketUnits = totalBasketUnits(state.basket);
-  const currentBasketCost = totalBasketCost(state.basket);
+  const currentBasketCost = totalBasketCost(state.basket, state.marketPrices);
   const remainingCash = state.cash - currentBasketCost;
 
   return `
     <header class="top-nav">
-      <div class="brand-title">XÓM NHỎ <small>Chợ Đầu Ngõ</small></div>
+      <div class="brand-title">${shopTitle()} <small>Chợ Đầu Ngõ</small></div>
       <div class="wallet-badge">💵 ${money(state.cash)}</div>
     </header>
     <div class="market-screen">
       <div class="capacity-banner">
         <div class="capacity-header">
           <span>🚲 Sức chở xe đạp hàng:</span>
-          <strong>${currentBasketUnits} / ${BIKE_CAPACITY} đơn vị</strong>
+          <strong>${currentBasketUnits} / ${state.upgrades.vehicleCapacity} đơn vị</strong>
         </div>
         <div class="capacity-bar-track">
-          <div class="capacity-bar-fill ${currentBasketUnits > BIKE_CAPACITY ? 'overflow' : ''}" style="width: ${Math.min(100, (currentBasketUnits / BIKE_CAPACITY) * 100)}%;"></div>
+          <div class="capacity-bar-fill ${currentBasketUnits > state.upgrades.vehicleCapacity ? 'overflow' : ''}" style="width: ${Math.min(100, (currentBasketUnits / state.upgrades.vehicleCapacity) * 100)}%;"></div>
         </div>
       </div>
 
-      <div class="bundle-quick-row">
+      ${state.currentDay === 1 ? `<div class="bundle-quick-row">
         <button class="btn-bundle" data-type="BUNDLE_DAY1">
           <span>🌟 Chọn Gói Gợi Ý Day 1 (55.000đ)</span>
           <small>3 Bánh mì, 4 Chả, 3 Dưa, 3 Đá, 3 Đường, 2 Tắc, 1 Sữa (19 đơn vị)</small>
         </button>
-      </div>
+      </div>` : `<p class="market-note">Ngày ${state.currentDay}: chọn số lượng dựa trên lượng khách dự kiến. Hàng khô còn từ hôm qua: ${Object.entries(state.stock).filter(([id, qty]) => qty > 0).map(([id, qty]) => `${ingredientMeta[id]?.name}: ${qty}`).join(', ') || 'không có'}.</p>`}
 
       <div class="market-list">
-        ${Object.entries(ingredients).map(([id, item]) => {
+        ${Object.entries(ingredients).filter(([id]) => state.currentDay > 1 || id !== 'egg').map(([id, item]) => {
           const qty = state.basket[id] || 0;
           return `
             <div class="market-item-card">
-              <img src="${ingredientMeta[id]?.img || ''}" class="market-item-img" alt="${item.name}">
+              ${ingredientMeta[id]?.img ? `<img src="${ingredientMeta[id].img}" class="market-item-img" alt="${item.name}">` : `<span class="market-item-img">${ingredientMeta[id]?.icon || ''}</span>`}
               <div class="market-item-info">
                 <strong>${item.name}</strong>
-                <span>${money(item.price)} / ${item.unit}</span>
-                ${id === 'kumquat' ? `<small class="market-warning">⚠️ Chiều có thể lên 3.000đ</small>` : ''}
+                <span>${money(state.marketPrices[id])} / ${item.unit}</span>
+                ${id === 'kumquat' && state.currentDay === 1 ? `<small class="market-warning">⚠️ Ngày mai có thể lên 3.000đ</small>` : ''}
               </div>
               <div class="stepper">
                 <button class="step-btn" data-type="BASKET" data-payload="${id}:${Math.max(0, qty - 1)}">-</button>
@@ -459,8 +575,8 @@ function renderMarket() {
           <div>Tiền còn lại: <strong style="color: ${remainingCash < 0 ? '#ef4444' : '#15803d'}">${money(remainingCash)}</strong></div>
         </div>
         ${message ? `<div class="alert-message">${message}</div>` : ''}
-        <button class="btn-primary" data-type="BUY" ${currentBasketUnits === 0 || remainingCash < 0 ? 'disabled' : ''}>
-          🥖 Mang Hàng Về Lên Menu
+        <button class="btn-primary" data-type="BUY" ${(currentBasketUnits === 0 && state.currentDay === 1) || remainingCash < 0 ? 'disabled' : ''}>
+          🥖 ${currentBasketUnits ? 'Mua Hàng & Lên Menu' : 'Không Mua Thêm · Lên Menu'}
         </button>
       </div>
     </div>
@@ -470,27 +586,27 @@ function renderMarket() {
 function renderMenuSetup() {
   return `
     <header class="top-nav">
-      <div class="brand-title">XÓM NHỎ <small>Lên Thực Đơn</small></div>
+      <div class="brand-title">${shopTitle()} <small>Lên Thực Đơn</small></div>
       <div class="wallet-badge">💵 ${money(state.cash)}</div>
     </header>
     <div class="menu-screen">
       <div class="menu-intro">
-        <h3>📋 Bảng Thực Đơn Quán Hôm Nay (3 Slot Quầy)</h3>
+        <h3>📋 Bảng Thực Đơn Ngày ${state.currentDay} (${state.upgrades.counterSlots} chỗ trên quầy)</h3>
         <p>Chọn các món mở bán và mức giá niêm yết cho khách hàng.</p>
       </div>
 
       <div class="menu-slots-grid">
         ${Object.entries(recipes).map(([recipeId, recipeData]) => {
           const cfg = state.menu[recipeId] || { enabled: true, sellPrice: recipeData.basePrice };
-          const cost = calculateRecipeCost(recipeData.needs);
+          const cost = Object.entries(recipeData.needs).reduce((n, [id, qty]) => n + (state.marketPrices[id] || ingredients[id].price) * qty, 0);
           const margin = cfg.sellPrice - cost;
 
           return `
             <div class="menu-card ${cfg.enabled ? 'active' : 'disabled'}">
               <div class="menu-card-header">
                 <label class="menu-toggle">
-                  <input type="checkbox" data-type="CONFIG_MENU_TOGGLE" data-recipe="${recipeId}" ${cfg.enabled ? 'checked' : ''}>
-                  <strong>${recipeData.name}</strong>
+                  <input type="checkbox" data-type="CONFIG_MENU_TOGGLE" data-recipe="${recipeId}" ${cfg.enabled ? 'checked' : ''} ${recipeId === 'BANH_MI_TRUNG' && !state.knownRecipeIds.includes(recipeId) ? 'disabled' : ''}>
+                  <strong>${recipeData.name}${recipeId === 'BANH_MI_TRUNG' && !state.knownRecipeIds.includes(recipeId) ? ' · Cần nới quầy và học món' : ''}</strong>
                 </label>
                 <span class="cost-estimate">Vốn: ~${money(cost)}</span>
               </div>
@@ -499,7 +615,7 @@ function renderMenuSetup() {
                 <span class="price-tier-label">Giá bán:</span>
                 ${recipeData.priceTiers.map(p => `
                   <button class="price-tier-btn ${cfg.sellPrice === p ? 'selected' : ''}" 
-                    data-type="CONFIG_MENU_PRICE" data-recipe="${recipeId}" data-price="${p}">
+                    data-type="CONFIG_MENU_PRICE" data-recipe="${recipeId}" data-price="${p}" ${recipeId === 'BANH_MI_TRUNG' && !state.knownRecipeIds.includes(recipeId) ? 'disabled' : ''}>
                     ${p / 1000}k
                   </button>
                 `).join('')}
@@ -508,6 +624,7 @@ function renderMenuSetup() {
               <div class="menu-margin-preview">
                 Lãi gộp dự kiến: <strong>+${money(margin)} / phần</strong>
               </div>
+              ${cfg.sellPrice > recipeData.basePrice ? `<div class="price-demand-hint">Giá cao: một số khách nhạy giá có thể bỏ mua.</div>` : ''}
             </div>
           `;
         }).join('')}
@@ -526,6 +643,7 @@ function renderMenuSetup() {
             😴 Trễ (10h)
           </button>
         </div>
+        <p class="opening-note">${state.openingTime === 'early_6am' ? state.currentDay === 1 ? 'Ngày đầu khách đầu tiên dự kiến 8h30; mở sớm sẽ chờ lâu.' : `Mở sớm sẽ đón khách 7h; ${state.dayEvent.costDelta ? `tốn ${money(state.dayEvent.costDelta)} chuẩn bị` : 'không phát sinh chi phí chuẩn bị hôm nay'}.` : state.openingTime === 'late_10am' ? 'Mở lúc 10h sẽ bỏ lỡ khách ghé trước giờ này.' : 'Mở lúc 8h để đón khách sáng.'}</p>
       </div>
 
       ${message ? `<div class="alert-message">${message}</div>` : ''}
@@ -538,9 +656,9 @@ function renderMenuSetup() {
 }
 
 function renderShop() {
-  // Compute display clock time (clock: 0 min -> 08:00 AM)
-  const baseMinutes = state.openingTime === 'early_6am' ? 360 : (state.openingTime === 'late_10am' ? 600 : 480);
-  const totalMinutes = baseMinutes + state.clock;
+  // Engine clock is always measured relative to 08:00; early starts at -120,
+  // late starts at +120. Do not add the opening offset twice.
+  const totalMinutes = 480 + state.clock;
   const hours = Math.floor(totalMinutes / 60);
   const minutes = totalMinutes % 60;
   const timeFormatted = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
@@ -549,10 +667,16 @@ function renderShop() {
   const isBeti = cust && cust.id === 'be_ti';
   const isCoChin = cust && cust.id === 'co_chin';
   const isAnhTung = cust && cust.id === 'anh_tung';
+  const custEmotion = cust ? getCustomerEmotion(cust) : null;
+  const currentPose = autoPrepState?.customerPose || 'ORDER';
+  const currentItem = autoPrepState?.item || cust?.recipe;
+  const dishImg = currentItem ? (DISH_IMAGES[currentItem] || '') : '';
+  const dishOnTray = Boolean(autoPrepState && (autoPrepState.stage === 'deliver_to_tray' || autoPrepState.stage === 'customer_react'));
+  const isLeaving = Boolean(cust && cust.status === 'SERVED' && !customerReaction);
 
   return `
     <header class="top-nav">
-      <div class="brand-title">XÓM NHỎ <small>Đang Mở Bán</small></div>
+      <div class="brand-title">${shopTitle()}</div>
       <div class="clock-display">
         <span>⏰ ${timeFormatted}</span>
         <div class="speed-toggle">
@@ -562,7 +686,10 @@ function renderShop() {
       </div>
       <div class="top-nav-right" style="display: flex; align-items: center; gap: 8px;">
         <button class="btn-icon-replay" data-type="REPLAY" title="Chơi lại" style="background: none; border: none; font-size: 16px; cursor: pointer; color: #fbd38d; min-width: 44px; min-height: 44px; display: flex; align-items: center; justify-content: center;">🔄</button>
-        <div class="wallet-badge">💵 ${money(state.cash)}</div>
+        <div class="wallet-badge" style="position: relative;">
+          💵 ${money(state.cash)}
+          ${floatingCash ? `<div class="floating-cash-burst">${floatingCash}</div>` : ''}
+        </div>
       </div>
     </header>
 
@@ -576,29 +703,49 @@ function renderShop() {
       <!-- Street view & Counter window -->
       <div class="street-counter-scene">
         <img src="../assets/environment/alley_counter_clean.jpg" class="scene-background" alt="Con hẻm">
+        ${(state.upgrades?.canopy > 0 || state.previewCanopy) ? `
+          <img src="${CANOPY_AWNING_IMG}" class="shop-canopy-awning" alt="Mái hiên di động">
+        ` : ''}
 
-        <!-- Customer in queue -->
+        <!-- Waiting customers in queue along the alley pavement -->
+        ${state.waitingQueue && state.waitingQueue.length > 0 ? `
+          <div class="waiting-queue-actors">
+            ${state.waitingQueue.slice(0, 2).map((waitCust, idx) => {
+              const waitEmotion = getCustomerEmotion(waitCust);
+              const waitSprite = getCustomerSprite(waitCust);
+              const isPrio = state.prioritizedCustomerId === waitCust.id;
+              return `
+                <div class="queue-actor-wrap queue-pos-${idx} ${isPrio ? 'is-prioritized' : ''}" data-type="PRIORITIZE" data-payload="${waitCust.id}" title="Chạm để ưu tiên phục vụ">
+                  <img src="${waitSprite}" class="actor-sprite queue-sprite" alt="${escapeHtml(waitCust.name)}">
+                  <div class="queue-mini-bubble">
+                    <span class="emotion-icon">${waitEmotion.icon}</span>
+                    <div class="patience-mini-bar">
+                      <div class="patience-fill" style="width: ${waitEmotion.pct}%; background-color: ${waitEmotion.color};"></div>
+                    </div>
+                    ${isPrio ? `<span class="prio-tag">⭐ Ưu tiên</span>` : ''}
+                  </div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        ` : ''}
+
+        <!-- Customer in service spot at counter window -->
         ${cust ? `
-          <div class="customer-actor-wrap ${cust.status === 'SERVED' ? 'served-leaving' : ''}">
-            <div class="customer-contact-shadow"></div>
-            ${isBeti ? `
-              <img src="${BETI_SPRITES.order[betiFrameIdx % 4]}" class="actor-sprite beti-sprite" alt="Bé Tí">
-            ` : isCoChin ? `
-              <img src="${CO_CHIN_IMG}" class="actor-sprite co-chin-sprite" alt="Cô Chín">
-            ` : isAnhTung ? `
-              <img src="${ANH_TUNG_IMG}" class="actor-sprite anh-tung-sprite" alt="Anh Tùng">
-            ` : `
-              <div class="walkin-avatar-placeholder">
-                <span class="walkin-avatar-icon">👤</span>
-                <span class="walkin-name-tag">${cust.name}</span>
-              </div>
-            `}
+          <div class="customer-actor-wrap ${isLeaving ? 'served-leaving' : ''} ${currentPose === 'RECEIVE' ? 'pose-receive' : (currentPose === 'REACT' ? 'pose-react' : 'pose-order')}">
+            <img src="${getCustomerSprite(cust, currentPose)}" class="actor-sprite ${isBeti ? 'beti-sprite' : (isCoChin ? 'co-chin-sprite' : (isAnhTung ? 'anh-tung-sprite' : (cust.archetype === 'teen' ? 'teen-sprite' : 'walkin-sprite')))}" alt="${escapeHtml(cust.name)}">
 
-            <!-- Customer speech bubble -->
+            <!-- Customer speech bubble with emotion & patience -->
             <div class="customer-bubble">
-              <strong>${cust.name}:</strong>
-              <span>"${customerReaction ? customerReaction.quote : cust.dialogue}"</span>
-              ${autoPrepState && autoPrepState.stage === 'done' ? `<div class="bubble-sparkle">✨ Cảm ơn quán!</div>` : ''}
+              <div class="bubble-header-row">
+                <span class="bubble-emotion-icon">${currentPose === 'REACT' ? '😊' : custEmotion.icon}</span>
+                <strong>${escapeHtml(cust.name)}${cust.temperament === 'RUSH' ? ' · Đang vội' : cust.temperament === 'FRIENDLY' ? ' · Vui vẻ' : ''}</strong>
+              </div>
+              <span class="bubble-dialogue-text">"${escapeHtml((currentPose === 'REACT' && customerReaction) ? customerReaction.quote : cust.dialogue)}"</span>
+              <div class="patience-mini-bar">
+                <div class="patience-fill" style="width: ${custEmotion.pct}%; background-color: ${custEmotion.color};"></div>
+              </div>
+              ${currentPose === 'REACT' ? `<div class="bubble-sparkle">✨ Cảm ơn quán!</div>` : ''}
             </div>
           </div>
         ` : `
@@ -607,92 +754,134 @@ function renderShop() {
           </div>
         `}
 
-        <div class="counter-sill-bar"></div>
+        <!-- Foreground Counter Shelf (Occludes customer legs/feet, placing customer behind the counter) -->
+        <img src="${COUNTER_SHELF_FOREGROUND_IMG}" class="counter-shelf-foreground" alt="Mặt bàn quầy gỗ">
 
-        ${floatingCash ? `<div class="floating-cash-burst">${floatingCash}</div>` : ''}
+        <!-- Counter Pass Tray (Khay quầy gỗ phẳng nằm ngang): Rustic horizontal pass tray on counter sill -->
+        <div class="counter-pass-tray ${dishOnTray ? 'has-dish' : 'is-empty'}">
+          ${dishOnTray && dishImg ? `
+            <div class="tray-dish-holder popIn">
+              <img src="${dishImg}" class="tray-dish-img" alt="${recipes[currentItem]?.name || 'Món ăn'}">
+              <span class="tray-steam-wisp">~</span>
+            </div>
+          ` : ''}
+        </div>
       </div>
 
-      <!-- Auto-Prep Watercolor Workstation -->
+      <!-- Active Coordination Dock (Focus Boost & Queue Priority) -->
+      <div class="active-management-dock">
+        <div class="management-controls-row">
+          <button class="btn-focus-boost ${state.focusBoost?.active ? 'is-active' : (state.focusBoost?.cooldownSeconds > 0 ? 'is-cooldown' : '')}"
+                  data-type="FOCUS_BOOST"
+                  ${state.focusBoost?.active || state.focusBoost?.cooldownSeconds > 0 ? 'disabled' : ''}>
+            ${state.focusBoost?.active
+              ? `⚡ ĐANG TẬP TRUNG (${state.focusBoost.remainingSeconds}s · Chế biến x2)`
+              : (state.focusBoost?.cooldownSeconds > 0
+                ? `⏳ Hồi chiêu (${state.focusBoost.cooldownSeconds}s)`
+                : `⚡ Tập Trung Phục Vụ (x2)`)}
+          </button>
+        </div>
+        ${state.waitingQueue && state.waitingQueue.length > 0 ? `
+          <div class="queue-management-strip">
+            <div class="queue-strip-label">👥 Hàng chờ (${state.waitingQueue.length}):</div>
+            <div class="queue-cards-row">
+              ${state.waitingQueue.map(qCust => {
+                const qEmotion = getCustomerEmotion(qCust);
+                const isPrio = state.prioritizedCustomerId === qCust.id;
+                return `
+                  <div class="queue-cust-card ${isPrio ? 'is-prioritized' : ''}">
+                    <div class="queue-cust-info">
+                      <span class="queue-cust-avatar">${qEmotion.icon}</span>
+                      <div class="queue-cust-text">
+                        <strong>${escapeHtml(qCust.name)}</strong>
+                        <small>${recipes[qCust.recipe]?.name || qCust.recipe}</small>
+                      </div>
+                    </div>
+                    <div class="queue-cust-patience-bar">
+                      <div class="queue-cust-patience-fill" style="width: ${qEmotion.pct}%; background-color: ${qEmotion.color};"></div>
+                    </div>
+                    <button class="btn-prio-tag ${isPrio ? 'prio-active' : ''}" data-type="PRIORITIZE" data-payload="${qCust.id}">
+                      ${isPrio ? '⭐ Đang ưu tiên' : 'Ưu tiên'}
+                    </button>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          </div>
+        ` : ''}
+      </div>
+
+      <!-- Auto-Prep Rustic Wooden Workstation -->
       <div class="auto-prep-bench">
         <div class="prep-bench-header">
-          <span class="prep-bench-title">🔪 Bàn Chế Biến Quán Phố</span>
+          <span class="prep-bench-title">🌿 Bàn Pha Chế Quán Phố</span>
           <span class="prep-status-text">
             ${autoPrepState ? (
-              autoPrepState.stage === 'layer1' ? 'Lớp 1/3: Vỏ bánh / Ly đá...' :
-              autoPrepState.stage === 'layer2' ? 'Lớp 2/3: Thêm nhân / Rót nước...' :
-              autoPrepState.stage === 'done' ? '✨ Món hoàn thành vàng ruộm!' :
+              autoPrepState.stage === 'layer1' ? 'Lớp 1/3: Chuẩn bị vỏ/ly...' :
+              autoPrepState.stage === 'layer2' ? 'Lớp 2/3: Thêm nhân/rót nước...' :
+              autoPrepState.stage === 'deliver_to_tray' ? '✨ Đã chuyển món lên khay quầy!' :
+              autoPrepState.stage === 'customer_react' ? '🎉 Khách nhận món ngon lành!' :
               autoPrepState.stage === 'menudisabled' ? 'Món không bán hôm nay!' :
               autoPrepState.stage === 'pricerejected' ? 'Khách chê giá đắt!' : 'Hết nguyên liệu!'
-            ) : 'Bàn thớt sạch sẽ · Dao thớt sẵn sàng'}
+            ) : 'Thớt gỗ sẵn sàng · Đồ nghề tinh tươm'}
           </span>
         </div>
 
-        <div class="prep-visual-dock">
-          ${autoPrepState && autoPrepState.item === 'BANH_MI_CHA' ? `
+        <div class="prep-visual-dock rustic-wood-dock">
+          ${['layer1', 'layer2'].includes(autoPrepState?.stage) && autoPrepState.item === 'BANH_MI_CHA' ? `
             <div class="watercolor-prep-stage banh-mi-stage">
-              ${autoPrepState.stage === 'done' ? `
-                <div class="art-layer-finish">
-                  <img src="../assets/dishes/banh_mi_cha.png" class="dish-finish-img popIn" alt="Bánh mì chả hoàn chỉnh">
-                  <div class="finish-label">Ổ Bánh Mì Chả Nóng Giòn</div>
-                </div>
-              ` : `
-                <div class="art-layers-stack">
-                  <img src="../assets/ingredients/bread.png" class="art-layer art-bread ${autoPrepState.stage === 'layer1' ? 'layer-enter' : ''}" alt="Bánh mì">
-                  ${['layer2', 'done'].includes(autoPrepState.stage) ? `
-                    <img src="../assets/ingredients/cha.png" class="art-layer art-cha-slice slice-1 dropIn" alt="Chả lụa">
-                    ${autoPrepState.isExtra ? `
-                      <img src="../assets/ingredients/cha.png" class="art-layer art-cha-slice slice-2 dropIn" alt="Chả lụa thêm">
-                    ` : ''}
-                    <img src="../assets/ingredients/vegetable.png" class="art-layer art-veg dropIn" alt="Dưa ngò">
+              <div class="art-layers-stack">
+                <img src="../assets/ingredients/bread.png" class="art-layer art-bread ${autoPrepState.stage === 'layer1' ? 'layer-enter' : ''}" alt="Bánh mì">
+                ${autoPrepState.stage === 'layer2' ? `
+                  <img src="../assets/ingredients/cha.png" class="art-layer art-cha-slice slice-1 dropIn" alt="Chả lụa">
+                  ${autoPrepState.isExtra ? `
+                    <img src="../assets/ingredients/cha.png" class="art-layer art-cha-slice slice-2 dropIn" alt="Chả lụa thêm">
                   ` : ''}
-                </div>
-                <div class="prep-layer-caption">
-                  ${autoPrepState.stage === 'layer1' ? 'Vỏ bánh mì nướng giòn rụm' : (autoPrepState.isExtra ? 'Xếp 2 khoanh chả lụa dày đặc + dưa ngò' : 'Xếp chả lụa thơm ngậy + dưa ngò')}
-                </div>
-              `}
+                  <img src="../assets/ingredients/vegetable.png" class="art-layer art-veg dropIn" alt="Dưa ngò">
+                ` : ''}
+              </div>
+              <div class="prep-layer-caption">
+                ${autoPrepState.stage === 'layer1' ? 'Vỏ bánh mì nướng giòn rụm' : (autoPrepState.isExtra ? 'Xếp 2 khoanh chả lụa dày đặc + dưa ngò' : 'Xếp chả lụa thơm ngậy + dưa ngò')}
+              </div>
             </div>
-          ` : autoPrepState && autoPrepState.item === 'TRA_TAC' ? `
+          ` : ['layer1', 'layer2'].includes(autoPrepState?.stage) && autoPrepState.item === 'TRA_TAC' ? `
             <div class="watercolor-prep-stage drink-stage">
-              ${autoPrepState.stage === 'done' ? `
-                <div class="art-layer-finish">
-                  <img src="../assets/dishes/tra_tac.png" class="dish-finish-img popIn" alt="Trà tắc hoàn chỉnh">
-                  <div class="finish-label">Ly Trà Tắc Chua Ngọt Mát Lạnh</div>
-                </div>
-              ` : `
-                <div class="art-layers-stack drink-stack">
-                  <img src="../assets/ingredients/ice.png" class="art-layer art-ice ${autoPrepState.stage === 'layer1' ? 'layer-enter' : ''}" alt="Đá bi">
-                  ${['layer2', 'done'].includes(autoPrepState.stage) ? `
-                    <img src="../assets/ingredients/sugar_syrup.png" class="art-layer art-syrup dropIn" alt="Nước đường">
-                    <img src="../assets/ingredients/kumquat.png" class="art-layer art-kumquat dropIn" alt="Tắc tươi">
-                  ` : ''}
-                </div>
-                <div class="prep-layer-caption">
-                  ${autoPrepState.stage === 'layer1' ? 'Ly thủy tinh đầy ắp đá bi' : 'Vắt tắc tươi mọng nước + chan nước đường'}
-                </div>
-              `}
+              <div class="art-layers-stack drink-stack">
+                <img src="../assets/ingredients/ice.png" class="art-layer art-ice ${autoPrepState.stage === 'layer1' ? 'layer-enter' : ''}" alt="Đá bi">
+                ${autoPrepState.stage === 'layer2' ? `
+                  <img src="../assets/ingredients/sugar_syrup.png" class="art-layer art-syrup dropIn" alt="Nước đường">
+                  <img src="../assets/ingredients/kumquat.png" class="art-layer art-kumquat dropIn" alt="Tắc tươi">
+                ` : ''}
+              </div>
+              <div class="prep-layer-caption">
+                ${autoPrepState.stage === 'layer1' ? 'Ly thủy tinh đầy ắp đá bi' : 'Vắt tắc tươi mọng nước + chan nước đường'}
+              </div>
             </div>
-          ` : autoPrepState && autoPrepState.item === 'SUA_DAU_DA' ? `
+          ` : ['layer1', 'layer2'].includes(autoPrepState?.stage) && autoPrepState.item === 'SUA_DAU_DA' ? `
             <div class="watercolor-prep-stage drink-stage">
-              ${autoPrepState.stage === 'done' ? `
-                <div class="art-layer-finish">
-                  <img src="../assets/dishes/sua_dau.png" class="dish-finish-img popIn" alt="Sữa đậu hoàn chỉnh">
-                  <div class="finish-label">Ly Sữa Đậu Nành Béo Mát</div>
-                </div>
-              ` : `
-                <div class="art-layers-stack drink-stack">
-                  <img src="../assets/ingredients/ice.png" class="art-layer art-ice ${autoPrepState.stage === 'layer1' ? 'layer-enter' : ''}" alt="Đá bi">
-                  ${['layer2', 'done'].includes(autoPrepState.stage) ? `
-                    <img src="../assets/ingredients/soy_milk.png" class="art-layer art-soymilk dropIn" alt="Sữa đậu">
-                  ` : ''}
-                </div>
-                <div class="prep-layer-caption">
-                  ${autoPrepState.stage === 'layer1' ? 'Ly thủy tinh đầy ắp đá bi' : 'Rót sữa đậu nành béo thơm'}
-                </div>
-              `}
+              <div class="art-layers-stack drink-stack">
+                <img src="../assets/ingredients/ice.png" class="art-layer art-ice ${autoPrepState.stage === 'layer1' ? 'layer-enter' : ''}" alt="Đá bi">
+                ${autoPrepState.stage === 'layer2' ? `
+                  <img src="../assets/ingredients/soy_milk.png" class="art-layer art-soymilk dropIn" alt="Sữa đậu">
+                ` : ''}
+              </div>
+              <div class="prep-layer-caption">
+                ${autoPrepState.stage === 'layer1' ? 'Ly thủy tinh đầy ắp đá bi' : 'Rót sữa đậu nành béo thơm'}
+              </div>
             </div>
           ` : `
-            <div class="prep-idle-platter">
-              <span class="idle-desc">Thớt gỗ sạch sẽ · Dao thớt sẵn sàng · Ly cốc ngay ngắn</span>
+            <div class="prep-idle-platter rustic-board">
+              <div class="cutting-board-elements">
+                <img src="../assets/ingredients/bread.png" class="idle-board-mini-ing" alt="Bánh mì" title="Bánh mì">
+                <img src="../assets/ingredients/cha.png" class="idle-board-mini-ing" alt="Chả lụa" title="Chả lụa">
+                <img src="../assets/ingredients/vegetable.png" class="idle-board-mini-ing" alt="Dưa ngò" title="Dưa ngò">
+                <div class="board-steam">
+                  <span class="steam-wisp s1">~</span>
+                  <span class="steam-wisp s2">~</span>
+                  <span class="steam-wisp s3">~</span>
+                </div>
+              </div>
+              <span class="idle-desc">${autoPrepState && autoPrepState.stage === 'deliver_to_tray' ? '✨ Thớt gỗ sạch sẽ · Đã đặt món lên khay quầy' : (autoPrepState && autoPrepState.stage === 'customer_react' ? '🎉 Khách đang nhận món · Thớt gỗ chuẩn bị đợt mới' : 'Thớt gỗ sạch sẽ · Đồ nghề tinh tươm · Ly tách ngay ngắn')}</span>
             </div>
           `}
         </div>
@@ -713,7 +902,7 @@ function renderShop() {
           `).join('')}
         </div>
         <div class="shop-action-row">
-          <button class="btn-close-shop" data-type="CLOSE">🚪 Đóng Quán & Tính Sổ</button>
+          <button class="btn-close-shop" data-type="CLOSE">🚪 ${state.customerIndex < state.dayCustomers.length ? 'Đóng Sớm & Tính Sổ' : 'Đóng Quán & Tính Sổ'}</button>
         </div>
       </div>
     </div>
@@ -727,11 +916,12 @@ function renderShop() {
           <p class="decision-speech">"${state.activeDecision.message}"</p>
           <div class="decision-options-col">
             ${state.activeDecision.options.map(opt => `
-              <button class="btn-decision" data-type="DECIDE" data-payload="${opt.key}">
+              <button class="btn-decision" data-type="DECIDE" data-payload="${opt.key}" ${opt.key === 'yes' && ((state.activeDecision.id === 'EXTRA_CHA' && state.stock.cha < 2) || (state.activeDecision.id === 'ROADWORK_SIGN' && state.cash < 3000)) ? 'disabled' : ''}>
                 ${opt.label}
               </button>
             `).join('')}
           </div>
+          ${state.activeDecision.id === 'EXTRA_CHA' && state.stock.cha < 2 ? '<p>Không đủ chả để thêm; hôm nay chỉ có thể bán phần thường.</p>' : ''}
         </div>
       </div>
     ` : ''}
@@ -743,16 +933,25 @@ function renderDayResult() {
 
   return `
     <header class="top-nav">
-      <div class="brand-title">XÓM NHỎ <small>Sổ Ghi Tiền Cuối Ngày</small></div>
+      <div class="brand-title">${shopTitle()} <small>Sổ Ghi Tiền Cuối Ngày</small></div>
       <div class="wallet-badge">💵 ${money(ledger.finalCashInDrawer)}</div>
     </header>
 
     <div class="result-screen">
       <div class="notebook-ledger-card">
         <div class="notebook-header">
-          <h2>📖 SỔ GHI TIỀN QUÁN XÓM NHỎ</h2>
-          <small>Ngày 1 · Tổng Kết Kinh Doanh Buổi Đầu</small>
+          <h2>📖 SỔ GHI TIỀN ${shopTitle()}</h2>
+          <small>Ngày ${state.currentDay} · Tổng Kết Buổi Bán</small>
         </div>
+        <div class="ledger-block highlight-box" aria-label="Tóm tắt cuối ngày">
+          <h3>${ledger.servedCount}/${ledger.servedCount + ledger.missedCount} khách được phục vụ · ⭐ ${state.rating?.toFixed(1)}</h3>
+          <p>Doanh thu ${money(ledger.totalSalesRevenue)} · Lãi gộp ${money(ledger.grossOperatingProfit)} · Tiền két ${money(ledger.finalCashInDrawer)}</p>
+          <h4>Khách nói gì hôm nay?</h4>
+          <ul class="journal-list">${(state.lastDayReport?.feedback || []).filter(f => f.reason !== 'SERVED').slice(0, 2).concat((state.lastDayReport?.feedback || []).filter(f => f.reason === 'SERVED').slice(0, 1)).map(f => `<li><b>${escapeHtml(f.name)}:</b> ${escapeHtml(f.text)}</li>`).join('') || '<li>Hôm nay chưa có phản hồi.</li>'}</ul>
+          <p><b>Ngày mai:</b> ${escapeHtml(state.lastDayReport?.forecastTomorrow || '')}</p>
+          <small>Tự sang màn chuẩn bị ngày ${state.currentDay + 1} sau 12 giây. Chạm xem sổ để dừng đếm.</small>
+        </div>
+        <details id="day-ledger-details" ${resultDetailsOpen ? 'open' : ''}><summary class="btn-secondary">Xem sổ chi tiết & toàn bộ feedback</summary>
 
         <!-- 1. Dòng tiền mặt trong két -->
         <div class="ledger-block">
@@ -765,6 +964,10 @@ function renderDayResult() {
             <span>Chi tiền mua nguyên liệu ở chợ:</span>
             <strong>-${money(ledger.spentOnMorningStock)}</strong>
           </div>
+          ${ledger.upgradeOutlay ? `<div class="ledger-row minus"><span>Chi nâng cấp quán:</span><strong>-${money(ledger.upgradeOutlay)}</strong></div>` : ''}
+          ${ledger.operatingExpenses ? `<div class="ledger-row minus"><span>Chi chuẩn bị mở sớm:</span><strong>-${money(ledger.operatingExpenses)}</strong></div>` : ''}
+          ${ledger.onlineFees ? `<div class="ledger-row minus"><span>Phí đơn mang đi:</span><strong>-${money(ledger.onlineFees)}</strong></div>` : ''}
+          ${ledger.sideJobIncome ? `<div class="ledger-row plus"><span>Tiền việc phụ trong xóm:</span><strong>+${money(ledger.sideJobIncome)}</strong></div>` : ''}
           <div class="ledger-row plus">
             <span>Tiền mặt thu thực tế từ bán hàng (${ledger.servedCount} đơn):</span>
             <strong>+${money(ledger.cashSalesCollected)}</strong>
@@ -800,12 +1003,14 @@ function renderDayResult() {
           <hr class="ledger-divider">
           <div class="ledger-row highlight profit">
             <span>👉 LỢI NHUẬN GỘP (GROSS OPERATING PROFIT):</span>
-            <strong>+${money(ledger.grossOperatingProfit)}</strong>
+            <strong>${ledger.grossOperatingProfit >= 0 ? '+' : ''}${money(ledger.grossOperatingProfit)}</strong>
           </div>
           <div class="ledger-row sub">
             <span>Giá trị nguyên liệu còn tồn kho:</span>
             <strong>${money(ledger.retainedStockValueAtCost)}</strong>
           </div>
+          <div class="ledger-row sub"><span>Nguyên liệu tươi hỏng cuối ngày:</span><strong>${money(ledger.spoilageLoss)}</strong></div>
+          <div class="ledger-row sub"><span>Kết quả sau hao hụt, chi vận hành, phí giao và việc phụ:</span><strong>${money(ledger.resultAfterSpoilageAndExpenses)}</strong></div>
         </div>
 
         <!-- 3. Lãi gộp theo món -->
@@ -834,6 +1039,9 @@ function renderDayResult() {
           ${ledger.missedCount > 0 ? `
             <div class="missed-details-box">
               <div class="missed-header text-red">Tổng số đơn bỏ lỡ: <strong>${ledger.missedCount} đơn</strong></div>
+              ${ledger.missedByReason?.WAIT_TOO_LONG?.length ? `
+                <div class="missed-subline">• Khách chờ quá lâu bỏ về: <b>${ledger.missedByReason.WAIT_TOO_LONG.map(o => o.name).join(', ')}</b></div>
+              ` : ''}
               ${ledger.missedByReason?.OUT_OF_STOCK?.length ? `
                 <div class="missed-subline">• Hết nguyên liệu: <b>${ledger.missedByReason.OUT_OF_STOCK.map(o => o.name).join(', ')}</b></div>
               ` : ''}
@@ -845,6 +1053,9 @@ function renderDayResult() {
               ` : ''}
               ${ledger.missedByReason?.MISSED_LATE_OPENING?.length ? `
                 <div class="missed-subline">• Mở quán muộn (lúc 10h): <b>${ledger.missedByReason.MISSED_LATE_OPENING.map(o => o.name).join(', ')}</b></div>
+              ` : ''}
+              ${ledger.missedByReason?.MISSED_EARLY_CLOSING?.length ? `
+                <div class="missed-subline">• Đóng quán sớm: <b>${ledger.missedByReason.MISSED_EARLY_CLOSING.map(o => o.name).join(', ')}</b></div>
               ` : ''}
             </div>
           ` : `
@@ -858,36 +1069,23 @@ function renderDayResult() {
         <div class="ledger-block journal">
           <h4 class="ledger-block-title">📝 5. CHUYỆN XÓM SAU GIỜ BÁN</h4>
           <ul class="journal-list">
-            ${state.servedOrders.some(o => o.personId === 'be_ti') ? `
-              <li>👧 <b>Bé Tí:</b> Cầm ổ bánh mì thơm phức cười tít mắt, tấm tắc khen chú làm ngon rồi hứa mai tan học ghé tiếp!</li>
-            ` : ''}
-            ${state.servedOrders.some(o => o.personId === 'co_chin') ? `
-              <li>👵 <b>Cô Chín:</b> Uống ly trà tắc mát lạnh, khen quán pha thanh mát vừa miệng, bảo trưa mai sẽ ghé ủng hộ.</li>
-            ` : ''}
-            ${state.servedOrders.some(o => o.personId === 'anh_tung') ? `
-              <li>🛵 <b>Anh Tùng:</b> Uống ực một hơi ly sữa đậu mát rượi, khen quán chu đáo rồi nổ máy chạy cuốc xe trưa.</li>
-            ` : ''}
-            ${ledger.missedOrders.map(o => `
-              <li>👤 <b>${o.name}:</b> ${
-                o.reason === 'MENU_DISABLED' ? 'Tiếc vì quán không bán món hôm nay, hẹn mai ghé lại.' :
-                o.reason === 'PRICE_TOO_HIGH' ? 'Chê giá hôm nay đắt hơn mức bình dân trong xóm.' :
-                o.reason === 'MISSED_LATE_OPENING' ? 'Ghé lúc sáng sớm khi quán chưa mở cửa.' :
-                'Tiếc vì quán hết hàng sớm, hẹn mai ghé sớm hơn.'
-              }</li>
-            `).join('')}
+            ${(state.lastDayReport?.feedback || []).map(f => `<li><b>${escapeHtml(f.name)}:</b> ${escapeHtml(f.text)}</li>`).join('')}
           </ul>
         </div>
 
         <!-- 6. Đánh giá & Preview Day 2 -->
         <div class="ledger-block highlight-box">
-          <div class="rating-tag">⭐ ĐÁNH GIÁ: Quán Mới Mở · Nhận Phản Hồi Tích Cực</div>
-          <div class="upgrade-preview">
+          <div class="rating-tag">⭐ ${state.rating?.toFixed(1) || 'Chưa đánh giá'} sao · ${ledger.servedCount >= 5 ? 'Nhiều khách hài lòng' : ledger.servedCount > 0 ? 'Có khách đầu tiên, cần cải thiện thêm' : 'Chưa có đơn thành công'}</div>
+          <p>${state.currentDay === 1 ? 'Ngày mai: tắc dự kiến lên 3.000đ/trái; cân nhắc lượng nhập và giá trà tắc.' : `Ngày ${state.currentDay + 1}: đọc tin xóm trước khi nhập hàng.`}</p>
+          ${state.currentDay === 1 ? `<div class="upgrade-preview">
             <b>🔧 Xem trước nâng cấp Day 2:</b>
             <p>Rổ đèo hàng xe đạp (sức chở 30 đơn vị) và mối trứng gà tươi giá mềm đầu chợ để mở món Bánh Mì Ốp-La!</p>
-          </div>
+          </div>` : ''}
         </div>
 
-        <button class="btn-primary" data-type="REPLAY" style="margin-top: 16px;">🔄 Mở Quán Chơi Lại Ngày 1</button>
+        </details>
+        <button class="btn-primary" data-type="NEXT_DAY" style="margin-top: 16px;">🌅 Chuẩn bị ngày ${state.currentDay + 1} ngay</button>
+        <button class="btn-tertiary" data-type="REPLAY">🔄 Chơi Lại Từ Đầu</button>
       </div>
     </div>
   `;
@@ -913,6 +1111,12 @@ $.addEventListener('click', e => {
   const t = b.dataset.type;
   const p = b.dataset.payload;
 
+  if (t === 'SET_SHOP_NAME') {
+    send('SET_SHOP_NAME', document.querySelector('#shop-name-input')?.value || '');
+    if (state.shopName) send('NAVIGATE');
+    return;
+  }
+
   if (t === 'RESUME') {
     if (saved) {
       state = saved;
@@ -926,6 +1130,11 @@ $.addEventListener('click', e => {
   if (t === 'REPLAY') {
     send('REPLAY');
     return;
+  }
+
+  if (t === 'CLOSE' && state.customerIndex < state.dayCustomers.length) {
+    const remaining = state.dayCustomers.length - state.customerIndex - (state.activeCustomer?.status && state.activeCustomer.status !== 'ARRIVED' ? 1 : 0);
+    if (!window.confirm(`Đóng sớm sẽ bỏ lỡ ${remaining} khách chưa phục vụ. Vẫn đóng quán?`)) return;
   }
 
   if (t === 'CONFIG_MENU_TOGGLE') {
@@ -949,7 +1158,6 @@ $.addEventListener('click', e => {
 
   if (t === 'SPEED') {
     send('SET_SPEED', Number(p));
-    startSimulationLoop();
     return;
   }
 
@@ -964,13 +1172,43 @@ $.addEventListener('click', e => {
     return;
   }
 
+  if (t === 'FOCUS_BOOST') {
+    send('FOCUS_BOOST');
+    render();
+    return;
+  }
+
+  if (t === 'PRIORITIZE') {
+    send('PRIORITIZE', { customerId: p });
+    render();
+    return;
+  }
+
   send(t, p);
 });
 
+$.addEventListener('toggle', e => {
+  if (e.target?.id !== 'day-ledger-details') return;
+  resultDetailsOpen = e.target.open;
+  if (resultDetailsOpen) {
+    if (resultTimer) clearTimeout(resultTimer);
+    resultTimer = null;
+  } else scheduleNextDay();
+}, true);
+
 // Initial boot
+const loginClaim = action(state, 'CLAIM_LOGIN', vnCalendarDate());
+if (!loginClaim.error && loginClaim.state !== state) { state = loginClaim.state; persist(); }
 render();
 if (state.screen === 'SHOP') {
   startSimulationLoop();
 }
+if (state.screen === 'DAY_RESULT') scheduleNextDay();
 
-window.__xomNho = { send, getState: () => state };
+window.__xomNho = {
+  send,
+  getState: () => state,
+  render,
+  setAutoPrepState: (val) => { autoPrepState = val; },
+  clearAllTimers
+};

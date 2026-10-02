@@ -1,19 +1,15 @@
-# Day 1 playable vertical slice
+# Xóm Nhỏ — mobile idle management prototype
 
-From the repository root:
+Từ gốc repo chạy `python3 -m http.server 8000` và mở `http://localhost:8000/game/`. Chơi trên điện thoại dọc 390×844 hoặc viewport tương đương. Tên quán được đặt khi bắt đầu và lưu bằng hai bản save có checksum trong localStorage.
 
-```sh
-python3 -m http.server 8000
-```
+Day 1 giữ kết quả fixture v0.7 (8 khách, 55k nhập, 122k doanh thu, 127k tiền két, 67k lãi gộp). Ngày 2–7 có nâng cấp xe/quầy/ghế, món ốp la, giá nguyên liệu thay đổi, tin xóm và thời tiết, khách có tính cách, sao quán, hàng tươi hỏng và tồn khô theo lô. Engine chạy tiếp qua ngày 21 để kiểm chứng; luật và số liệu thử nghiệm nằm ở `game/day-content.mjs`. Xem `docs/GAMEPLAY_7_DAY_PROTOTYPE.md` để biết rõ giả định và công thức.
 
-Open `http://localhost:8000/game/` on a desktop browser. For a phone on the same Wi-Fi, use the computer's LAN IP in place of `localhost` and allow the local server through the computer firewall. The page is portrait responsive and stores two checksum-validated save revisions in localStorage; it restores the newest valid one.
-
-Gameplay: HOME → XOM_OI → MARKET → SHOP → DAY_RESULT. Buy physical ingredient quantities, tap a customer, respond to Bé Tí's extra-cha request, tap the exact ingredient counts, and commit. Orders never auto-fulfill. Wrong or cleared drafts do not consume stock; duplicate commits are rejected. Unserved customers become missed orders when the shop closes. Replay resets the saved day. The displayed Bé Tí art is an existing candidate static crop; no walk cycle or game animation timing is changed.
-
-**Playtest fixtures:** initial cash 60,000đ, three named arrivals and the displayed ingredient and selling prices are implementation fixtures for the transaction walkthrough. They are not approved economy balance or final Day 1 narrative. Cô Chín and Anh Tùng use emoji placeholders. No new NPC states or rig work is introduced. Debt is displayed but this slice has no debt choice yet. Device playtest and visual inspection remain NOT_RUN.
+Chạy:
 
 ```sh
 node game/test-day1.mjs
+node game/test-multiday.mjs
+node game/test-ui.mjs
 ```
 
-Evidence for a phone finding: screenshot or recording, exact screen and steps to reproduce, expected versus actual result, device/browser. Route walking pose defects to BLOCKED_KEYFRAME_QC; do not change animation timing to hide them.
+Gate browser 7 ngày: `python tools/playtest/mobile_gate_7day.py` trên checkout đầy đủ `assets/` và máy có Playwright Chromium/Edge. Script tự mở server, kiểm tra 390×844, tự chuyển ngày, F5, đối soát tiền, ảnh, nút chạm, lỗi JS và ghi video/screenshot. Xem `docs/MOBILE_GATE_HANDOFF.md`. Những script v0.7 cũ chỉ là tham chiếu Day 1. Art Day 2+, nhân vật và hoạt ảnh là placeholder để Antigravity sản xuất sau; chưa có bằng chứng visual gate cho bản nhiều ngày.

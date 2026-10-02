@@ -39,7 +39,7 @@ async def run_gate1_logic_tests():
         e2e_ledger = await page.evaluate("""() => {
             return import('./day1-core.mjs').then(core => {
                 // Run complete simulation from fresh state to Day Result
-                let s = core.fresh();
+                let s = core.action(core.fresh(), 'SET_SHOP_NAME', 'Quán Test').state;
                 s.screen = 'MARKET';
                 s = core.action(s, 'BUNDLE_DAY1').state;
                 s = core.action(s, 'BUY').state;
@@ -138,7 +138,7 @@ async def run_gate1_logic_tests():
         print("\n--- TEST 2: Customer Price Sensitivity Mechanics ---")
         price_test = await page.evaluate("""() => {
             return import('./day1-core.mjs').then(core => {
-                let s = core.fresh();
+                let s = core.action(core.fresh(), 'SET_SHOP_NAME', 'Quán Test').state;
                 s.screen = 'MENU';
                 s.stock = { bread: 5, cha: 5, vegetable: 5, ice: 5, sugar_syrup: 5, kumquat: 5, soy_milk: 5 };
                 
@@ -147,14 +147,14 @@ async def run_gate1_logic_tests():
                 s = core.action(s, 'START_DAY').state;
                 
                 // Customer with MEDIUM sensitivity (Bác Ba): accepts 28k
-                s.activeCustomer = { id: 'bac_ba', name: 'Bác Ba', recipe: 'BANH_MI_CHA', priceSensitivity: 'MEDIUM' };
+                s.activeCustomer = { id: 'bac_ba', name: 'Bác Ba', recipe: 'BANH_MI_CHA', priceSensitivity: 'MEDIUM', status: 'ARRIVED' };
                 s = core.action(s, 'SERVE_AUTO').state;
                 const bacBaServed = s.activeCustomer.status === 'SERVED';
                 const revenueAfterBacBa = s.revenue; // 28.000đ
                 s = core.action(s, 'CUSTOMER_LEAVE').state;
                 
                 // Customer with HIGH sensitivity (Bác Năm): rejects 28k as too expensive
-                s.activeCustomer = { id: 'bac_nam', name: 'Bác Năm', recipe: 'BANH_MI_CHA', priceSensitivity: 'HIGH' };
+                s.activeCustomer = { id: 'bac_nam', name: 'Bác Năm', recipe: 'BANH_MI_CHA', priceSensitivity: 'HIGH', status: 'ARRIVED' };
                 const stockBeforeBacNam = s.stock.bread;
                 s = core.action(s, 'SERVE_AUTO').state;
                 const bacNamStatus = s.activeCustomer.status; // PRICE_REJECTED
@@ -165,7 +165,7 @@ async def run_gate1_logic_tests():
                 
                 // Case B: Set price back to standard 25.000đ
                 s.menu.BANH_MI_CHA.sellPrice = 25000;
-                s.activeCustomer = { id: 'chu_tu', name: 'Chú Tư', recipe: 'BANH_MI_CHA', priceSensitivity: 'HIGH' };
+                s.activeCustomer = { id: 'chu_tu', name: 'Chú Tư', recipe: 'BANH_MI_CHA', priceSensitivity: 'HIGH', status: 'ARRIVED' };
                 s = core.action(s, 'SERVE_AUTO').state;
                 const chuTuServed = s.activeCustomer.status === 'SERVED';
                 
@@ -196,7 +196,7 @@ async def run_gate1_logic_tests():
         print("\n--- TEST 3: Menu Disabled Dish Distinction ---")
         disabled_dish_test = await page.evaluate("""() => {
             return import('./day1-core.mjs').then(core => {
-                let s = core.fresh();
+                let s = core.action(core.fresh(), 'SET_SHOP_NAME', 'Quán Test').state;
                 s.screen = 'MENU';
                 s.stock = { bread: 2, cha: 2, vegetable: 2, ice: 2, sugar_syrup: 2, kumquat: 2, soy_milk: 2 };
                 
@@ -205,7 +205,7 @@ async def run_gate1_logic_tests():
                 s = core.action(s, 'START_DAY').state;
                 
                 // Customer ordering Sữa Đậu Đá arrives
-                s.activeCustomer = { id: 'anh_tung', name: 'Anh Tùng', recipe: 'SUA_DAU_DA' };
+                s.activeCustomer = { id: 'anh_tung', name: 'Anh Tùng', recipe: 'SUA_DAU_DA', status: 'ARRIVED' };
                 s = core.action(s, 'SERVE_AUTO').state;
                 
                 const customerStatus = s.activeCustomer.status;
@@ -233,7 +233,7 @@ async def run_gate1_logic_tests():
         print("\n--- TEST 4: Opening Time Impact on Customer Roster ---")
         opening_time_test = await page.evaluate("""() => {
             return import('./day1-core.mjs').then(core => {
-                let s = core.fresh();
+                let s = core.action(core.fresh(), 'SET_SHOP_NAME', 'Quán Test').state;
                 s.screen = 'MENU';
                 
                 // Choose late opening: late_10am
@@ -275,7 +275,7 @@ async def run_gate1_logic_tests():
                 let sA = core.fresh();
                 sA.screen = 'SHOP';
                 sA.stock = { bread: 3, cha: 4, vegetable: 3, ice: 3, sugar_syrup: 3, kumquat: 2, soy_milk: 1 };
-                sA.activeCustomer = { id: 'be_ti', name: 'Bé Tí', recipe: 'BANH_MI_CHA' };
+                sA.activeCustomer = { id: 'be_ti', name: 'Bé Tí', recipe: 'BANH_MI_CHA', status: 'ARRIVED' };
                 sA.activeDecision = { id: 'EXTRA_CHA' };
                 sA.isPaused = true;
                 sA = core.action(sA, 'DECIDE', { choice: 'yes' }).state;
@@ -285,7 +285,7 @@ async def run_gate1_logic_tests():
                 let sB = core.fresh();
                 sB.screen = 'SHOP';
                 sB.stock = { bread: 3, cha: 4, vegetable: 3, ice: 3, sugar_syrup: 3, kumquat: 2, soy_milk: 1 };
-                sB.activeCustomer = { id: 'be_ti', name: 'Bé Tí', recipe: 'BANH_MI_CHA' };
+                sB.activeCustomer = { id: 'be_ti', name: 'Bé Tí', recipe: 'BANH_MI_CHA', status: 'ARRIVED' };
                 sB.activeDecision = { id: 'EXTRA_CHA' };
                 sB.isPaused = true;
                 sB = core.action(sB, 'DECIDE', { choice: 'no' }).state;
@@ -315,7 +315,8 @@ async def run_gate1_logic_tests():
         await page.wait_for_timeout(300)
         
         # Navigate to Market and buy 55k bundle
-        await js_click(page, 'button[data-type="NAVIGATE"]')
+        await page.fill('#shop-name-input', 'Quán Test')
+        await js_click(page, 'button[data-type="SET_SHOP_NAME"]')
         await page.wait_for_timeout(200)
         await js_click(page, 'button[data-type="NAVIGATE"]')
         await page.wait_for_timeout(200)
@@ -368,7 +369,7 @@ async def run_gate1_logic_tests():
                 await page.wait_for_timeout(300)
             
             cust_idx = await page.evaluate("() => window.__xomNho?.getState()?.customerIndex || 0")
-            if cust_idx >= 6:
+            if cust_idx >= 8:
                 print(f"  Simulation successfully processed past Customer {cust_idx}!")
                 simulation_finished = True
                 break
@@ -379,16 +380,37 @@ async def run_gate1_logic_tests():
             print(f"  Diagnostics: customerIndex={final_cust_idx}, activeStatus={final_cust_status}")
             
         assert simulation_finished, f"Simulation must recover and continue servicing customers after real page reload! (cust_idx={final_cust_idx if not simulation_finished else cust_idx})"
+        after_reload_ledger = await page.evaluate("""() => import('./day1-core.mjs').then(core => core.calculateLedger(window.__xomNho.getState()))""")
+        assert after_reload_ledger['servedCount'] + after_reload_ledger['missedCount'] == 8
+        assert after_reload_ledger['finalCashInDrawer'] == 127000
+        assert after_reload_ledger['grossOperatingProfit'] == 67000
         print("  ✓ PASS: Real browser page.reload() mid-shift recovers and advances simulation smoothly!")
 
         # ─────────────────────────────────────────────────────────────
         # TEST 7: REPLAY TIMERS CANCELLATION SAFETY
         # ─────────────────────────────────────────────────────────────
-        print("\n--- TEST 7: REPLAY Immediately After Serve / Timers Cancellation ---")
+        print("\n--- TEST 7: REPLAY During Active Prep / Timers Cancellation ---")
         await js_click(page, 'button[data-type="REPLAY"]')
-        await page.wait_for_timeout(1500)
+        await page.fill('#shop-name-input', 'Quán Test')
+        await js_click(page, 'button[data-type="SET_SHOP_NAME"]')
+        await js_click(page, 'button[data-type="NAVIGATE"]')
+        await js_click(page, 'button[data-type="BUNDLE_DAY1"]')
+        await js_click(page, 'button[data-type="BUY"]')
+        await js_click(page, 'button[data-type="START_DAY"]')
+        prep_started = False
+        for _ in range(50):
+            await page.wait_for_timeout(100)
+            prep_started = await page.evaluate("() => Boolean(document.querySelector('.art-layers-stack'))")
+            if prep_started:
+                break
+        assert prep_started, "Must catch an active preparation timer before REPLAY"
+        await js_click(page, 'button[data-type="REPLAY"]')
+        await page.wait_for_timeout(2500)
         screen_after_replay = await page.evaluate("() => document.querySelector('.screen-home') ? 'HOME' : 'OTHER'")
         assert screen_after_replay == 'HOME', "REPLAY must return to HOME"
+        replay_state = await page.evaluate("() => window.__xomNho.getState()")
+        assert replay_state['customerIndex'] == 0 and replay_state['revenue'] == 0
+        assert replay_state['activeCustomer'] is None
         print("  ✓ PASS: REPLAY cleanly resets state and cancels all pending callbacks!")
 
         print(f"\nTotal JS runtime errors: {len(errors)}")

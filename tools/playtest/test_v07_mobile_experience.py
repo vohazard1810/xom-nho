@@ -16,23 +16,30 @@ async def js_click(page, selector):
     }}""")
 
 async def assert_all_buttons_touch_target(page, screen_name):
-    details = await page.evaluate("""() => {
-        const btns = Array.from(document.querySelectorAll('button'));
-        return btns.map(b => ({
+    # Modal backdrop intentionally blocks the page underneath; measure only
+    # the active modal controls while it is open.
+    selector = '.decision-modal-backdrop button' if await page.locator('.decision-modal-backdrop').count() else 'button:visible'
+    buttons = page.locator(selector)
+    details = []
+    for i in range(await buttons.count()):
+        button = buttons.nth(i)
+        await button.scroll_into_view_if_needed()
+        details.append(await button.evaluate("""b => ({
             text: b.textContent.trim().replace(/\\s+/g, ' ').slice(0, 30),
             className: b.className,
             height: Math.round(b.getBoundingClientRect().height),
-            width: Math.round(b.getBoundingClientRect().width)
-        }));
-    }""")
+            width: Math.round(b.getBoundingClientRect().width),
+            visible: b.getBoundingClientRect().bottom > 0 && b.getBoundingClientRect().top < innerHeight && b.getBoundingClientRect().right > 0 && b.getBoundingClientRect().left < innerWidth,
+            centerClickable: (() => { const r = b.getBoundingClientRect(); const x = r.left + r.width / 2, y = r.top + r.height / 2; return b === document.elementFromPoint(x, y) || b.contains(document.elementFromPoint(x, y)); })()
+        })"""))
     print(f"  Touch targets inspection on {screen_name} ({len(details)} buttons):")
     all_valid = True
     for b in details:
-        valid = b['height'] >= 44
+        valid = b['height'] >= 44 and b['width'] >= 44 and b['visible'] and b['centerClickable']
         if not valid:
             all_valid = False
         print(f"    - [{b['text']}]: {b['height']}×{b['width']}px (pass: {valid})")
-    assert all_valid, f"Every button on {screen_name} must have touch target height >= 44px"
+    assert all_valid, f"Every visible button on {screen_name} must be at least 44×44px and reachable"
 
 async def run_gate2_mobile_experience():
     print("=" * 65)
@@ -67,7 +74,8 @@ async def run_gate2_mobile_experience():
         print("\n2. HOME Screen...")
         await page.screenshot(path=os.path.join(EVIDENCE_DIR, "01_home_screen.png"))
         await assert_all_buttons_touch_target(page, "HOME")
-        await js_click(page, 'button[data-type="NAVIGATE"]')
+        await page.fill('#shop-name-input', 'Quán Xóm Nhỏ')
+        await js_click(page, 'button[data-type="SET_SHOP_NAME"]')
         await page.wait_for_timeout(300)
         
         # 2. XOM_OI SCREEN
@@ -187,6 +195,9 @@ async def run_gate2_mobile_experience():
         
         total_service_time = time.time() - start_service_time
         print(f"\n⏱ TOTAL SERVICE TIME: {total_service_time:.1f}s (Pacing target: 45–60s)")
+        assert 45 <= total_service_time <= 60, f"Service time {total_service_time:.1f}s outside 45–60s target"
+        assert captured_stage1 and captured_stage2 and captured_stage3, "All three prep stages must be observed"
+        assert beti_decision_handled and captured_news_ticker, "Decision and market news must be observed"
         
         # Click close shop if still on SHOP
         on_shop = await page.evaluate("() => document.querySelector('.btn-close-shop') !== null")

@@ -1,0 +1,101 @@
+{
+  "mode1": {
+    "mode": "KHONG_CAN_THIEP",
+    "modeName": "1. Không can thiệp (Idle thuần túy - FIFO)",
+    "servedCount": 2,
+    "missedCount": 1,
+    "revenue": 40000,
+    "customers": {
+      "bac_ba": {
+        "name": "Bác Ba",
+        "temperament": "NORMAL",
+        "arrival": 0,
+        "servedAt": 35,
+        "waitTime": 35,
+        "status": "SERVED"
+      },
+      "chi_mai": {
+        "name": "Chị Mai",
+        "temperament": "NORMAL",
+        "arrival": 5,
+        "servedAt": 70,
+        "waitTime": 65,
+        "status": "SERVED"
+      },
+      "anh_tung": {
+        "name": "Anh Tùng",
+        "temperament": "RUSH",
+        "arrival": 8,
+        "servedAt": null,
+        "waitTime": 53,
+        "status": "WAIT_TOO_LONG"
+      }
+    }
+  },
+  "mode2": {
+    "mode": "UU_TIEN_KHACH_VOI",
+    "modeName": "2. Ưu tiên khách vội (PRIORITIZE Anh Tùng)",
+    "servedCount": 3,
+    "missedCount": 0,
+    "revenue": 57000,
+    "customers": {
+      "bac_ba": {
+        "name": "Bác Ba",
+        "temperament": "NORMAL",
+        "arrival": 0,
+        "servedAt": 35,
+        "waitTime": 35,
+        "status": "SERVED"
+      },
+      "chi_mai": {
+        "name": "Chị Mai",
+        "temperament": "NORMAL",
+        "arrival": 5,
+        "servedAt": 105,
+        "waitTime": 100,
+        "status": "SERVED"
+      },
+      "anh_tung": {
+        "name": "Anh Tùng",
+        "temperament": "RUSH",
+        "arrival": 8,
+        "servedAt": 70,
+        "waitTime": 62,
+        "status": "SERVED"
+      }
+    }
+  },
+  "mode3": {
+    "mode": "DUNG_FOCUS_BOOST",
+    "modeName": "3. Dùng Focus Boost (Tập trung chế biến x2)",
+    "servedCount": 3,
+    "missedCount": 0,
+    "revenue": 57000,
+    "customers": {
+      "bac_ba": {
+        "name": "Bác Ba",
+        "temperament": "NORMAL",
+        "arrival": 0,
+        "servedAt": 24,
+        "waitTime": 24,
+        "status": "SERVED"
+      },
+      "chi_mai": {
+        "name": "Chị Mai",
+        "temperament": "NORMAL",
+        "arrival": 5,
+        "servedAt": 59,
+        "waitTime": 54,
+        "status": "SERVED"
+      },
+      "anh_tung": {
+        "name": "Anh Tùng",
+        "temperament": "RUSH",
+        "arrival": 8,
+        "servedAt": 94,
+        "waitTime": 86,
+        "status": "SERVED"
+      }
+    }
+  }
+}
