@@ -130,8 +130,11 @@ async def run(args):
     evidence.mkdir(parents=True, exist_ok=True)
     (evidence / "video").mkdir(exist_ok=True)
     server = ThreadingHTTPServer(("127.0.0.1", args.port), partial(QuietHandler, directory=str(root)))
-    threading.Thread(target=server.serve_forever, daemon=True).start()
-    report = {"status": "IN_PROGRESS", "viewport": SCREEN, "started": datetime.now().isoformat(), "days": [], "errors": [], "imageFailures": []}
+    DEFAULT_EDGE = r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe"
+    if not args.browser_executable and Path(DEFAULT_EDGE).is_file():
+        args.browser_executable = DEFAULT_EDGE
+
+    report = {"status": "IN_PROGRESS", "imageSource": "live_gameplay_edge", "viewport": SCREEN, "started": datetime.now().isoformat(), "days": [], "errors": [], "imageFailures": []}
     try:
         async with async_playwright() as playwright:
             launch = {"headless": not args.headed}
@@ -226,9 +229,21 @@ async def run(args):
                     assert (await state(page))["screen"] == "DAY_RESULT", "Opening ledger must pause auto advance"
                     await assert_images(page, f"Day {day} result")
                     day_report = current["lastDayReport"]
-                    report["days"].append({"day": day, "seconds": round(asyncio.get_running_loop().time() - start, 2),
-                                           "served": day_report["served"], "missed": day_report["missed"],
-                                           "cash": day_report["cash"], "rating": day_report["rating"], "touchChecks": touch})
+                    missed_orders = await page.evaluate("() => window.__xomNho.getState().missedOrders")
+                    missed_reasons = {}
+                    for m in (missed_orders or []):
+                        r = m.get("reason", "UNKNOWN")
+                        missed_reasons[r] = missed_reasons.get(r, 0) + 1
+                    report["days"].append({
+                        "day": day,
+                        "seconds": round(asyncio.get_running_loop().time() - start, 2),
+                        "served": day_report["served"],
+                        "missed": day_report["missed"],
+                        "missedReasons": missed_reasons,
+                        "cash": day_report["cash"],
+                        "rating": day_report["rating"],
+                        "touchChecks": touch
+                    })
                     if day == 1:
                         await page.locator("#day-ledger-details summary").click()
                         await page.wait_for_function("() => window.__xomNho.getState().screen === 'XOM_OI'", timeout=16000)

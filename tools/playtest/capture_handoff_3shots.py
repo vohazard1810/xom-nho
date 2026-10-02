@@ -70,9 +70,8 @@ async def main():
         # Customer at counter, prep dock has ingredients assembling on cutting board
         # Counter pass tray is empty, customer speech bubble shows order request
         # -------------------------------------------------------------
-        # Wait until layer2 is active on cutting board
-        await page.wait_for_function("() => document.querySelector('.art-layers-stack') !== null", timeout=5000)
-        await page.wait_for_timeout(150)
+        await page.wait_for_function("() => document.querySelector('.art-layers-stack') !== null && document.querySelector('.counter-pass-tray.is-empty') !== null", timeout=5000)
+        await page.wait_for_timeout(200)
         
         path_before = EVIDENCE / "shot_handoff_01_truoc_giao.png"
         await page.screenshot(path=str(path_before))
@@ -80,27 +79,28 @@ async def main():
 
         # -------------------------------------------------------------
         # SHOT 2: ĐANG NHẬN (RECEIVE state)
-        # Dish is placed on counter pass tray (.counter-pass-tray.has-dish)
-        # Prep cutting board is clean (zero dish duplication)
-        # Customer is reaching over counter (order_02_raise_approved)
+        # Dish is placed on horizontal counter tray (.counter-pass-tray.has-dish)
+        # Prep dock cutting board is clear to clean idle board (zero dish duplication)
+        # Customer is in RECEIVE pose
         # Customer speech bubble still shows order dialogue (no thank you yet)
         # -------------------------------------------------------------
-        await page.wait_for_selector(".counter-pass-tray.has-dish", timeout=5000)
+        await page.wait_for_function("() => document.querySelector('.customer-actor-wrap.pose-receive') !== null && document.querySelector('.counter-pass-tray.has-dish') !== null", timeout=6000)
         path_receiving = EVIDENCE / "shot_handoff_02_dang_nhan.png"
         await page.screenshot(path=str(path_receiving))
         print("Captured 2: Đang nhận ->", path_receiving)
 
         # -------------------------------------------------------------
         # SHOT 3: SAU NHẬN (REACT state)
-        # Customer has taken the dish (tray is now empty)
-        # Customer is in REACT pose holding dish with beaming smile
-        # Speech bubble now shows thank you dialogue & ✨ Cảm ơn quán!
-        # Floating cash +25.000đ appears
+        # Dish remains on horizontal counter tray
+        # Customer is in REACT pose with beaming smile
+        # Speech bubble shows thank you dialogue & ✨ Cảm ơn quán!
+        # Floating cash burst appears at wallet badge in top-nav
+        # No floating dish overlay on customer chest
         # -------------------------------------------------------------
-        await page.wait_for_selector(".customer-held-dish", timeout=5000)
+        await page.wait_for_selector(".customer-actor-wrap.pose-react", timeout=6000)
+        await page.wait_for_selector(".bubble-sparkle", timeout=6000)
         path_after = EVIDENCE / "shot_handoff_03_sau_nhan.png"
         await page.screenshot(path=str(path_after))
-        print("Captured 3: Sau nhận ->", path_after)
         print("Captured 3: Sau nhận ->", path_after)
 
         # Copy to brain artifacts

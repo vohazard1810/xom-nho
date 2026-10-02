@@ -57,9 +57,9 @@ const STAFF_HANDOFF_DRINK_IMG = '../assets/pilot/staff_handoff_drink.png';
 const STAFF_HANDOFF_SOYMILK_IMG = '../assets/pilot/staff_handoff_soymilk.png';
 
 const DISH_IMAGES = {
-  BANH_MI_CHA: '../assets/dishes/banh_mi_cha.png',
-  TRA_TAC: '../assets/dishes/tra_tac.png',
-  SUA_DAU_DA: '../assets/dishes/sua_dau.png'
+  BANH_MI_CHA: '../assets/dishes/takeaway_banh_mi.png',
+  TRA_TAC: '../assets/dishes/takeaway_tra_tac.png',
+  SUA_DAU_DA: '../assets/dishes/takeaway_sua_dau.png'
 };
 
 const ingredientMeta = {
@@ -286,6 +286,8 @@ function startSimulationLoop() {
   restartSimulationClock();
 }
 
+let currentPrepCustId = null;
+
 function restartSimulationClock() {
   if (simInterval) clearInterval(simInterval);
   simulationSpeed = state.speed;
@@ -297,24 +299,30 @@ function restartSimulationClock() {
       return;
     }
     
-    // If decision modal is active or auto-prep in progress, do not advance clock
-    if (state.isPaused || autoPrepState) {
+    // ONLY pause when mandatory decision modal is open or app in background
+    if (state.isPaused || (typeof document !== 'undefined' && document.hidden)) {
       return;
     }
 
-    // Advance clock
-    send('TICK', 3);
+    // 1. Advance Game Clock & Customer Arrivals / Patience
+    send('TICK', 1);
 
-    // If a customer just arrived and is ready for auto-prep
-    if (state.activeCustomer && state.activeCustomer.status === 'ARRIVED' && !state.isPaused && !autoPrepState) {
-      runAutoPrepSequence();
-    }
+    // 2. Active Customer Prep & Delivery Pipeline
+    tickAutoPrepPipeline();
   }, intervalMs);
 }
 
-function runAutoPrepSequence() {
+function tickAutoPrepPipeline() {
   const cust = state.activeCustomer;
-  if (!cust) return;
+  if (!cust) {
+    if (autoPrepState) autoPrepState = null;
+    return;
+  }
+
+  // If customer is already processed or leaving
+  if (['SERVED', 'OUT_OF_STOCK', 'MENU_DISABLED', 'PRICE_REJECTED', 'WAIT_TOO_LONG'].includes(cust.status)) {
+    return;
+  }
 
   const recipeId = cust.recipe;
   const isExtra = cust.id === 'be_ti' && state.extraCha === true;
@@ -322,141 +330,111 @@ function runAutoPrepSequence() {
   const menuItem = state.menu[recipeId];
   const recipeDef = recipes[recipeId];
 
-  // 1. Check if recipe is disabled on today's menu
+  // 1. Check Menu Disabled
   if (!menuItem || !menuItem.enabled) {
     autoPrepState = { stage: 'menudisabled', progress: 100, item: recipeId, isExtra };
     render();
-
-    prepTimer1 = setTimeout(() => {
+    setTimeout(() => {
       send('SERVE_AUTO');
-      customerReaction = {
-        quote: `Ủa nay quán không bán ${recipeDef?.name || 'món này'} hả chú? Tiếc ghê, để bữa khác con ghé lại nha!`,
-        status: 'disappointed'
-      };
+      customerReaction = { quote: `Ủa nay quán không bán ${recipeDef?.name || 'món này'} hả chú? Tiếc ghê!`, status: 'disappointed' };
       render();
-
-      leaveTimer = setTimeout(() => {
-        customerReaction = null;
-        autoPrepState = null;
-        send('CUSTOMER_LEAVE');
-        render();
-      }, 1500);
-    }, 700);
+      setTimeout(() => { customerReaction = null; autoPrepState = null; send('CUSTOMER_LEAVE'); render(); }, 1200);
+    }, 600);
     return;
   }
 
-  // 2. Check customer price sensitivity (HIGH sensitivity vs Tier 3 High Price)
+  // 2. Check Price Rejection
   if (menuItem.sellPrice > recipeDef.basePrice && cust.priceSensitivity === 'HIGH') {
     autoPrepState = { stage: 'pricerejected', progress: 100, item: recipeId, isExtra };
     render();
-
-    prepTimer1 = setTimeout(() => {
+    setTimeout(() => {
       send('SERVE_AUTO');
-      customerReaction = {
-        quote: `Ủa nay ${recipeDef?.name || 'món này'} lên tới ${money(menuItem.sellPrice)} dữ vậy chú? Mắc quá, thôi để bác đi chỗ khác!`,
-        status: 'angry'
-      };
+      customerReaction = { quote: `Ủa nay ${recipeDef?.name || 'món này'} lên tới ${money(menuItem.sellPrice)} dữ vậy chú? Mắc quá!`, status: 'angry' };
       render();
-
-      leaveTimer = setTimeout(() => {
-        customerReaction = null;
-        autoPrepState = null;
-        send('CUSTOMER_LEAVE');
-        render();
-      }, 1500);
-    }, 700);
+      setTimeout(() => { customerReaction = null; autoPrepState = null; send('CUSTOMER_LEAVE'); render(); }, 1200);
+    }, 600);
     return;
   }
 
-  // 3. Check inventory stock
+  // 3. Check Stock
   if (!hasEnoughStock(state.stock, needs)) {
     autoPrepState = { stage: 'outofstock', progress: 100, item: recipeId, isExtra };
     render();
-
-    prepTimer1 = setTimeout(() => {
+    setTimeout(() => {
       send('SERVE_AUTO');
-      customerReaction = {
-        quote: 'Hết hàng rồi hả chú? Tiếc quá, để mai con ghé sớm ủng hộ tiếp nha!',
-        status: 'disappointed'
-      };
+      customerReaction = { quote: 'Hết hàng rồi hả chú? Tiếc quá, để mai con ghé sớm ủng hộ tiếp nha!', status: 'disappointed' };
       render();
-
-      leaveTimer = setTimeout(() => {
-        customerReaction = null;
-        autoPrepState = null;
-        send('CUSTOMER_LEAVE');
-        render();
-      }, 1500);
-    }, 700);
+      setTimeout(() => { customerReaction = null; autoPrepState = null; send('CUSTOMER_LEAVE'); render(); }, 1200);
+    }, 600);
     return;
   }
 
-  // 4. Watercolor Auto-Prep & Counter Tray Handoff Sequence
-  // Speed is doubled when Focus Boost is active
-  const isBoosted = Boolean(state.focusBoost && state.focusBoost.active);
-  const stepDelay = isBoosted ? 200 : 400;
-  const receiveDelay = isBoosted ? 400 : 850;
-  const leaveDelay = isBoosted ? 650 : 1300;
-
-  // Stage 1 (0ms): Base layer on cutting board (ORDER state)
-  autoPrepState = { stage: 'layer1', progress: 33, item: recipeId, isExtra, customerPose: 'ORDER' };
-  playTap('bread');
-  render();
-
-  // Stage 2: Middle filling/juice layer on cutting board (ORDER state)
-  prepTimer1 = setTimeout(() => {
-    autoPrepState = { stage: 'layer2', progress: 70, item: recipeId, isExtra, customerPose: 'ORDER' };
-    playTap('cha');
+  // 4. Active Prep Progress
+  if (!autoPrepState || currentPrepCustId !== cust.id) {
+    currentPrepCustId = cust.id;
+    autoPrepState = { stage: 'layer1', progress: 0, item: recipeId, isExtra, customerPose: 'ORDER' };
+    playTap('bread');
     render();
+    return;
+  }
 
-    // Stage 3: Prep finished! Dish is placed onto Counter Pass Tray (RECEIVE state)
-    // The prep board clears immediately (zero dish duplication)
-    prepTimer2 = setTimeout(() => {
-      autoPrepState = { stage: 'deliver_to_tray', progress: 100, item: recipeId, isExtra, customerPose: 'RECEIVE' };
-      playChime();
-      render();
+  // Dynamic Boost Multiplier (Takes effect immediately mid-order!)
+  const multiplier = (state.focusBoost && state.focusBoost.active) ? 2.0 : 1.0;
+  // Step advance: ~12.5% per tick at 1x (~8 ticks = 2.2s), ~25% per tick at 2x (~4 ticks = 1.1s)
+  autoPrepState.progress = Math.min(100, autoPrepState.progress + (12.5 * multiplier));
 
-      // Stage 4: Customer takes dish from tray and reacts (REACT state)
-      // Tray becomes empty, customer holds dish, thank you dialogue appears
-      prepTimer3 = setTimeout(() => {
-        const earned = menuItem.sellPrice;
-        send('SERVE_AUTO');
-        playCoins();
-        floatingCash = '+' + money(earned + (state.servedOrders.at(-1)?.tip || 0));
+  if (autoPrepState.progress < 35) {
+    autoPrepState.stage = 'layer1';
+    autoPrepState.customerPose = 'ORDER';
+  } else if (autoPrepState.progress < 70) {
+    if (autoPrepState.stage === 'layer1') playTap('cha');
+    autoPrepState.stage = 'layer2';
+    autoPrepState.customerPose = 'ORDER';
+  } else if (autoPrepState.progress < 85) {
+    if (autoPrepState.stage === 'layer2') playChime();
+    // Dish placed on counter tray! Prep dock clears!
+    autoPrepState.stage = 'deliver_to_tray';
+    autoPrepState.customerPose = 'RECEIVE';
+  } else if (autoPrepState.progress < 100) {
+    // Customer reacts! Dish remains ON THE TRAY!
+    autoPrepState.stage = 'customer_react';
+    autoPrepState.customerPose = 'REACT';
+    if (!customerReaction) {
+      playCoins();
+      send('SERVE_AUTO');
+      const earned = menuItem.sellPrice;
+      floatingCash = '+' + money(earned + (state.servedOrders.at(-1)?.tip || 0));
 
-        let quote = 'Cảm ơn chú nhiều nghen, món ngon vừa miệng lắm!';
-        if (cust.id === 'be_ti') {
-          quote = isExtra 
-            ? 'Oa chả ngập tràn luôn, con cảm ơn chú nhiều lắm! Mai con ghé tiếp!'
-            : 'Bánh mì giòn rụm thơm phức, con cảm ơn chú nghen!';
-        } else if (cust.id === 'co_chin') {
-          quote = 'Trà tắc mát rượi thanh tao, đã khát thiệt đó con ơi!';
-        } else if (cust.id === 'anh_tung') {
-          quote = 'Sữa đậu béo bùi mát lạnh, tỉnh cả người em ơi! Anh chạy cuốc trưa đây!';
-        } else if (cust.priceSensitivity === 'LOW' && menuItem.sellPrice > recipeDef.basePrice) {
-          quote = 'Giá nay hơi nhỉnh xíu ha chú, mà thèm quá nên mua luôn nè!';
-        } else if (menuItem.sellPrice < recipeDef.basePrice) {
-          quote = 'Quán bán giá mềm mà chất lượng ghê, để bác rủ thêm người ủng hộ!';
-        } else if (cust.temperament === 'RUSH') {
-          quote = 'Kịp giờ rồi! Cảm ơn quán, mình đi đây!';
-        } else if (cust.temperament === 'FRIENDLY') {
-          quote = 'Ngon quá, gửi thêm quán ít tiền cà phê nha!';
-        }
+      let quote = 'Cảm ơn chú nhiều nghen, món ngon vừa miệng lắm!';
+      if (cust.id === 'be_ti') {
+        quote = isExtra
+          ? 'Oa chả ngập tràn luôn, con cảm ơn chú nhiều lắm! Mai con ghé tiếp!'
+          : 'Bánh mì giòn rụm thơm phức, con cảm ơn chú nghen!';
+      } else if (cust.id === 'co_chin') {
+        quote = 'Trà tắc mát rượi thanh tao, đã khát thiệt đó con ơi!';
+      } else if (cust.id === 'anh_tung') {
+        quote = 'Sữa đậu béo bùi mát lạnh, tỉnh cả người em ơi! Anh chạy cuốc trưa đây!';
+      } else if (cust.priceSensitivity === 'LOW' && menuItem.sellPrice > recipeDef.basePrice) {
+        quote = 'Giá nay hơi nhỉnh xíu ha chú, mà thèm quá nên mua luôn nè!';
+      } else if (menuItem.sellPrice < recipeDef.basePrice) {
+        quote = 'Quán bán giá mềm mà chất lượng ghê, để bác rủ thêm người ủng hộ!';
+      } else if (cust.temperament === 'RUSH') {
+        quote = 'Kịp giờ rồi! Cảm ơn quán, mình đi đây!';
+      } else if (cust.temperament === 'FRIENDLY') {
+        quote = 'Ngon quá, gửi thêm quán ít tiền cà phê nha!';
+      }
+      customerReaction = { quote, status: 'happy' };
+    }
+  } else {
+    // 100% reached: Dish disappears from tray! Customer departs!
+    autoPrepState = null;
+    customerReaction = null;
+    floatingCash = null;
+    currentPrepCustId = null;
+    send('CUSTOMER_LEAVE');
+  }
 
-        customerReaction = { quote, status: 'happy' };
-        autoPrepState = { stage: 'customer_react', progress: 100, item: recipeId, isExtra, customerPose: 'REACT' };
-        render();
-
-        leaveTimer = setTimeout(() => {
-          floatingCash = null;
-          customerReaction = null;
-          autoPrepState = null;
-          send('CUSTOMER_LEAVE');
-          render();
-        }, leaveDelay);
-      }, receiveDelay);
-    }, stepDelay);
-  }, stepDelay);
+  render();
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -693,14 +671,14 @@ function renderShop() {
   const currentPose = autoPrepState?.customerPose || 'ORDER';
   const currentItem = autoPrepState?.item || cust?.recipe;
   const dishImg = currentItem ? (DISH_IMAGES[currentItem] || '') : '';
-  const dishOnTray = Boolean(autoPrepState && autoPrepState.stage === 'deliver_to_tray');
+  const dishOnTray = Boolean(autoPrepState && (autoPrepState.stage === 'deliver_to_tray' || autoPrepState.stage === 'customer_react'));
   const isLeaving = Boolean(cust && cust.status === 'SERVED' && !customerReaction);
 
   return `
     <header class="top-nav">
-      <div class="brand-title">${shopTitle()} <small>Đang Mở Bán</small></div>
+      <div class="brand-title">${shopTitle()}</div>
       <div class="clock-display">
-        <span>⏰ ${timeFormatted} · Ngày ${state.currentDay}</span>
+        <span>⏰ ${timeFormatted}</span>
         <div class="speed-toggle">
           <button class="speed-btn ${state.speed === 1 ? 'active' : ''}" data-type="SPEED" data-payload="1">x1</button>
           <button class="speed-btn ${state.speed === 2 ? 'active' : ''}" data-type="SPEED" data-payload="2">x2</button>
@@ -708,7 +686,10 @@ function renderShop() {
       </div>
       <div class="top-nav-right" style="display: flex; align-items: center; gap: 8px;">
         <button class="btn-icon-replay" data-type="REPLAY" title="Chơi lại" style="background: none; border: none; font-size: 16px; cursor: pointer; color: #fbd38d; min-width: 44px; min-height: 44px; display: flex; align-items: center; justify-content: center;">🔄</button>
-        <div class="wallet-badge">💵 ${money(state.cash)}</div>
+        <div class="wallet-badge" style="position: relative;">
+          💵 ${money(state.cash)}
+          ${floatingCash ? `<div class="floating-cash-burst">${floatingCash}</div>` : ''}
+        </div>
       </div>
     </header>
 
@@ -776,26 +757,15 @@ function renderShop() {
         <!-- Foreground Counter Shelf (Occludes customer legs/feet, placing customer behind the counter) -->
         <img src="${COUNTER_SHELF_FOREGROUND_IMG}" class="counter-shelf-foreground" alt="Mặt bàn quầy gỗ">
 
-        ${currentPose === 'REACT' && dishImg ? `
-          <div class="customer-held-dish popIn">
-            <img src="${dishImg}" class="held-dish-img" alt="${recipes[currentItem]?.name || 'Món ăn'}">
-          </div>
-        ` : ''}
-
-        <!-- Counter Pass Tray (Khay trên quầy): Rustic wooden tray on top of counter shelf -->
+        <!-- Counter Pass Tray (Khay quầy gỗ phẳng nằm ngang): Rustic horizontal pass tray on counter sill -->
         <div class="counter-pass-tray ${dishOnTray ? 'has-dish' : 'is-empty'}">
-          <div class="tray-wood-rim"></div>
           ${dishOnTray && dishImg ? `
             <div class="tray-dish-holder popIn">
               <img src="${dishImg}" class="tray-dish-img" alt="${recipes[currentItem]?.name || 'Món ăn'}">
               <span class="tray-steam-wisp">~</span>
             </div>
-          ` : `
-            <span class="tray-label">Khay quầy</span>
-          `}
+          ` : ''}
         </div>
-
-        ${floatingCash ? `<div class="floating-cash-burst">${floatingCash}</div>` : ''}
       </div>
 
       <!-- Active Coordination Dock (Focus Boost & Queue Priority) -->
@@ -844,7 +814,7 @@ function renderShop() {
       <!-- Auto-Prep Rustic Wooden Workstation -->
       <div class="auto-prep-bench">
         <div class="prep-bench-header">
-          <span class="prep-bench-title">🔪 Bàn Thớt Quầy Phố</span>
+          <span class="prep-bench-title">🌿 Bàn Pha Chế Quán Phố</span>
           <span class="prep-status-text">
             ${autoPrepState ? (
               autoPrepState.stage === 'layer1' ? 'Lớp 1/3: Chuẩn bị vỏ/ly...' :
@@ -902,16 +872,16 @@ function renderShop() {
           ` : `
             <div class="prep-idle-platter rustic-board">
               <div class="cutting-board-elements">
-                <span class="board-tool knife">🔪</span>
-                <span class="board-tool herbs">🌿</span>
-                <span class="board-tool cup">🥢</span>
+                <img src="../assets/ingredients/bread.png" class="idle-board-mini-ing" alt="Bánh mì" title="Bánh mì">
+                <img src="../assets/ingredients/cha.png" class="idle-board-mini-ing" alt="Chả lụa" title="Chả lụa">
+                <img src="../assets/ingredients/vegetable.png" class="idle-board-mini-ing" alt="Dưa ngò" title="Dưa ngò">
                 <div class="board-steam">
                   <span class="steam-wisp s1">~</span>
                   <span class="steam-wisp s2">~</span>
                   <span class="steam-wisp s3">~</span>
                 </div>
               </div>
-              <span class="idle-desc">${autoPrepState && autoPrepState.stage === 'deliver_to_tray' ? '✨ Thớt gỗ sạch sẽ · Đã đặt món lên khay quầy' : (autoPrepState && autoPrepState.stage === 'customer_react' ? '🎉 Khách đang nhận món · Thớt gỗ chuẩn bị đợt mới' : 'Thớt gỗ sạch sẽ · Dao thớt sẵn sàng · Ly tách ngay ngắn')}</span>
+              <span class="idle-desc">${autoPrepState && autoPrepState.stage === 'deliver_to_tray' ? '✨ Thớt gỗ sạch sẽ · Đã đặt món lên khay quầy' : (autoPrepState && autoPrepState.stage === 'customer_react' ? '🎉 Khách đang nhận món · Thớt gỗ chuẩn bị đợt mới' : 'Thớt gỗ sạch sẽ · Đồ nghề tinh tươm · Ly tách ngay ngắn')}</span>
             </div>
           `}
         </div>
