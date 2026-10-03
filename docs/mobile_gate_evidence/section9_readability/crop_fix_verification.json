@@ -1,0 +1,298 @@
+{
+  "shot_07_viewport_360x640.png": {
+    "viewport": {
+      "width": 360,
+      "height": 640
+    },
+    "rows": {
+      "header": 46,
+      "scene": 216.984375,
+      "strip": 79.015625,
+      "queue": 44,
+      "board": 44,
+      "tray": 124,
+      "actions": 46,
+      "status": 16,
+      "options": 20
+    },
+    "totalHeight": 640,
+    "dishName": {
+      "text": "Bánh mì đặc biệt thập cẩm chả lụa pate xá xíu",
+      "fontSize": 16,
+      "fontSizePass": true,
+      "lineCount": 2,
+      "lineCountPass": true
+    },
+    "qtyPill": {
+      "text": "×1",
+      "isSeparate": true
+    },
+    "specialBadge": {
+      "text": "⭐ Thêm chả",
+      "hasExtraCha": true
+    },
+    "activeCustomer": {
+      "headMargin": 67.70437622070312,
+      "isCropped": false,
+      "rect": {
+        "x": 71.7300033569336,
+        "y": 113.70437622070312,
+        "w": 63.090003967285156,
+        "h": 133.95001220703125
+      }
+    },
+    "waiting0": {
+      "headMargin": 49.22437286376953,
+      "isCropped": false,
+      "rect": {
+        "x": 149.8199920654297,
+        "y": 95.22437286376953,
+        "w": 69.18000793457031,
+        "h": 106.1399917602539
+      }
+    },
+    "waiting1": {
+      "headMargin": 74.3343734741211,
+      "isCropped": false,
+      "rect": {
+        "x": 186.60000610351562,
+        "y": 120.3343734741211,
+        "w": 31.860000610351562,
+        "h": 51.360008239746094
+      }
+    },
+    "speechBubble": {
+      "rect": {
+        "x": 6,
+        "y": 54,
+        "w": 72,
+        "h": 42.171875
+      },
+      "clearsFace": true
+    },
+    "stockLinesUnclipped": true,
+    "buttonMetrics": [
+      {
+        "id": "bread",
+        "text": "+1 · Còn 4",
+        "bBottom": 494.5,
+        "sBottom": 492.75,
+        "diff": -1.75,
+        "isClipped": false,
+        "w": 84.75,
+        "h": 58.5
+      },
+      {
+        "id": "cha",
+        "text": "Còn 4",
+        "bBottom": 494.5,
+        "sBottom": 492.75,
+        "diff": -1.75,
+        "isClipped": false,
+        "w": 84.75,
+        "h": 58.5
+      },
+      {
+        "id": "vegetable",
+        "text": "Còn 5",
+        "bBottom": 494.5,
+        "sBottom": 492.75,
+        "diff": -1.75,
+        "isClipped": false,
+        "w": 84.75,
+        "h": 58.5
+      },
+      {
+        "id": "ice",
+        "text": "Còn 5",
+        "bBottom": 494.5,
+        "sBottom": 492.75,
+        "diff": -1.75,
+        "isClipped": false,
+        "w": 84.75,
+        "h": 58.5
+      },
+      {
+        "id": "sugar_syrup",
+        "text": "Còn 5",
+        "bBottom": 556,
+        "sBottom": 554.25,
+        "diff": -1.75,
+        "isClipped": false,
+        "w": 84.75,
+        "h": 58.5
+      },
+      {
+        "id": "kumquat",
+        "text": "Còn 5",
+        "bBottom": 556,
+        "sBottom": 554.25,
+        "diff": -1.75,
+        "isClipped": false,
+        "w": 84.75,
+        "h": 58.5
+      },
+      {
+        "id": "soy_milk",
+        "text": "Còn 4",
+        "bBottom": 556,
+        "sBottom": 554.25,
+        "diff": -1.75,
+        "isClipped": false,
+        "w": 84.75,
+        "h": 58.5
+      }
+    ],
+    "touchTargetsPass": true,
+    "failedTargets": [],
+    "hasHorizontalScroll": false
+  },
+  "shot_08_viewport_390x844.png": {
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "rows": {
+      "header": 48,
+      "scene": 382.328125,
+      "strip": 81.671875,
+      "queue": 42,
+      "board": 54,
+      "tray": 136,
+      "actions": 48,
+      "status": 20,
+      "options": 22
+    },
+    "totalHeight": 844,
+    "dishName": {
+      "text": "Bánh mì đặc biệt thập cẩm chả lụa pate xá xíu",
+      "fontSize": 16,
+      "fontSizePass": true,
+      "lineCount": 2,
+      "lineCountPass": true
+    },
+    "qtyPill": {
+      "text": "×1",
+      "isSeparate": true
+    },
+    "specialBadge": {
+      "text": "⭐ Thêm chả",
+      "hasExtraCha": true
+    },
+    "activeCustomer": {
+      "headMargin": 169.9994659423828,
+      "isCropped": false,
+      "rect": {
+        "x": 41.00198745727539,
+        "y": 217.9994659423828,
+        "w": 89.73617553710938,
+        "h": 190.52403259277344
+      }
+    },
+    "waiting0": {
+      "headMargin": 143.7144012451172,
+      "isCropped": false,
+      "rect": {
+        "x": 152.07342529296875,
+        "y": 191.7144012451172,
+        "w": 98.39828491210938,
+        "h": 150.96839904785156
+      }
+    },
+    "waiting1": {
+      "headMargin": 179.42965698242188,
+      "isCropped": false,
+      "rect": {
+        "x": 204.3875274658203,
+        "y": 227.42965698242188,
+        "w": 45.31611633300781,
+        "h": 73.05197143554688
+      }
+    },
+    "speechBubble": {
+      "rect": {
+        "x": 6,
+        "y": 56,
+        "w": 72,
+        "h": 42.171875
+      },
+      "clearsFace": true
+    },
+    "stockLinesUnclipped": true,
+    "buttonMetrics": [
+      {
+        "id": "bread",
+        "text": "+1 · Còn 4",
+        "bBottom": 682.5,
+        "sBottom": 681.78125,
+        "diff": -0.71875,
+        "isClipped": false,
+        "w": 89.75,
+        "h": 61.5
+      },
+      {
+        "id": "cha",
+        "text": "Còn 4",
+        "bBottom": 682.5,
+        "sBottom": 681.78125,
+        "diff": -0.71875,
+        "isClipped": false,
+        "w": 89.75,
+        "h": 61.5
+      },
+      {
+        "id": "vegetable",
+        "text": "Còn 5",
+        "bBottom": 682.5,
+        "sBottom": 681.78125,
+        "diff": -0.71875,
+        "isClipped": false,
+        "w": 89.75,
+        "h": 61.5
+      },
+      {
+        "id": "ice",
+        "text": "Còn 5",
+        "bBottom": 682.5,
+        "sBottom": 681.78125,
+        "diff": -0.71875,
+        "isClipped": false,
+        "w": 89.75,
+        "h": 61.5
+      },
+      {
+        "id": "sugar_syrup",
+        "text": "Còn 5",
+        "bBottom": 749,
+        "sBottom": 748.28125,
+        "diff": -0.71875,
+        "isClipped": false,
+        "w": 89.75,
+        "h": 61.5
+      },
+      {
+        "id": "kumquat",
+        "text": "Còn 5",
+        "bBottom": 749,
+        "sBottom": 748.28125,
+        "diff": -0.71875,
+        "isClipped": false,
+        "w": 89.75,
+        "h": 61.5
+      },
+      {
+        "id": "soy_milk",
+        "text": "Còn 4",
+        "bBottom": 749,
+        "sBottom": 748.28125,
+        "diff": -0.71875,
+        "isClipped": false,
+        "w": 89.75,
+        "h": 61.5
+      }
+    ],
+    "touchTargetsPass": true,
+    "failedTargets": [],
+    "hasHorizontalScroll": false
+  }
+}

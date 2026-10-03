@@ -534,7 +534,6 @@ function renderShop() {
               <span class="ticket-qty-pill">×1</span>
               ${c.id === 'be_ti' && state.extraCha === true ? `<span class="ticket-special-badge">⭐ Thêm chả</span>` : ''}
               ${c.temperament === 'RUSH' ? `<span class="ticket-rush-tag">⚡ Vội</span>` : ''}
-              <span class="ticket-cust-tag">Khách: <b>${escapeHtml(c.name)}</b></span>
             </div>
             <div class="receipt-checklist">
               ${Object.entries(needs).map(([id,q])=>{const sel=selected[id]||0;const done=sel>=q;return `<span class="receipt-item ${done?'checked':'pending'}"><i class="receipt-mark">${done?'✓':'○'}</i> ${ingredientMeta[id]?.name||id} ${sel}/${q}</span>`}).join('')}
