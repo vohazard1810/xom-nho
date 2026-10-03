@@ -33,8 +33,8 @@
     },
     "shot_07": {
       "file": "shot_07_viewport_360x640.png",
-      "label": "Fixture bố cục - Viewport nhỏ 360×640: 3 khách, không che khuất, tên món đầy đủ",
-      "description": "Màn nhỏ 360×640 với 1 khách tại quầy (Anh Tùng) và 2 khách trong hẻm (Bé Tí, Cô Chín). Phiếu gọi món cao 40.0px ở top-right không che đầu Bé Tí (khoảng cách an toàn 5.5px). Hàng chờ hiển thị đủ tên không cắt."
+      "label": "Bằng chứng 1/3: Viewport nhỏ 360×640 - Anh Tùng quầy, Bé Tí & Cô Chín hẻm, không che khuất, đầu nguyên vẹn",
+      "description": "Màn nhỏ 360×640 với Anh Tùng tại quầy (đầu cách mép trên 11.2px, không bị crop; thoại ở góc trái không che mặt), Bé Tí và Cô Chín đứng trên mặt đường đá hẻm (không đạp lên chậu cây hay ghế), phiếu gọi món ở góc phải không chạm khách chờ. Hàng chờ đủ tên không cắt."
     },
     "shot_08": {
       "file": "shot_08_viewport_430x932.png",
@@ -75,8 +75,8 @@
       }
     }
   },
-  "dish_name_font_size": 16,
-  "dish_name_font_size_ge_16px": true,
+  "dish_name_font_size": 13,
+  "dish_name_font_size_ge_16px": false,
   "ticket_thumbnail_valid": true,
   "extra_cha_badge_visible": true,
   "speech_bubble_detached": true,
@@ -91,7 +91,7 @@
   "measured_touch_targets": [
     {
       "group": "Khay nguyên liệu",
-      "label": "Bánh mì Còn 0",
+      "label": "Bánh mì Còn 5",
       "width": 89.8,
       "height": 69.5,
       "ge44": true,
@@ -99,7 +99,7 @@
     },
     {
       "group": "Khay nguyên liệu",
-      "label": "Chả lụa Còn 0",
+      "label": "Chả lụa Còn 5",
       "width": 89.8,
       "height": 69.5,
       "ge44": true,
@@ -107,7 +107,7 @@
     },
     {
       "group": "Khay nguyên liệu",
-      "label": "Dưa ngò Còn 0",
+      "label": "Dưa ngò Còn 5",
       "width": 89.8,
       "height": 69.5,
       "ge44": true,
@@ -115,7 +115,7 @@
     },
     {
       "group": "Khay nguyên liệu",
-      "label": "Đá bi Còn 0",
+      "label": "Đá bi Còn 5",
       "width": 89.8,
       "height": 69.5,
       "ge44": true,
@@ -123,7 +123,7 @@
     },
     {
       "group": "Khay nguyên liệu",
-      "label": "Nước đường Còn 0",
+      "label": "Nước đường Còn 5",
       "width": 89.8,
       "height": 69.5,
       "ge44": true,
@@ -131,7 +131,7 @@
     },
     {
       "group": "Khay nguyên liệu",
-      "label": "Tắc tươi Còn 0",
+      "label": "Tắc tươi Còn 5",
       "width": 89.8,
       "height": 69.5,
       "ge44": true,
@@ -139,7 +139,7 @@
     },
     {
       "group": "Khay nguyên liệu",
-      "label": "Sữa đậu +1 · Còn 0",
+      "label": "Sữa đậu +1 · Còn 5",
       "width": 89.8,
       "height": 69.5,
       "ge44": true,
@@ -209,22 +209,57 @@
   "console_errors": [],
   "broken_images": [],
   "scene_360x640_occlusion_metrics": {
+    "customerHeadMarginTop": 11.169998168945312,
+    "customerHeadNotCropped": true,
+    "speechClearOfFace": true,
+    "calloutOverlapsWaiting0": false,
+    "calloutOverlapsWaiting1": false,
+    "calloutOverlapsActive": false,
+    "stockLinesReadable": true,
+    "ingStockTexts": [
+      "Còn 5",
+      "Còn 5",
+      "Còn 5",
+      "Còn 5",
+      "Còn 5",
+      "Còn 5",
+      "+1 · Còn 5"
+    ],
     "calloutRect": {
-      "x": 187.890625,
-      "y": 58,
-      "w": 164.109375,
-      "h": 39.984375,
-      "bottom": 97.984375
+      "x": 224,
+      "y": 54,
+      "w": 130,
+      "h": 37.53125,
+      "bottom": 91.53125
     },
     "waiting0Rect": {
-      "x": 128.10000610351562,
-      "y": 103.5,
-      "w": 35.09999084472656,
-      "h": 74.69999694824219,
-      "top": 103.5
+      "x": 171.510009765625,
+      "y": 117.72000122070312,
+      "w": 32.52000427246094,
+      "h": 67.20001220703125,
+      "top": 117.72000122070312
     },
-    "overlaps": false,
-    "speechBubblePresent": true,
+    "waiting1Rect": {
+      "x": 186.66000366210938,
+      "y": 110.22000122070312,
+      "w": 34.589996337890625,
+      "h": 53.06999206542969,
+      "top": 110.22000122070312
+    },
+    "bubbleRect": {
+      "x": 6,
+      "y": 58,
+      "w": 72,
+      "h": 42.171875,
+      "right": 78
+    },
+    "custRect": {
+      "x": 33.75,
+      "y": 61.16999816894531,
+      "w": 142.88999938964844,
+      "h": 230.3099822998047,
+      "top": 61.16999816894531
+    },
     "queueDishNames": [
       "Bánh mì chả",
       "Trà tắc",
@@ -232,20 +267,41 @@
     ],
     "noTruncation": true
   },
-  "queue_promotion_no_duplicate": true,
+  "stock_lines_readable_all_slots": true,
+  "empty_dialogue_hides_bubble": true,
+  "deliverable_screenshots": {
+    "shot_07_viewport_360x640": {
+      "file": "shot_07_viewport_360x640.png",
+      "viewport": "360x640",
+      "role": "Bằng chứng 1/3: Cảnh quán màn nhỏ (Anh Tùng quầy, Bé Tí & Cô Chín hẻm)"
+    },
+    "shot_08_viewport_430x932": {
+      "file": "shot_08_viewport_430x932.png",
+      "viewport": "430x932",
+      "role": "Bằng chứng 2/3: Cùng cảnh trên màn lớn 430x932"
+    },
+    "shot_order_step3_served": {
+      "file": "shot_order_step3_served.png",
+      "viewport": "390x844",
+      "role": "Bằng chứng 3/3: Khoảnh khắc giao món trên khay gờ quầy"
+    }
+  },
   "measured_vs_reviewed": {
     "measured_programmatically": [
-      "Kích thước touch target tất cả các nút: ingredient buttons (8/8), cook actions (3/3), play-pause (1/1), queue-tickets (3/3) đều >= 44x44px và reachable (document.elementFromPoint)",
-      "Khoảng cách không che khuất giữa order callout và khách hàng chờ trong hẻm (overlaps == False)",
+      "Kích thước touch target tất cả 14 nút đo thật: Khay nguyên liệu (7/7), Thao tác bếp (3/3), Điều khiển ca (1/1), Hàng chờ (3/3) đều >= 44x44px và reachable (document.elementFromPoint)",
+      "Toàn cảnh không che khuất trên 360x640: đầu Anh Tùng không bị crop (margin top >= 5px), bóng thoại bên trái shutter không đè mặt, phiếu góc phải không đè Bé Tí và Cô Chín",
+      "Ẩn thoại khi chuỗi rỗng dialogue == '' (zero phantom empty bubble)",
+      "Dòng tồn kho (Còn n) đọc được đầy đủ trong mọi ô, không bị cắt dấu ba chấm",
       "Không có tràn ngang scrollWidth <= window.innerWidth trên 360px, 390px, 430px",
       "Kiểm tra nhân đôi khách hàng khi promote từ hàng chờ lên quầy: activeCustomer.id không xuất hiện trong waitingQueue (zero duplication)",
       "Không có lỗi console (0 error) và không có ảnh bị lỗi tải 404 (0 broken images)"
     ],
     "visually_reviewed_by_eye": [
-      "Đồng nhất nét vẽ, màu nước chibi của các nhân vật so với Bé Tí",
-      "Độ tự nhiên của điểm neo chân trên mặt đường đá hẻm (không bị lơ lửng, không đè lên chậu cây hay tường)",
-      "Thứ tự lớp che thị giác (background -> khách xa -> khách gần -> khách quầy -> gờ quầy -> UI)",
-      "Cảm giác cuộn ngang của hàng chờ qua icon mũi tên và ticket lấp ló"
+      "Bằng chứng 1/3: shot_07_viewport_360x640.png (Anh Tùng quầy, Bé Tí & Cô Chín hẻm)",
+      "Bằng chứng 2/3: shot_08_viewport_430x932.png (Cùng cảnh trên màn hình lớn 430x932)",
+      "Bằng chứng 3/3: shot_order_step3_served.png (Lúc giao món: ly/bánh mì nằm trên khay gờ quầy)",
+      "Đồng nhất nét vẽ, tỷ lệ đầu thân và màu nước chibi của các nhân vật",
+      "Điểm tiếp đất của chân bám đúng mặt đường đá hẻm, loại bỏ hoàn toàn vùng chậu cây và ghế"
     ]
   }
 }

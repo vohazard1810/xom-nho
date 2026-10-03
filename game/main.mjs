@@ -171,24 +171,57 @@ function getCustomerSprite(c, pose = 'ORDER') {
   return WALKIN_SPRITES[c.visualVariantId] || WALKIN_SPRITES[c.archetype] || WALKIN_SPRITES.walkin_variant_0;
 }
 
+const SPRITE_METRICS = {
+  anh_tung: { fileW: 688, fileH: 1109, footX: 408.1, footY: 1098.0, visH: 1069, visW: 507, headY: 30 },
+  co_chin: { fileW: 726, fileH: 1114, footX: 395.6, footY: 1049.0, visH: 1039, visW: 457, headY: 11 },
+  be_ti: {
+    order: { fileW: 130, fileH: 276, footX: 62.4, footY: 273.0, visH: 272, visW: 123, headY: 2 },
+    queue: { fileW: 137, fileH: 283, footX: 67.4, footY: 280.0, visH: 278, visW: 131, headY: 3 }
+  },
+  walkin_student: { fileW: 336, fileH: 870, footX: 172.0, footY: 869.0, visH: 870, visW: 336, headY: 0 },
+  walkin_office: { fileW: 291, fileH: 879, footX: 142.4, footY: 878.0, visH: 879, visW: 291, headY: 0 },
+  walkin_driver: { fileW: 468, fileH: 867, footX: 252.1, footY: 866.0, visH: 867, visW: 468, headY: 0 },
+  walkin_elder: { fileW: 447, fileH: 884, footX: 137.5, footY: 883.0, visH: 884, visW: 447, headY: 0 }
+};
+
 function getCharacterStageCoords(c, role) {
   if (!c) return null;
   const isChild = c.id === 'be_ti' || c.archetype === 'child';
   const isTeen = c.archetype === 'teen' || c.id === 'walkin_student';
+  
+  let spec;
+  if (c.id === 'anh_tung') spec = SPRITE_METRICS.anh_tung;
+  else if (c.id === 'co_chin') spec = SPRITE_METRICS.co_chin;
+  else if (c.id === 'be_ti') spec = role === 'COUNTER' ? SPRITE_METRICS.be_ti.order : SPRITE_METRICS.be_ti.queue;
+  else if (c.id === 'walkin_student' || c.archetype === 'teen') spec = SPRITE_METRICS.walkin_student;
+  else if (c.archetype === 'office') spec = SPRITE_METRICS.walkin_office;
+  else if (c.archetype === 'driver') spec = SPRITE_METRICS.walkin_driver;
+  else if (c.archetype === 'elder') spec = SPRITE_METRICS.walkin_elder;
+  else spec = { fileW: 400, fileH: 880, footX: 200, footY: 875, visH: 875, visW: 400, headY: 0 };
+
+  let gx, gy, hTarget;
   if (role === 'COUNTER') {
-    if (isChild) return { x: 155, y: 370, w: 170, h: 360 };
-    if (isTeen) return { x: 153, y: 280, w: 174, h: 450 };
-    return { x: 75, y: 200, w: 330, h: 530 };
+    gx = isChild ? 350 : isTeen ? 380 : 395;
+    gy = isChild ? 960 : isTeen ? 1010 : 1020;
+    hTarget = isChild ? 460 : isTeen ? 680 : 740;
+  } else if (role === 'WAITING_0') {
+    gx = 625;
+    gy = 670;
+    hTarget = isChild ? 220 : isTeen ? 270 : 330;
+  } else {
+    // WAITING_1
+    gx = 685;
+    gy = 590;
+    hTarget = isChild ? 120 : isTeen ? 145 : 165;
   }
-  if (role === 'WAITING_0') {
-    if (isChild) return { x: 427, y: 401, w: 117, h: 249 };
-    if (isTeen) return { x: 425, y: 339, w: 120, h: 311 };
-    return { x: 390, y: 283, w: 190, h: 367 };
-  }
-  // WAITING_1
-  if (isChild) return { x: 530, y: 430, w: 70, h: 145 };
-  if (isTeen) return { x: 528, y: 393, w: 75, h: 182 };
-  return { x: 510, y: 361, w: 110, h: 214 };
+
+  const s = hTarget / spec.visH;
+  return {
+    x: Number((gx - spec.footX * s).toFixed(1)),
+    y: Number((gy - spec.footY * s).toFixed(1)),
+    w: Number((spec.fileW * s).toFixed(1)),
+    h: Number((spec.fileH * s).toFixed(1))
+  };
 }
 
 function clearAllTimers() {
@@ -483,9 +516,12 @@ function renderShop() {
         ${q0&&waiting0Coords?`<image class="play-waiting waiting-0 stage-waiting" href="${getCustomerSprite(q0)}" x="${waiting0Coords.x}" y="${waiting0Coords.y}" width="${waiting0Coords.w}" height="${waiting0Coords.h}" preserveAspectRatio="xMidYMax meet" />`:''}
         ${c&&counterCoords?`<image class="play-customer stage-customer ${c.id==='be_ti'?'small-child':c.archetype==='teen'?'teen':''} ${phase==='REACTION'?'react':''}" href="${getCustomerSprite(c,autoPrepState?.customerPose)}" x="${counterCoords.x}" y="${counterCoords.y}" width="${counterCoords.w}" height="${counterCoords.h}" preserveAspectRatio="xMidYMax meet" />`:''}
         <image class="play-foreground stage-foreground" href="${COUNTER_SHELF_FOREGROUND_IMG}" x="0" y="0" width="1200" height="896" preserveAspectRatio="none" />
-        ${handoff&&c?.status==='SERVED'?`<image class="play-tray-dish stage-tray-dish" href="${DISH_IMAGES[c.recipe]}" x="430" y="660" width="140" height="100" preserveAspectRatio="xMidYMid meet" />`:''}
+        ${handoff&&c?.status==='SERVED'?`<image class="play-tray-dish stage-tray-dish" href="${DISH_IMAGES[c.recipe]}" x="410" y="655" width="105" height="70" preserveAspectRatio="xMidYMid meet" />`:''}
       </svg>
-      ${c?`<div class="customer-speech-bubble"><span>"${escapeHtml(customerReaction?.quote || (c.id === 'be_ti' && state.extraCha ? 'Cho con bánh mì thêm chả nha chú!' : c.dialogue))}"</span></div>`:''}
+      ${(() => {
+        const speech = (customerReaction?.quote || (c?.id === 'be_ti' && state.extraCha ? 'Cho con bánh mì thêm chả nha chú!' : c?.dialogue))?.trim();
+        return c && speech ? `<div class="customer-speech-bubble"><span>"${escapeHtml(speech)}"</span></div>` : '';
+      })()}
       <div class="play-speech customer-order-callout ${c ? '' : 'is-empty'}">
         ${c ? `
           <img src="${DISH_IMAGES[c.recipe]}" class="ticket-dish-img" alt="${escapeHtml(title)}">
