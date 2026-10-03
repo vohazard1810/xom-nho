@@ -1,0 +1,91 @@
+{
+  "logs": [
+    "Select Feedback Bánh mì: {\"dishName\": \"Bánh mì chả\", \"breadPicked\": true, \"breadStockText\": \"+1 · Còn 5\", \"chaPicked\": true, \"vegPicked\": true, \"cookBtnDisabled\": false, \"cookBtnText\": \"Làm món\", \"boardText\": \"Nguyên liệu bạn đã chọn\", \"items\": [{\"text\": \"✓ Bánh mì 1/1\", \"checked\": true}, {\"text\": \"✓ Chả lụa 1/1\", \"checked\": true}, {\"text\": \"✓ Dưa ngò 1/1\", \"checked\": true}]}",
+    "Cooking Ready Bánh mì: {\"isReady\": true, \"cookBtnText\": \"Giao khách →\", \"hasFinishedDish\": true, \"boardText\": \"Xong rồi! Giao khách nào\"}",
+    "Served Bánh mì: {\"hasTrayDish\": false, \"cashGain\": null, \"totalCash\": \"100.000đ\", \"custVisible\": true}",
+    "Transition Info: {\"dishName\": \"Trà tắc\", \"isCoChin\": true, \"activeCustName\": \"Cô Chín\", \"activeCustRecipe\": \"TRA_TAC\", \"queueCount\": 1, \"queueTickets\": [\"Anh Tùng⚡ VộiSữa đậu đá\"]}",
+    "Select Drink Feedback: {\"dishName\": \"Trà tắc\", \"icePicked\": true, \"syrupPicked\": true, \"kumquatPicked\": true, \"cookBtnDisabled\": false, \"cookBtnText\": \"Làm món\", \"items\": [{\"text\": \"✓ Đá bi 1/1\", \"checked\": true}, {\"text\": \"✓ Nước đường 1/1\", \"checked\": true}, {\"text\": \"✓ Tắc tươi 1/1\", \"checked\": true}]}",
+    "Drink Ready Feedback: {\"isReady\": true, \"cookBtnText\": \"Giao khách →\", \"hasFinishedDish\": true}",
+    "Drink Served Feedback: {\"hasTrayDish\": false, \"cashGain\": null, \"totalCash\": \"125.000đ\"}"
+  ],
+  "snapshots": {
+    "live_01_banhmi_select.png": {
+      "dishName": "Bánh mì chả",
+      "breadPicked": true,
+      "breadStockText": "+1 · Còn 5",
+      "chaPicked": true,
+      "vegPicked": true,
+      "cookBtnDisabled": false,
+      "cookBtnText": "Làm món",
+      "boardText": "Nguyên liệu bạn đã chọn",
+      "items": [
+        {
+          "text": "✓ Bánh mì 1/1",
+          "checked": true
+        },
+        {
+          "text": "✓ Chả lụa 1/1",
+          "checked": true
+        },
+        {
+          "text": "✓ Dưa ngò 1/1",
+          "checked": true
+        }
+      ]
+    },
+    "live_02_banhmi_ready.png": {
+      "isReady": true,
+      "cookBtnText": "Giao khách →",
+      "hasFinishedDish": true,
+      "boardText": "Xong rồi! Giao khách nào"
+    },
+    "live_03_banhmi_served.png": {
+      "hasTrayDish": false,
+      "cashGain": null,
+      "totalCash": "100.000đ",
+      "custVisible": true
+    },
+    "live_04_transition_drink.png": {
+      "dishName": "Trà tắc",
+      "isCoChin": true,
+      "activeCustName": "Cô Chín",
+      "activeCustRecipe": "TRA_TAC",
+      "queueCount": 1,
+      "queueTickets": [
+        "Anh Tùng⚡ VộiSữa đậu đá"
+      ]
+    },
+    "live_05_drink_select.png": {
+      "dishName": "Trà tắc",
+      "icePicked": true,
+      "syrupPicked": true,
+      "kumquatPicked": true,
+      "cookBtnDisabled": false,
+      "cookBtnText": "Làm món",
+      "items": [
+        {
+          "text": "✓ Đá bi 1/1",
+          "checked": true
+        },
+        {
+          "text": "✓ Nước đường 1/1",
+          "checked": true
+        },
+        {
+          "text": "✓ Tắc tươi 1/1",
+          "checked": true
+        }
+      ]
+    },
+    "live_06_drink_ready.png": {
+      "isReady": true,
+      "cookBtnText": "Giao khách →",
+      "hasFinishedDish": true
+    },
+    "live_07_drink_served.png": {
+      "hasTrayDish": false,
+      "cashGain": null,
+      "totalCash": "125.000đ"
+    }
+  }
+}
