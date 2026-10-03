@@ -368,31 +368,45 @@ function renderMenuSetup() {
           const cfg = state.menu[recipeId] || { enabled: true, sellPrice: recipeData.basePrice };
           const cost = Object.entries(recipeData.needs).reduce((n, [id, qty]) => n + (state.marketPrices[id] || ingredients[id].price) * qty, 0);
           const margin = cfg.sellPrice - cost;
+          const isLocked = recipeId === 'BANH_MI_TRUNG' && !state.knownRecipeIds.includes(recipeId);
 
           return `
-            <div class="menu-card ${cfg.enabled ? 'active' : 'disabled'}">
-              <div class="menu-card-header">
-                <label class="menu-toggle">
-                  <input type="checkbox" data-type="CONFIG_MENU_TOGGLE" data-recipe="${recipeId}" ${cfg.enabled ? 'checked' : ''} ${recipeId === 'BANH_MI_TRUNG' && !state.knownRecipeIds.includes(recipeId) ? 'disabled' : ''}>
-                  <strong>${recipeData.name}${recipeId === 'BANH_MI_TRUNG' && !state.knownRecipeIds.includes(recipeId) ? ' · Cần nới quầy và học món' : ''}</strong>
-                </label>
-                <span class="cost-estimate">Vốn: ~${money(cost)}</span>
+            <div class="menu-card ${cfg.enabled ? 'active' : 'disabled'} ${isLocked ? 'locked-dish' : ''}">
+              <div class="menu-card-top">
+                <img src="${DISH_IMAGES[recipeId]}" class="menu-dish-thumb" alt="${escapeHtml(recipeData.name)}">
+                <div class="menu-dish-identity">
+                  <div class="menu-toggle-row">
+                    <label class="menu-toggle">
+                      <input type="checkbox" data-type="CONFIG_MENU_TOGGLE" data-recipe="${recipeId}" ${cfg.enabled ? 'checked' : ''} ${isLocked ? 'disabled' : ''}>
+                      <strong>${escapeHtml(recipeData.name)}</strong>
+                    </label>
+                  </div>
+                  <span class="cost-estimate">Vốn ước tính: ~${money(cost)} / phần</span>
+                </div>
               </div>
-              
+
+              ${isLocked ? `
+                <div class="menu-lock-condition">
+                  🔒 Điều kiện mở: Nâng cấp quầy và học công thức từ Ngày 3
+                </div>
+              ` : ''}
+
               <div class="price-tiers-row">
-                <span class="price-tier-label">Giá bán:</span>
-                ${recipeData.priceTiers.map(p => `
-                  <button class="price-tier-btn ${cfg.sellPrice === p ? 'selected' : ''}" 
-                    data-type="CONFIG_MENU_PRICE" data-recipe="${recipeId}" data-price="${p}" ${recipeId === 'BANH_MI_TRUNG' && !state.knownRecipeIds.includes(recipeId) ? 'disabled' : ''}>
-                    ${p / 1000}k
-                  </button>
-                `).join('')}
+                <span class="price-tier-label">Giá niêm yết:</span>
+                <div class="price-tier-buttons">
+                  ${recipeData.priceTiers.map(p => `
+                    <button class="price-tier-btn ${cfg.sellPrice === p ? 'selected' : ''}" 
+                      data-type="CONFIG_MENU_PRICE" data-recipe="${recipeId}" data-price="${p}" ${isLocked ? 'disabled' : ''}>
+                      ${p / 1000}k
+                    </button>
+                  `).join('')}
+                </div>
               </div>
 
               <div class="menu-margin-preview">
                 Lãi gộp dự kiến: <strong>+${money(margin)} / phần</strong>
               </div>
-              ${cfg.sellPrice > recipeData.basePrice ? `<div class="price-demand-hint">Giá cao: một số khách nhạy giá có thể bỏ mua.</div>` : ''}
+              ${cfg.sellPrice > recipeData.basePrice ? `<div class="price-demand-hint">⚠️ Giá cao: một số khách nhạy giá có thể bỏ mua.</div>` : ''}
             </div>
           `;
         }).join('')}
@@ -442,12 +456,34 @@ function renderShop() {
       ${(state.waitingQueue||[]).slice(0,2).map((q,i)=>`<img class="play-waiting waiting-${i}" src="${getCustomerSprite(q)}" alt="${escapeHtml(q.name)} đang chờ">`).join('')}
       ${c?`<img class="play-customer ${c.id==='be_ti'?'small-child':c.archetype==='teen'?'teen':''} ${phase==='REACTION'?'react':''}" src="${getCustomerSprite(c,autoPrepState?.customerPose)}" alt="${escapeHtml(c.name)}">`:''}
       <img class="play-foreground" src="${COUNTER_SHELF_FOREGROUND_IMG}" alt="Gờ quầy">
-      <div class="play-speech">${c?`<b>${escapeHtml(c.name)}${c.temperament==='RUSH'?' · Đang vội':''}</b><span>${escapeHtml(customerReaction?.quote || (c.id==='be_ti'&&state.extraCha?'Cho con bánh mì thêm chả nha!':c.dialogue))}</span>`:'Khách đang ghé tới…'}</div>
+      <div class="play-speech customer-order-callout ${c ? '' : 'is-empty'}">
+        ${c ? `
+          <div class="ticket-dish-row">
+            <img src="${DISH_IMAGES[c.recipe]}" class="ticket-dish-img" alt="${escapeHtml(title)}">
+            <div class="ticket-dish-meta">
+              <div class="ticket-dish-title-row">
+                <span class="ticket-dish-name">${escapeHtml(title)}</span>
+                <span class="ticket-qty-pill">×1</span>
+              </div>
+              ${c.id === 'be_ti' && state.extraCha === true ? `<div class="ticket-special-badge">⭐ Thêm chả</div>` : ''}
+              <div class="ticket-cust-sub">
+                <span class="ticket-cust-name">${escapeHtml(c.name)}</span>
+                ${c.temperament === 'RUSH' ? `<span class="ticket-rush-tag">⚡ Vội</span>` : ''}
+              </div>
+            </div>
+          </div>
+          <div class="ticket-dialogue-row">
+            <span>"${escapeHtml(customerReaction?.quote || (c.id === 'be_ti' && state.extraCha ? 'Cho con bánh mì thêm chả nha chú!' : c.dialogue))}"</span>
+          </div>
+        ` : `
+          <div class="ticket-empty-row">Khách đang ghé tới…</div>
+        `}
+      </div>
       ${handoff&&c?.status==='SERVED'?`<img class="play-tray-dish" src="${DISH_IMAGES[c.recipe]}" alt="${escapeHtml(title)} trên khay quầy">`:''}
       ${state.manualPaused?'<div class="play-pause-overlay">Đã tạm dừng</div>':''}
     </div>
-    <div class="play-queue"><span>Hàng chờ</span>${state.waitingQueue.length?state.waitingQueue.slice(0,3).map(q=>{const e=getCustomerEmotion(q);return `<button class="queue-ticket ${state.prioritizedCustomerId===q.id?'chosen':''}" data-type="PRIORITIZE" data-payload="${q.id}" aria-label="Ưu tiên ${escapeHtml(q.name)}"><b>${escapeHtml(q.name)}</b><small>${q.temperament==='RUSH'?'Vội':e.label}</small><i style="width:${e.pct}%;background:${e.color}"></i></button>`}).join(''):'<small>Chạm khách trong hàng để làm đơn đó kế tiếp</small>'}</div>
-    <div class="order-receipt"><b>${escapeHtml(title)}</b><div>${Object.entries(needs).map(([id,q])=>`<span class="${(selected[id]||0)>=q?'checked':''}">${ingredientMeta[id].name} ${(selected[id]||0)}/${q}</span>`).join('')}</div></div>
+    <div class="play-queue"><span class="queue-header-label">Hàng chờ</span>${state.waitingQueue.length?state.waitingQueue.slice(0,3).map(q=>{const e=getCustomerEmotion(q);const dishName=recipes[q.recipe]?.name||'Món';const isChosen=state.prioritizedCustomerId===q.id;return `<button class="queue-ticket ${isChosen?'chosen':''}" data-type="PRIORITIZE" data-payload="${q.id}" aria-label="Ưu tiên ${escapeHtml(q.name)} (${escapeHtml(dishName)})"><img src="${DISH_IMAGES[q.recipe]}" class="queue-dish-thumb" alt="${escapeHtml(dishName)}"><div class="queue-ticket-meta"><div class="queue-title-line"><b>${isChosen?'⭐ ':''}${escapeHtml(q.name)}</b></div><div class="queue-sub-line"><span class="queue-dish-name">${escapeHtml(dishName)}</span><small class="${q.temperament==='RUSH'?'rush-label':''}">· ${q.temperament==='RUSH'?'⚡ Vội':e.label}</small></div></div><i class="queue-patience-bar" style="width:${e.pct}%;background:${e.color}"></i></button>`}).join(''):'<small class="queue-empty-note">Hàng chờ rỗng · Chạm khách để ưu tiên làm trước</small>'}</div>
+    <div class="order-receipt"><b>${c?`Đang làm: ${escapeHtml(title)}${c.id==='be_ti'&&state.extraCha===true?' (Thêm chả)':''}`:'Quầy chế biến · Chờ khách'}</b><div class="receipt-checklist">${c?Object.entries(needs).map(([id,q])=>{const sel=selected[id]||0;const done=sel>=q;return `<span class="receipt-item ${done?'checked':'pending'}"><i class="receipt-mark">${done?'✓':'○'}</i> ${ingredientMeta[id]?.name||id} ${sel}/${q}</span>`}).join(''):'<span class="receipt-item pending">Sẵn sàng nhận đơn</span>'}</div></div>
     <div class="cooking-board ${cooking?'is-cooking':''}" aria-label="Bàn làm món">
       ${ready?`<img class="finished-dish" src="${DISH_IMAGES[c.recipe]}" alt="${escapeHtml(title)} đã làm xong"><b>Xong rồi! Giao khách nào</b>`:handoff?`<span>${blocked?'Khách không mua được món':'Khách nhận món · Chuẩn bị đơn tiếp theo'}</span>`:Object.values(selected).some(Boolean)?`<div class="selected-art">${Object.entries(selected).flatMap(([id,q])=>Array.from({length:q},()=>ingredientMeta[id].img?`<img src="${ingredientMeta[id].img}" alt="${ingredientMeta[id].name}">`:`<span>${ingredientMeta[id].name}</span>`)).join('')}</div><b>${cooking?'Đang làm món…':'Nguyên liệu bạn đã chọn'}</b>`:`<span>${c?'Chạm nguyên liệu bên dưới để làm món':'Sẵn sàng đón khách'}</span>`}
       ${cooking?`<div class="cook-progress"><i style="width:${autoPrepState?.progress||0}%"></i></div>`:''}
@@ -489,7 +525,7 @@ function renderMapPanel(){
 function renderEmpirePanels(){
  const e=state.empire;if(!e)return '';
  if(e.mapOpen)return renderMapPanel();
- if(e.staffOpen){const people=e.employees.filter(p=>p.shopId===e.activeShopId);return `<div class="empire-backdrop"><section class="empire-panel"><header><h2>Nhân sự · ${shopTitle()}</h2><button data-type="CLOSE_STAFF" aria-label="Đóng nhân sự">×</button></header><p class="panel-hint">Tuyển: 5k/người. Lương thu một lần lúc mở ca; người nghỉ không nhận lương ca đó.</p><div class="staff-list">${people.map(x=>`<article class="employee-card"><h3>${escapeHtml(x.name)} · ${STAFF_ROLES[x.role].name}</h3><div class="employee-meters"><span>Tay nghề ${x.skill}/3</span><span>Mệt ${x.fatigue}/100</span><span>Tinh thần ${x.mood}/100</span></div><small>${money(STAFF_ROLES[x.role].wage)}/ca · ${x.restingToday?'Nghỉ ca hôm nay':x.daysWorked+' ca đã làm'}</small><div class="employee-actions"><button data-type="STAFF_TRAIN" data-payload="${x.id}" ${x.skill>=3||x.lastTrainedDay===state.currentDay?'disabled':''}>Đào tạo · 8k</button><button data-type="STAFF_REST" data-payload="${x.id}">${x.restingToday?'Đi làm lại':'Cho nghỉ ca'}</button>${Object.keys(e.shops).filter(id=>id!==x.shopId).map(id=>`<button data-type="STAFF_MOVE" data-payload="${x.id}:${id}">Chuyển → ${LOCATIONS[id].name}</button>`).join('')}<button class="release-staff" data-type="STAFF_RELEASE" data-payload="${x.id}">Kết thúc hợp đồng</button></div></article>`).join('')||'<p>Quán chưa có nhân viên. Bạn đang tự đứng bán.</p>'}</div><h3>Tuyển thêm</h3><div class="hire-grid">${Object.entries(STAFF_ROLES).map(([id,def])=>{const exists=people.some(x=>x.role===id),locked=state.currentDay<def.unlockDay||def.seating&&!state.upgrades.seating||def.online&&!state.onlineEnabledToday;return `<button data-type="STAFF_HIRE" data-payload="${id}" ${exists||locked?'disabled':''}><b>${def.name}</b><span>${money(def.wage)}/ca</span><small>${exists?'Đã tuyển':state.currentDay<def.unlockDay?'Mở ngày '+def.unlockDay:def.seating&&!state.upgrades.seating?'Cần chỗ ngồi':def.online&&!state.onlineEnabledToday?'Cần bật online':def.description}</small></button>`}).join('')}</div>${message?`<div class="alert-message">${escapeHtml(message)}</div>`:''}</section></div>`;}
+  if(e.staffOpen){const people=e.employees.filter(p=>p.shopId===e.activeShopId);return `<div class="empire-backdrop"><section class="empire-panel"><header><h2>Nhân sự · ${shopTitle()}</h2><button data-type="CLOSE_STAFF" aria-label="Đóng nhân sự">×</button></header><p class="panel-hint">Tuyển: 5k/người. Lương thu một lần lúc mở ca; người nghỉ không nhận lương ca đó.</p><div class="staff-list">${people.map(x=>`<article class="employee-card"><h3>${escapeHtml(x.name)} · ${STAFF_ROLES[x.role].name}</h3><div class="employee-meters"><span>Tay nghề ${x.skill}/3</span><span>Mệt ${x.fatigue}/100</span><span>Tinh thần ${x.mood}/100</span></div><small>${money(STAFF_ROLES[x.role].wage)}/ca · ${x.restingToday?'Nghỉ ca hôm nay':x.daysWorked+' ca đã làm'}</small><div class="employee-actions"><button data-type="STAFF_TRAIN" data-payload="${x.id}" ${x.skill>=3||x.lastTrainedDay===state.currentDay?'disabled':''}>Đào tạo · 8k</button><button data-type="STAFF_REST" data-payload="${x.id}">${x.restingToday?'Đi làm lại':'Cho nghỉ ca'}</button>${Object.keys(e.shops).filter(id=>id!==x.shopId).map(id=>`<button data-type="STAFF_MOVE" data-payload="${x.id}:${id}">Chuyển → ${LOCATIONS[id].name}</button>`).join('')}<button class="release-staff" data-type="STAFF_RELEASE" data-payload="${x.id}">Kết thúc hợp đồng</button></div></article>`).join('')||'<p>Quán chưa có nhân viên. Bạn đang tự đứng bán.</p>'}</div><h3>Tuyển thêm</h3><div class="hire-grid">${Object.entries(STAFF_ROLES).map(([id,def])=>{const exists=people.some(x=>x.role===id);const locked=state.currentDay<def.unlockDay||(def.seating&&!state.upgrades.seating)||(def.online&&!state.onlineEnabledToday);const lockReason=state.currentDay<def.unlockDay?`Mở ngày ${def.unlockDay}`:def.seating&&!state.upgrades.seating?'Cần chỗ ngồi':def.online&&!state.onlineEnabledToday?'Cần bật online':'';return `<article class="staff-role-card ${locked?'role-locked':''} ${exists?'role-hired':''}"><div class="role-card-header"><h4>${escapeHtml(def.name)}</h4><span class="role-wage">${money(def.wage)}/ca</span></div><p class="role-perk">${escapeHtml(def.description)}</p><div class="role-status-row">${exists?'<span class="role-tag hired">✓ Đã tuyển cho quán</span>':locked?`<span class="role-tag locked">🔒 ${escapeHtml(lockReason)}</span>`:'<span class="role-tag available">Phí tuyển: 5.000đ</span>'}</div><button class="btn-hire" data-type="STAFF_HIRE" data-payload="${id}" ${exists||locked||state.cash<5000?'disabled':''}>${exists?'Đã tuyển':locked?'Chưa mở':'Tuyển nhân sự (5k)'}</button></article>`}).join('')}</div>${message?`<div class="alert-message">${escapeHtml(message)}</div>`:''}</section></div>`;}
  return '';
 }
 function renderEmpireResult(){

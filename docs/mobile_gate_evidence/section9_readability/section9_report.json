@@ -1,0 +1,16 @@
+{
+  "dish_name_font_size": 16,
+  "dish_name_font_size_ge_16px": true,
+  "ticket_thumbnail_valid": true,
+  "extra_cha_badge_visible": true,
+  "queue_thumbnails_count": 3,
+  "workbench_checklist_status": true,
+  "menu_thumbnails_count": 4,
+  "menu_lock_condition_separated": true,
+  "staff_role_cards_vertical": true,
+  "touch_targets_ge_44px": true,
+  "no_horizontal_overflow_360": true,
+  "no_horizontal_overflow_390": true,
+  "console_errors": [],
+  "broken_images": []
+}
