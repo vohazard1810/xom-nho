@@ -201,9 +201,9 @@ function getCharacterStageCoords(c, role) {
 
   let gx, gy, hTarget;
   if (role === 'COUNTER') {
-    gx = isChild ? 350 : isTeen ? 380 : 395;
-    gy = isChild ? 960 : isTeen ? 1010 : 1020;
-    hTarget = isChild ? 460 : isTeen ? 680 : 740;
+    gx = isChild ? 340 : isTeen ? 380 : 395;
+    gy = isChild ? 840 : isTeen ? 1010 : 1020;
+    hTarget = isChild ? 440 : isTeen ? 680 : 740;
   } else if (role === 'WAITING_0') {
     gx = 625;
     gy = 670;
@@ -516,7 +516,7 @@ function renderShop() {
         ${q0&&waiting0Coords?`<image class="play-waiting waiting-0 stage-waiting" href="${getCustomerSprite(q0)}" x="${waiting0Coords.x}" y="${waiting0Coords.y}" width="${waiting0Coords.w}" height="${waiting0Coords.h}" preserveAspectRatio="xMidYMax meet" />`:''}
         ${c&&counterCoords?`<image class="play-customer stage-customer ${c.id==='be_ti'?'small-child':c.archetype==='teen'?'teen':''} ${phase==='REACTION'?'react':''}" href="${getCustomerSprite(c,autoPrepState?.customerPose)}" x="${counterCoords.x}" y="${counterCoords.y}" width="${counterCoords.w}" height="${counterCoords.h}" preserveAspectRatio="xMidYMax meet" />`:''}
         <image class="play-foreground stage-foreground" href="${COUNTER_SHELF_FOREGROUND_IMG}" x="0" y="0" width="1200" height="896" preserveAspectRatio="none" />
-        ${handoff&&c?.status==='SERVED'?`<image class="play-tray-dish stage-tray-dish" href="${DISH_IMAGES[c.recipe]}" x="410" y="655" width="105" height="70" preserveAspectRatio="xMidYMid meet" />`:''}
+        ${handoff&&c?.status==='SERVED'?`<image class="play-tray-dish stage-tray-dish" href="${DISH_IMAGES[c.recipe]}" x="390" y="655" width="105" height="68" preserveAspectRatio="xMidYMid meet" />`:''}
       </svg>
       ${(() => {
         const speech = (customerReaction?.quote || (c?.id === 'be_ti' && state.extraCha ? 'Cho con bánh mì thêm chả nha chú!' : c?.dialogue))?.trim();

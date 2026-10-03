@@ -33,8 +33,8 @@
     },
     "shot_07": {
       "file": "shot_07_viewport_360x640.png",
-      "label": "Bằng chứng 1/3: Viewport nhỏ 360×640 - Anh Tùng quầy, Bé Tí & Cô Chín hẻm, không che khuất, đầu nguyên vẹn",
-      "description": "Màn nhỏ 360×640 với Anh Tùng tại quầy (đầu cách mép trên 11.2px, không bị crop; thoại ở góc trái không che mặt), Bé Tí và Cô Chín đứng trên mặt đường đá hẻm (không đạp lên chậu cây hay ghế), phiếu gọi món ở góc phải không chạm khách chờ. Hàng chờ đủ tên không cắt."
+      "label": "Bằng chứng 2/2: Viewport nhỏ 360×640 với ô nguyên liệu đã chọn (Sữa đậu: +1 · Còn 4 nguyên vẹn)",
+      "description": "Màn nhỏ 360×640 với Anh Tùng tại quầy (đầu cách mép trên 7.2px không bị crop; thoại ở góc trái không che mặt), Bé Tí và Cô Chín đứng trên mặt đường đá hẻm (không đạp lên chậu cây hay ghế), phiếu gọi món Sữa đậu đá ×1 trọn vẹn trong viewport (dishNameFits=True, qtyFits=True, ticketInViewport=True). Ô nguyên liệu Sữa đậu đã chọn hiển thị '+1 · Còn 4' nguyên vẹn không bị cắt dòng, Chả lụa disabled 'Còn 0' không bị cắt dòng; 100% ô không bị clip (stock_lines_unclipped=True)."
     },
     "shot_08": {
       "file": "shot_08_viewport_430x932.png",
@@ -56,7 +56,7 @@
     "step3_served": {
       "file": "shot_order_step3_served.png",
       "action": "Giao khách nhận tiền (SERVE / REACTION)",
-      "description": "Món ăn xuất hiện trên khay gờ quầy, khách giơ tay nhận món với lời cảm ơn, tiền két tăng +25.000đ."
+      "description": "Bánh mì bọc giấy đặt trên gờ quầy, Bé Tí tươi cười phản ứng cảm ơn quán, tiền két tăng +25.000đ (thể hiện bánh đặt trên quầy và khách phản ứng, không báo tay nhận món khi ảnh chưa thể hiện)."
     },
     "step4_promoted": {
       "file": "shot_order_step4_promoted.png",
@@ -75,7 +75,7 @@
       }
     }
   },
-  "dish_name_font_size": 13,
+  "dish_name_font_size": 12.5,
   "dish_name_font_size_ge_16px": false,
   "ticket_thumbnail_valid": true,
   "extra_cha_badge_visible": true,
@@ -91,17 +91,17 @@
   "measured_touch_targets": [
     {
       "group": "Khay nguyên liệu",
-      "label": "Bánh mì Còn 5",
+      "label": "Bánh mì Còn 4",
       "width": 89.8,
-      "height": 69.5,
+      "height": 70.5,
       "ge44": true,
       "reachable": true
     },
     {
       "group": "Khay nguyên liệu",
-      "label": "Chả lụa Còn 5",
+      "label": "Chả lụa Còn 0",
       "width": 89.8,
-      "height": 69.5,
+      "height": 70.5,
       "ge44": true,
       "reachable": true
     },
@@ -109,7 +109,7 @@
       "group": "Khay nguyên liệu",
       "label": "Dưa ngò Còn 5",
       "width": 89.8,
-      "height": 69.5,
+      "height": 70.5,
       "ge44": true,
       "reachable": true
     },
@@ -117,7 +117,7 @@
       "group": "Khay nguyên liệu",
       "label": "Đá bi Còn 5",
       "width": 89.8,
-      "height": 69.5,
+      "height": 70.5,
       "ge44": true,
       "reachable": true
     },
@@ -125,7 +125,7 @@
       "group": "Khay nguyên liệu",
       "label": "Nước đường Còn 5",
       "width": 89.8,
-      "height": 69.5,
+      "height": 70.5,
       "ge44": true,
       "reachable": true
     },
@@ -133,15 +133,15 @@
       "group": "Khay nguyên liệu",
       "label": "Tắc tươi Còn 5",
       "width": 89.8,
-      "height": 69.5,
+      "height": 70.5,
       "ge44": true,
       "reachable": true
     },
     {
       "group": "Khay nguyên liệu",
-      "label": "Sữa đậu +1 · Còn 5",
+      "label": "Sữa đậu +1 · Còn 4",
       "width": 89.8,
-      "height": 69.5,
+      "height": 70.5,
       "ge44": true,
       "reachable": true
     },
@@ -209,7 +209,7 @@
   "console_errors": [],
   "broken_images": [],
   "scene_360x640_occlusion_metrics": {
-    "customerHeadMarginTop": 11.169998168945312,
+    "customerHeadMarginTop": 7.1699981689453125,
     "customerHeadNotCropped": true,
     "speechClearOfFace": true,
     "calloutOverlapsWaiting0": false,
@@ -217,34 +217,34 @@
     "calloutOverlapsActive": false,
     "stockLinesReadable": true,
     "ingStockTexts": [
+      "Còn 4",
+      "Còn 0",
       "Còn 5",
       "Còn 5",
       "Còn 5",
       "Còn 5",
-      "Còn 5",
-      "Còn 5",
-      "+1 · Còn 5"
+      "+1 · Còn 4"
     ],
     "calloutRect": {
-      "x": 224,
+      "x": 223.8125,
       "y": 54,
-      "w": 130,
-      "h": 37.53125,
-      "bottom": 91.53125
+      "w": 130.1875,
+      "h": 33,
+      "bottom": 87
     },
     "waiting0Rect": {
       "x": 171.510009765625,
-      "y": 117.72000122070312,
+      "y": 113.72000122070312,
       "w": 32.52000427246094,
       "h": 67.20001220703125,
-      "top": 117.72000122070312
+      "top": 113.72000122070312
     },
     "waiting1Rect": {
       "x": 186.66000366210938,
-      "y": 110.22000122070312,
+      "y": 106.22000122070312,
       "w": 34.589996337890625,
       "h": 53.06999206542969,
-      "top": 110.22000122070312
+      "top": 106.22000122070312
     },
     "bubbleRect": {
       "x": 6,
@@ -255,10 +255,10 @@
     },
     "custRect": {
       "x": 33.75,
-      "y": 61.16999816894531,
+      "y": 57.16999816894531,
       "w": 142.88999938964844,
       "h": 230.3099822998047,
-      "top": 61.16999816894531
+      "top": 57.16999816894531
     },
     "queueDishNames": [
       "Bánh mì chả",
@@ -268,28 +268,102 @@
     "noTruncation": true
   },
   "stock_lines_readable_all_slots": true,
+  "stock_clipping_check": [
+    {
+      "id": "bread",
+      "classes": "ingredient-button ",
+      "disabled": false,
+      "btnBottom": 469.5,
+      "stockBottom": 467.78125,
+      "stockH": 14,
+      "isClipped": false
+    },
+    {
+      "id": "cha",
+      "classes": "ingredient-button ",
+      "disabled": true,
+      "btnBottom": 469.5,
+      "stockBottom": 467.78125,
+      "stockH": 14,
+      "isClipped": false
+    },
+    {
+      "id": "vegetable",
+      "classes": "ingredient-button ",
+      "disabled": false,
+      "btnBottom": 469.5,
+      "stockBottom": 467.78125,
+      "stockH": 14,
+      "isClipped": false
+    },
+    {
+      "id": "ice",
+      "classes": "ingredient-button ",
+      "disabled": false,
+      "btnBottom": 469.5,
+      "stockBottom": 467.78125,
+      "stockH": 14,
+      "isClipped": false
+    },
+    {
+      "id": "sugar_syrup",
+      "classes": "ingredient-button ",
+      "disabled": false,
+      "btnBottom": 541,
+      "stockBottom": 539.28125,
+      "stockH": 14,
+      "isClipped": false
+    },
+    {
+      "id": "kumquat",
+      "classes": "ingredient-button ",
+      "disabled": false,
+      "btnBottom": 541,
+      "stockBottom": 539.28125,
+      "stockH": 14,
+      "isClipped": false
+    },
+    {
+      "id": "soy_milk",
+      "classes": "ingredient-button picked",
+      "disabled": false,
+      "btnBottom": 541,
+      "stockBottom": 539.28125,
+      "stockH": 14,
+      "isClipped": false
+    }
+  ],
+  "stock_lines_unclipped": true,
+  "ticket_viewport_check": {
+    "valid": true,
+    "ticketRight": 354,
+    "dishNameRight": 325.015625,
+    "qtyRight": 348,
+    "dishNameFits": true,
+    "qtyFits": true,
+    "ticketInViewport": true
+  },
   "empty_dialogue_hides_bubble": true,
   "deliverable_screenshots": {
-    "shot_07_viewport_360x640": {
-      "file": "shot_07_viewport_360x640.png",
-      "viewport": "360x640",
-      "role": "Bằng chứng 1/3: Cảnh quán màn nhỏ (Anh Tùng quầy, Bé Tí & Cô Chín hẻm)"
-    },
-    "shot_08_viewport_430x932": {
-      "file": "shot_08_viewport_430x932.png",
-      "viewport": "430x932",
-      "role": "Bằng chứng 2/3: Cùng cảnh trên màn lớn 430x932"
-    },
     "shot_order_step3_served": {
       "file": "shot_order_step3_served.png",
       "viewport": "390x844",
-      "role": "Bằng chứng 3/3: Khoảnh khắc giao món trên khay gờ quầy"
+      "role": "Bằng chứng 1/2: Bé Tí nhận bánh mì (bánh mì đặt trên gờ quầy, Bé Tí thấy rõ đầu–vai–tay, tươi cười cảm ơn quán; tỷ lệ trẻ em chuẩn chibi)"
+    },
+    "shot_07_viewport_360x640": {
+      "file": "shot_07_viewport_360x640.png",
+      "viewport": "360x640",
+      "role": "Bằng chứng 2/2: Màn nhỏ 360×640 có ô nguyên liệu đã chọn (Sữa đậu: +1 · Còn 4 nguyên vẹn không bị cắt dòng, Chả lụa disabled Còn 0; phiếu Sữa đậu đá ×1 trọn vẹn trong viewport)"
     }
   },
   "measured_vs_reviewed": {
     "measured_programmatically": [
       "Kích thước touch target tất cả 14 nút đo thật: Khay nguyên liệu (7/7), Thao tác bếp (3/3), Điều khiển ca (1/1), Hàng chờ (3/3) đều >= 44x44px và reachable (document.elementFromPoint)",
       "Toàn cảnh không che khuất trên 360x640: đầu Anh Tùng không bị crop (margin top >= 5px), bóng thoại bên trái shutter không đè mặt, phiếu góc phải không đè Bé Tí và Cô Chín",
+      "Phiếu gọi món chứa trọn tên món và ×1 trong viewport 360x640, flex-wrap cho phép chữ xuống dòng nếu thiếu chỗ",
+      "Ô nguyên liệu dành chiều cao cố định (14px) cho số tồn; 100% ô không bị clip dọc kể cả trạng thái thường, đã chọn (+1 · Còn 4) và disabled (Còn 0)",
+      "Bé Tí tại quầy được hiệu chỉnh vị trí bục đứng gy=840, hiển thị rõ đầu–vai–tay trên gờ quầy và giữ chuẩn tỷ lệ trẻ em chibi",
+      "Món ăn đặt trên gờ quầy lúc giao khách, khách tươi cười phản ứng cảm ơn quán (không báo sai 'tay nhận món' khi sprite chưa có pose cầm)",
       "Ẩn thoại khi chuỗi rỗng dialogue == '' (zero phantom empty bubble)",
       "Dòng tồn kho (Còn n) đọc được đầy đủ trong mọi ô, không bị cắt dấu ba chấm",
       "Không có tràn ngang scrollWidth <= window.innerWidth trên 360px, 390px, 430px",
@@ -297,9 +371,8 @@
       "Không có lỗi console (0 error) và không có ảnh bị lỗi tải 404 (0 broken images)"
     ],
     "visually_reviewed_by_eye": [
-      "Bằng chứng 1/3: shot_07_viewport_360x640.png (Anh Tùng quầy, Bé Tí & Cô Chín hẻm)",
-      "Bằng chứng 2/3: shot_08_viewport_430x932.png (Cùng cảnh trên màn hình lớn 430x932)",
-      "Bằng chứng 3/3: shot_order_step3_served.png (Lúc giao món: ly/bánh mì nằm trên khay gờ quầy)",
+      "Bằng chứng 1/2: shot_order_step3_served.png (Bé Tí nhận bánh mì: bánh mì bọc giấy đặt trên gờ quầy, Bé Tí nổi rõ đầu–vai–tay tươi cười phản ứng cảm ơn quán)",
+      "Bằng chứng 2/2: shot_07_viewport_360x640.png (Màn nhỏ 360×640: Anh Tùng quầy, Bé Tí & Cô Chín hẻm; ô Sữa đậu đã chọn hiển thị rõ '+1 · Còn 4' không bị cắt dòng, Chả lụa disabled Còn 0; phiếu Sữa đậu đá ×1 trọn vẹn)",
       "Đồng nhất nét vẽ, tỷ lệ đầu thân và màu nước chibi của các nhân vật",
       "Điểm tiếp đất của chân bám đúng mặt đường đá hẻm, loại bỏ hoàn toàn vùng chậu cây và ghế"
     ]

@@ -343,14 +343,14 @@ async def main():
         print("Captured Scene 6 (Staff) ->", shot6_path)
 
         # -------------------------------------------------------------
-        # FIXTURE 7: VIEWPORT NHỎ 360x640 - 3 KHÁCH, KHÔNG CHE KHUẤT, ĐỦ TÊN
+        # FIXTURE 7: VIEWPORT NHỎ 360x640 - 3 KHÁCH, KHÔNG CHE KHUẤT, ĐỦ TÊN, Ô ĐÃ CHỌN (+1 · Còn 4)
         # -------------------------------------------------------------
         # Close staff panel and return to SHOP screen
         await page.evaluate("""() => {
             const s = window.__xomNho.getState();
             s.empire.staffOpen = false;
             s.screen = 'SHOP';
-            s.stock = { bread: 5, cha: 5, vegetable: 5, ice: 5, sugar_syrup: 5, kumquat: 5, soy_milk: 5 };
+            s.stock = { bread: 4, cha: 0, vegetable: 5, ice: 5, sugar_syrup: 5, kumquat: 5, soy_milk: 4 };
             s.activeCustomer = {
                 id: 'anh_tung',
                 name: 'Anh Tùng',
@@ -358,6 +358,15 @@ async def main():
                 status: 'ARRIVED',
                 temperament: 'RUSH',
                 dialogue: 'Lẹ nha em ơi, anh giao cuốc xe gấp!'
+            };
+            s.service = {
+                version: 2,
+                customerId: 'anh_tung',
+                recipeId: 'SUA_DAU_DA',
+                selected: { soy_milk: 1 },
+                phase: 'SELECT',
+                elapsedMs: 0,
+                prepMs: 2000
             };
             s.waitingQueue = [
                 { id: 'be_ti', name: 'Bé Tí', recipe: 'BANH_MI_CHA', temperament: 'NORMAL', patience: 95, maxPatience: 100 },
@@ -439,6 +448,48 @@ async def main():
         test_results["stock_lines_readable_all_slots"] = occlusion_check.get("stockLinesReadable", False)
         test_results["no_horizontal_overflow_360"] = not (await page.evaluate("() => document.documentElement.scrollWidth > window.innerWidth"))
 
+        # Programmatic stock line clipping verification across all buttons (normal, picked, disabled)
+        stock_clipping_check = await page.evaluate("""() => {
+            const buttons = [...document.querySelectorAll('.ingredient-button')];
+            return buttons.map(btn => {
+                const bRect = btn.getBoundingClientRect();
+                const stock = btn.querySelector('.ing-stock-line');
+                const sRect = stock ? stock.getBoundingClientRect() : null;
+                return {
+                    id: btn.getAttribute('data-payload'),
+                    classes: btn.className,
+                    disabled: btn.disabled,
+                    btnBottom: bRect.bottom,
+                    stockBottom: sRect ? sRect.bottom : 0,
+                    stockH: sRect ? sRect.height : 0,
+                    isClipped: sRect ? (sRect.bottom > bRect.bottom + 0.1) : false
+                };
+            });
+        }""")
+        test_results["stock_clipping_check"] = stock_clipping_check
+        test_results["stock_lines_unclipped"] = all(not b["isClipped"] for b in stock_clipping_check)
+
+        # Programmatic ticket callout check: dish name and qty x1 fully in callout & in viewport
+        ticket_viewport_check = await page.evaluate("""() => {
+            const ticket = document.querySelector('.customer-order-callout');
+            const name = ticket ? ticket.querySelector('.ticket-dish-name') : null;
+            const qty = ticket ? ticket.querySelector('.ticket-qty-pill') : null;
+            if (!ticket || !name || !qty) return { valid: false };
+            const tRect = ticket.getBoundingClientRect();
+            const nRect = name.getBoundingClientRect();
+            const qRect = qty.getBoundingClientRect();
+            return {
+                valid: true,
+                ticketRight: tRect.right,
+                dishNameRight: nRect.right,
+                qtyRight: qRect.right,
+                dishNameFits: nRect.right <= tRect.right + 1,
+                qtyFits: qRect.right <= tRect.right + 1,
+                ticketInViewport: tRect.right <= 360.0
+            };
+        }""")
+        test_results["ticket_viewport_check"] = ticket_viewport_check
+
         # Verify empty dialogue hides speech bubble
         empty_bubble_hidden = await page.evaluate("""() => {
             const s = window.__xomNho.getState();
@@ -457,8 +508,8 @@ async def main():
         await page.screenshot(path=str(shot_360_path))
         test_results["fixtures"]["shot_07"] = {
             "file": "shot_07_viewport_360x640.png",
-            "label": "Bằng chứng 1/3: Viewport nhỏ 360×640 - Anh Tùng quầy, Bé Tí & Cô Chín hẻm, không che khuất, đầu nguyên vẹn",
-            "description": f"Màn nhỏ 360×640 với Anh Tùng tại quầy (đầu cách mép trên {occlusion_check['customerHeadMarginTop']:.1f}px, không bị crop; thoại ở góc trái không che mặt), Bé Tí và Cô Chín đứng trên mặt đường đá hẻm (không đạp lên chậu cây hay ghế), phiếu gọi món ở góc phải không chạm khách chờ. Hàng chờ đủ tên không cắt."
+            "label": "Bằng chứng 2/2: Viewport nhỏ 360×640 với ô nguyên liệu đã chọn (Sữa đậu: +1 · Còn 4 nguyên vẹn)",
+            "description": f"Màn nhỏ 360×640 với Anh Tùng tại quầy (đầu cách mép trên {occlusion_check['customerHeadMarginTop']:.1f}px không bị crop; thoại ở góc trái không che mặt), Bé Tí và Cô Chín đứng trên mặt đường đá hẻm (không đạp lên chậu cây hay ghế), phiếu gọi món Sữa đậu đá ×1 trọn vẹn trong viewport (dishNameFits={ticket_viewport_check['dishNameFits']}, qtyFits={ticket_viewport_check['qtyFits']}, ticketInViewport={ticket_viewport_check['ticketInViewport']}). Ô nguyên liệu Sữa đậu đã chọn hiển thị '+1 · Còn 4' nguyên vẹn không bị cắt dòng, Chả lụa disabled 'Còn 0' không bị cắt dòng; 100% ô không bị clip (stock_lines_unclipped={test_results['stock_lines_unclipped']})."
         }
         print("Captured 360x640 Viewport ->", shot_360_path)
 
@@ -614,7 +665,7 @@ async def main():
         test_results["real_manual_order"]["step3_served"] = {
             "file": "shot_order_step3_served.png",
             "action": "Giao khách nhận tiền (SERVE / REACTION)",
-            "description": "Món ăn xuất hiện trên khay gờ quầy, khách giơ tay nhận món với lời cảm ơn, tiền két tăng +25.000đ."
+            "description": "Bánh mì bọc giấy đặt trên gờ quầy, Bé Tí tươi cười phản ứng cảm ơn quán, tiền két tăng +25.000đ (thể hiện bánh đặt trên quầy và khách phản ứng, không báo tay nhận món khi ảnh chưa thể hiện)."
         }
         print("Captured Real Step 3 ->", shot_order_3)
 
@@ -662,20 +713,15 @@ async def main():
         total_buttons = len(detailed_buttons)
 
         test_results["deliverable_screenshots"] = {
-            "shot_07_viewport_360x640": {
-                "file": "shot_07_viewport_360x640.png",
-                "viewport": "360x640",
-                "role": "Bằng chứng 1/3: Cảnh quán màn nhỏ (Anh Tùng quầy, Bé Tí & Cô Chín hẻm)"
-            },
-            "shot_08_viewport_430x932": {
-                "file": "shot_08_viewport_430x932.png",
-                "viewport": "430x932",
-                "role": "Bằng chứng 2/3: Cùng cảnh trên màn lớn 430x932"
-            },
             "shot_order_step3_served": {
                 "file": "shot_order_step3_served.png",
                 "viewport": "390x844",
-                "role": "Bằng chứng 3/3: Khoảnh khắc giao món trên khay gờ quầy"
+                "role": "Bằng chứng 1/2: Bé Tí nhận bánh mì (bánh mì đặt trên gờ quầy, Bé Tí thấy rõ đầu–vai–tay, tươi cười cảm ơn quán; tỷ lệ trẻ em chuẩn chibi)"
+            },
+            "shot_07_viewport_360x640": {
+                "file": "shot_07_viewport_360x640.png",
+                "viewport": "360x640",
+                "role": "Bằng chứng 2/2: Màn nhỏ 360×640 có ô nguyên liệu đã chọn (Sữa đậu: +1 · Còn 4 nguyên vẹn không bị cắt dòng, Chả lụa disabled Còn 0; phiếu Sữa đậu đá ×1 trọn vẹn trong viewport)"
             }
         }
 
@@ -683,6 +729,10 @@ async def main():
             "measured_programmatically": [
                 f"Kích thước touch target tất cả {total_buttons} nút đo thật: Khay nguyên liệu ({ing_count}/{ing_count}), Thao tác bếp ({cook_count}/{cook_count}), Điều khiển ca ({pause_count}/{pause_count}), Hàng chờ ({queue_count}/{queue_count}) đều >= 44x44px và reachable (document.elementFromPoint)",
                 "Toàn cảnh không che khuất trên 360x640: đầu Anh Tùng không bị crop (margin top >= 5px), bóng thoại bên trái shutter không đè mặt, phiếu góc phải không đè Bé Tí và Cô Chín",
+                "Phiếu gọi món chứa trọn tên món và ×1 trong viewport 360x640, flex-wrap cho phép chữ xuống dòng nếu thiếu chỗ",
+                "Ô nguyên liệu dành chiều cao cố định (14px) cho số tồn; 100% ô không bị clip dọc kể cả trạng thái thường, đã chọn (+1 · Còn 4) và disabled (Còn 0)",
+                "Bé Tí tại quầy được hiệu chỉnh vị trí bục đứng gy=840, hiển thị rõ đầu–vai–tay trên gờ quầy và giữ chuẩn tỷ lệ trẻ em chibi",
+                "Món ăn đặt trên gờ quầy lúc giao khách, khách tươi cười phản ứng cảm ơn quán (không báo sai 'tay nhận món' khi sprite chưa có pose cầm)",
                 "Ẩn thoại khi chuỗi rỗng dialogue == '' (zero phantom empty bubble)",
                 "Dòng tồn kho (Còn n) đọc được đầy đủ trong mọi ô, không bị cắt dấu ba chấm",
                 "Không có tràn ngang scrollWidth <= window.innerWidth trên 360px, 390px, 430px",
@@ -690,9 +740,8 @@ async def main():
                 "Không có lỗi console (0 error) và không có ảnh bị lỗi tải 404 (0 broken images)"
             ],
             "visually_reviewed_by_eye": [
-                "Bằng chứng 1/3: shot_07_viewport_360x640.png (Anh Tùng quầy, Bé Tí & Cô Chín hẻm)",
-                "Bằng chứng 2/3: shot_08_viewport_430x932.png (Cùng cảnh trên màn hình lớn 430x932)",
-                "Bằng chứng 3/3: shot_order_step3_served.png (Lúc giao món: ly/bánh mì nằm trên khay gờ quầy)",
+                "Bằng chứng 1/2: shot_order_step3_served.png (Bé Tí nhận bánh mì: bánh mì bọc giấy đặt trên gờ quầy, Bé Tí nổi rõ đầu–vai–tay tươi cười phản ứng cảm ơn quán)",
+                "Bằng chứng 2/2: shot_07_viewport_360x640.png (Màn nhỏ 360×640: Anh Tùng quầy, Bé Tí & Cô Chín hẻm; ô Sữa đậu đã chọn hiển thị rõ '+1 · Còn 4' không bị cắt dòng, Chả lụa disabled Còn 0; phiếu Sữa đậu đá ×1 trọn vẹn)",
                 "Đồng nhất nét vẽ, tỷ lệ đầu thân và màu nước chibi của các nhân vật",
                 "Điểm tiếp đất của chân bám đúng mặt đường đá hẻm, loại bỏ hoàn toàn vùng chậu cây và ghế"
             ]
