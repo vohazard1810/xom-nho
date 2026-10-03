@@ -9,7 +9,7 @@
     "shot_02": {
       "file": "shot_02_tra_tac.png",
       "label": "Fixture bố cục - Trà tắc (Cô Chín)",
-      "description": "Phiếu trà tắc với ảnh takeaway, thoại không còn yêu cầu unsupported 'ít đá'"
+      "description": "Phiếu trà tắc với ảnh takeaway, Cô Chín tại quầy, hàng chờ gồm Anh Tùng và Bé Tí (không trùng Cô Chín)"
     },
     "shot_03": {
       "file": "shot_03_sua_dau.png",
@@ -34,7 +34,7 @@
     "shot_07": {
       "file": "shot_07_viewport_360x640.png",
       "label": "Fixture bố cục - Viewport nhỏ 360×640: 3 khách, không che khuất, tên món đầy đủ",
-      "description": "Màn nhỏ 360×640 với 1 khách tại quầy (Anh Tùng) và 2 khách trong hẻm (Bé Tí, Cô Chín). Phiếu gọi món cao 40.0px ở top-right không che đầu Bé Tí (khoảng cách an toàn 30.8px). Hàng chờ hiển thị đủ tên không cắt."
+      "description": "Màn nhỏ 360×640 với 1 khách tại quầy (Anh Tùng) và 2 khách trong hẻm (Bé Tí, Cô Chín). Phiếu gọi món cao 40.0px ở top-right không che đầu Bé Tí (khoảng cách an toàn 5.5px). Hàng chờ hiển thị đủ tên không cắt."
     },
     "shot_08": {
       "file": "shot_08_viewport_430x932.png",
@@ -57,6 +57,22 @@
       "file": "shot_order_step3_served.png",
       "action": "Giao khách nhận tiền (SERVE / REACTION)",
       "description": "Món ăn xuất hiện trên khay gờ quầy, khách giơ tay nhận món với lời cảm ơn, tiền két tăng +25.000đ."
+    },
+    "step4_promoted": {
+      "file": "shot_order_step4_promoted.png",
+      "action": "Chuyển khách từ hàng chờ lên quầy (PROMOTION)",
+      "description": "Bé Tí rời quầy sau khi nhận món; Cô Chín (co_chin) được chuyển từ hàng chờ lên quầy thành công, bị xoá khỏi hàng chờ (còn lại: ['anh_tung']). Không bị nhân đôi.",
+      "metrics": {
+        "promotedId": "co_chin",
+        "promotedName": "Cô Chín",
+        "queueRemaining": [
+          "anh_tung"
+        ],
+        "isDuplicated": false,
+        "hasCounterCustomer": true,
+        "hasWaiting0": true,
+        "hasWaiting1": false
+      }
     }
   },
   "dish_name_font_size": 16,
@@ -123,7 +139,7 @@
     },
     {
       "group": "Khay nguyên liệu",
-      "label": "Sữa đậu Đã chọn 1 · Còn 0",
+      "label": "Sữa đậu +1 · Còn 0",
       "width": 89.8,
       "height": 69.5,
       "ge44": true,
@@ -194,18 +210,18 @@
   "broken_images": [],
   "scene_360x640_occlusion_metrics": {
     "calloutRect": {
-      "x": 194,
-      "y": 56,
-      "w": 160,
+      "x": 187.890625,
+      "y": 58,
+      "w": 164.109375,
       "h": 39.984375,
-      "bottom": 95.984375
+      "bottom": 97.984375
     },
     "waiting0Rect": {
-      "x": 172.796875,
-      "y": 126.78125,
-      "w": 86.390625,
-      "h": 105.03125,
-      "top": 126.78125
+      "x": 128.10000610351562,
+      "y": 103.5,
+      "w": 35.09999084472656,
+      "h": 74.69999694824219,
+      "top": 103.5
     },
     "overlaps": false,
     "speechBubblePresent": true,
@@ -215,5 +231,21 @@
       "Bánh mì chả"
     ],
     "noTruncation": true
+  },
+  "queue_promotion_no_duplicate": true,
+  "measured_vs_reviewed": {
+    "measured_programmatically": [
+      "Kích thước touch target tất cả các nút: ingredient buttons (8/8), cook actions (3/3), play-pause (1/1), queue-tickets (3/3) đều >= 44x44px và reachable (document.elementFromPoint)",
+      "Khoảng cách không che khuất giữa order callout và khách hàng chờ trong hẻm (overlaps == False)",
+      "Không có tràn ngang scrollWidth <= window.innerWidth trên 360px, 390px, 430px",
+      "Kiểm tra nhân đôi khách hàng khi promote từ hàng chờ lên quầy: activeCustomer.id không xuất hiện trong waitingQueue (zero duplication)",
+      "Không có lỗi console (0 error) và không có ảnh bị lỗi tải 404 (0 broken images)"
+    ],
+    "visually_reviewed_by_eye": [
+      "Đồng nhất nét vẽ, màu nước chibi của các nhân vật so với Bé Tí",
+      "Độ tự nhiên của điểm neo chân trên mặt đường đá hẻm (không bị lơ lửng, không đè lên chậu cây hay tường)",
+      "Thứ tự lớp che thị giác (background -> khách xa -> khách gần -> khách quầy -> gờ quầy -> UI)",
+      "Cảm giác cuộn ngang của hàng chờ qua icon mũi tên và ticket lấp ló"
+    ]
   }
 }

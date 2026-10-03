@@ -171,6 +171,26 @@ function getCustomerSprite(c, pose = 'ORDER') {
   return WALKIN_SPRITES[c.visualVariantId] || WALKIN_SPRITES[c.archetype] || WALKIN_SPRITES.walkin_variant_0;
 }
 
+function getCharacterStageCoords(c, role) {
+  if (!c) return null;
+  const isChild = c.id === 'be_ti' || c.archetype === 'child';
+  const isTeen = c.archetype === 'teen' || c.id === 'walkin_student';
+  if (role === 'COUNTER') {
+    if (isChild) return { x: 155, y: 370, w: 170, h: 360 };
+    if (isTeen) return { x: 153, y: 280, w: 174, h: 450 };
+    return { x: 75, y: 200, w: 330, h: 530 };
+  }
+  if (role === 'WAITING_0') {
+    if (isChild) return { x: 427, y: 401, w: 117, h: 249 };
+    if (isTeen) return { x: 425, y: 339, w: 120, h: 311 };
+    return { x: 390, y: 283, w: 190, h: 367 };
+  }
+  // WAITING_1
+  if (isChild) return { x: 530, y: 430, w: 70, h: 145 };
+  if (isTeen) return { x: 528, y: 393, w: 75, h: 182 };
+  return { x: 510, y: 361, w: 110, h: 214 };
+}
+
 function clearAllTimers() {
   if (simInterval) clearInterval(simInterval);
   if (resultTimer) clearInterval(resultTimer);
@@ -448,14 +468,23 @@ function renderShop() {
   const visibleIngredients=Object.keys(ingredientMeta).filter(id=>id!=='egg'||state.knownRecipeIds.includes('BANH_MI_TRUNG'));
   const title=c?recipes[c.recipe]?.name:'Quầy của bạn';
   const blocked=c && c.status!=='ARRIVED'&&c.status!=='SERVED';
+  const q0=(state.waitingQueue||[])[0];
+  const q1=(state.waitingQueue||[])[1];
+  const counterCoords=c?getCharacterStageCoords(c,'COUNTER'):null;
+  const waiting0Coords=q0?getCharacterStageCoords(q0,'WAITING_0'):null;
+  const waiting1Coords=q1?getCharacterStageCoords(q1,'WAITING_1'):null;
   return `<div class="play-screen">
     <header class="play-header"><div><b>${shopTitle()}</b><small>Ngày ${state.currentDay} · ${String(Math.floor(time/60)).padStart(2,'0')}:${String(Math.floor(time%60)).padStart(2,'0')} · ${state.servedOrders.length}/${state.dayCustomers.length} khách</small></div><span class="play-cash">${money(state.cash)}${floatingCash?`<i>${floatingCash}</i>`:''}</span><button class="play-pause" data-type="TOGGLE_PAUSE" aria-label="${state.manualPaused?'Tiếp tục':'Tạm dừng'}">${state.manualPaused?'▶':'Ⅱ'}</button></header>
     <div class="play-scene">
-      <img src="../assets/environment/alley_counter_clean.jpg" class="play-background" alt="Quán nhỏ trong hẻm">
-      ${state.upgrades.canopy?`<img class="play-canopy" src="${CANOPY_AWNING_IMG}" alt="Mái che">`:''}
-      ${(state.waitingQueue||[]).slice(0,2).map((q,i)=>`<img class="play-waiting waiting-${i}" src="${getCustomerSprite(q)}" alt="${escapeHtml(q.name)} đang chờ">`).join('')}
-      ${c?`<img class="play-customer ${c.id==='be_ti'?'small-child':c.archetype==='teen'?'teen':''} ${phase==='REACTION'?'react':''}" src="${getCustomerSprite(c,autoPrepState?.customerPose)}" alt="${escapeHtml(c.name)}">`:''}
-      <img class="play-foreground" src="${COUNTER_SHELF_FOREGROUND_IMG}" alt="Gờ quầy">
+      <svg class="play-stage" viewBox="0 0 1200 896" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
+        <image href="../assets/environment/alley_counter_clean.jpg" x="0" y="0" width="1200" height="896" preserveAspectRatio="none" />
+        ${state.upgrades?.canopy?`<image class="play-canopy" href="${CANOPY_AWNING_IMG}" x="0" y="0" width="1200" height="240" preserveAspectRatio="none" />`:''}
+        ${q1&&waiting1Coords?`<image class="play-waiting waiting-1 stage-waiting" href="${getCustomerSprite(q1)}" x="${waiting1Coords.x}" y="${waiting1Coords.y}" width="${waiting1Coords.w}" height="${waiting1Coords.h}" preserveAspectRatio="xMidYMax meet" />`:''}
+        ${q0&&waiting0Coords?`<image class="play-waiting waiting-0 stage-waiting" href="${getCustomerSprite(q0)}" x="${waiting0Coords.x}" y="${waiting0Coords.y}" width="${waiting0Coords.w}" height="${waiting0Coords.h}" preserveAspectRatio="xMidYMax meet" />`:''}
+        ${c&&counterCoords?`<image class="play-customer stage-customer ${c.id==='be_ti'?'small-child':c.archetype==='teen'?'teen':''} ${phase==='REACTION'?'react':''}" href="${getCustomerSprite(c,autoPrepState?.customerPose)}" x="${counterCoords.x}" y="${counterCoords.y}" width="${counterCoords.w}" height="${counterCoords.h}" preserveAspectRatio="xMidYMax meet" />`:''}
+        <image class="play-foreground stage-foreground" href="${COUNTER_SHELF_FOREGROUND_IMG}" x="0" y="0" width="1200" height="896" preserveAspectRatio="none" />
+        ${handoff&&c?.status==='SERVED'?`<image class="play-tray-dish stage-tray-dish" href="${DISH_IMAGES[c.recipe]}" x="430" y="660" width="140" height="100" preserveAspectRatio="xMidYMid meet" />`:''}
+      </svg>
       ${c?`<div class="customer-speech-bubble"><span>"${escapeHtml(customerReaction?.quote || (c.id === 'be_ti' && state.extraCha ? 'Cho con bánh mì thêm chả nha chú!' : c.dialogue))}"</span></div>`:''}
       <div class="play-speech customer-order-callout ${c ? '' : 'is-empty'}">
         ${c ? `
@@ -475,16 +504,15 @@ function renderShop() {
           <div class="ticket-empty-row">Khách đang tới…</div>
         `}
       </div>
-      ${handoff&&c?.status==='SERVED'?`<img class="play-tray-dish" src="${DISH_IMAGES[c.recipe]}" alt="${escapeHtml(title)} trên khay quầy">`:''}
       ${state.manualPaused?'<div class="play-pause-overlay">Đã tạm dừng</div>':''}
     </div>
-    <div class="play-queue"><span class="queue-header-label">Hàng chờ</span>${state.waitingQueue.length?state.waitingQueue.slice(0,3).map(q=>{const e=getCustomerEmotion(q);const dishName=recipes[q.recipe]?.name||'Món';const isChosen=state.prioritizedCustomerId===q.id;return `<button class="queue-ticket ${isChosen?'chosen':''}" data-type="PRIORITIZE" data-payload="${q.id}" aria-label="Ưu tiên ${escapeHtml(q.name)} (${escapeHtml(dishName)})"><img src="${DISH_IMAGES[q.recipe]}" class="queue-dish-thumb" alt="${escapeHtml(dishName)}"><div class="queue-ticket-meta"><div class="queue-cust-line"><b>${isChosen?'⭐ ':''}${escapeHtml(q.name)}</b><small class="${q.temperament==='RUSH'?'rush-label':''}">${q.temperament==='RUSH'?'⚡ Vội':e.label}</small></div><div class="queue-dish-line"><span class="queue-dish-name">${escapeHtml(dishName)}</span></div></div><i class="queue-patience-bar" style="width:${e.pct}%;background:${e.color}"></i></button>`}).join(''):'<small class="queue-empty-note">Hàng chờ rỗng · Chạm khách để ưu tiên làm trước</small>'}</div>
+    <div class="play-queue"><span class="queue-header-label">Hàng chờ <i class="queue-scroll-indicator">›</i></span>${state.waitingQueue.length?state.waitingQueue.slice(0,3).map(q=>{const e=getCustomerEmotion(q);const dishName=recipes[q.recipe]?.name||'Món';const isChosen=state.prioritizedCustomerId===q.id;return `<button class="queue-ticket ${isChosen?'chosen':''}" data-type="PRIORITIZE" data-payload="${q.id}" aria-label="Ưu tiên ${escapeHtml(q.name)} (${escapeHtml(dishName)})"><img src="${DISH_IMAGES[q.recipe]}" class="queue-dish-thumb" alt="${escapeHtml(dishName)}"><div class="queue-ticket-meta"><div class="queue-cust-line"><b>${isChosen?'⭐ ':''}${escapeHtml(q.name)}</b><small class="${q.temperament==='RUSH'?'rush-label':''}">${q.temperament==='RUSH'?'⚡ Vội':e.label}</small></div><div class="queue-dish-line"><span class="queue-dish-name">${escapeHtml(dishName)}</span></div></div><i class="queue-patience-bar" style="width:${e.pct}%;background:${e.color}"></i></button>`}).join(''):'<small class="queue-empty-note">Hàng chờ rỗng · Chạm khách để ưu tiên làm trước</small>'}</div>
     <div class="order-receipt"><b>${c?`Đang làm: ${escapeHtml(title)}${c.id==='be_ti'&&state.extraCha===true?' (Thêm chả)':''}`:'Quầy chế biến · Chờ khách'}</b><div class="receipt-checklist">${c?Object.entries(needs).map(([id,q])=>{const sel=selected[id]||0;const done=sel>=q;return `<span class="receipt-item ${done?'checked':'pending'}"><i class="receipt-mark">${done?'✓':'○'}</i> ${ingredientMeta[id]?.name||id} ${sel}/${q}</span>`}).join(''):'<span class="receipt-item pending">Sẵn sàng nhận đơn</span>'}</div></div>
     <div class="cooking-board ${cooking?'is-cooking':''}" aria-label="Bàn làm món">
       ${ready?`<img class="finished-dish" src="${DISH_IMAGES[c.recipe]}" alt="${escapeHtml(title)} đã làm xong"><b>Xong rồi! Giao khách nào</b>`:handoff?`<span>${blocked?'Khách không mua được món':'Khách nhận món · Chuẩn bị đơn tiếp theo'}</span>`:Object.values(selected).some(Boolean)?`<div class="selected-art">${Object.entries(selected).flatMap(([id,q])=>Array.from({length:q},()=>ingredientMeta[id].img?`<img src="${ingredientMeta[id].img}" alt="${ingredientMeta[id].name}">`:`<span>${ingredientMeta[id].name}</span>`)).join('')}</div><b>${cooking?'Đang làm món…':'Nguyên liệu bạn đã chọn'}</b>`:`<span>${c?'Chạm nguyên liệu bên dưới để làm món':'Sẵn sàng đón khách'}</span>`}
       ${cooking?`<div class="cook-progress"><i style="width:${autoPrepState?.progress||0}%"></i></div>`:''}
     </div>
-    <div class="ingredient-tray">${visibleIngredients.map(id=>{const meta=ingredientMeta[id],q=selected[id]||0,n=state.stock[id]||0;return `<button class="ingredient-button ${q?'picked':''}" data-type="ADD_INGREDIENT" data-payload="${id}" ${!canSelect||n===0?'disabled':''} aria-label="Chọn ${meta.name}, còn ${n}">${meta.img?`<img src="${meta.img}" alt="">`:'<span class="egg-placeholder">Trứng</span>'}<b>${meta.name}</b><small>${q?`Đã chọn ${q} · `:''}Còn ${n}</small></button>`}).join('')}</div>
+    <div class="ingredient-tray">${visibleIngredients.map(id=>{const meta=ingredientMeta[id],q=selected[id]||0,n=state.stock[id]||0;return `<button class="ingredient-button ${q?'picked':''}" data-type="ADD_INGREDIENT" data-payload="${id}" ${!canSelect||n===0?'disabled':''} aria-label="Chọn ${meta.name}, còn ${n}">${meta.img?`<img src="${meta.img}" alt="">`:'<span class="egg-placeholder">Trứng</span>'}<b>${meta.name}</b><small class="ing-stock-line">${q?`<b class="ing-picked">+${q}</b> · `:''}Còn ${n}</small></button>`}).join('')}</div>
     <div class="cook-actions"><button class="undo-button" data-type="UNDO_INGREDIENTS" ${!canSelect||!Object.values(selected).some(Boolean)?'disabled':''} aria-label="Bỏ nguyên liệu đã chọn">Làm lại</button><button class="cook-main ${ready?'ready':''}" data-type="${ready?'SERVE':'COOK'}" ${state.manualPaused||state.isPaused||!(ready||cookingComplete(state))?'disabled':''}>${ready?'Giao khách →':cooking?'Đang làm món…':canSelect?'Làm món':'Đón khách'}</button><button class="boost-button" data-type="FOCUS_BOOST" ${state.isPaused||state.manualPaused||state.focusBoost.active||state.focusBoost.cooldownSeconds>0?'disabled':''} aria-label="Tập trung làm món nhanh gấp đôi">${state.focusBoost.active?'x2':state.focusBoost.cooldownSeconds>0?Math.ceil(state.focusBoost.cooldownSeconds)+'s':'Nhanh x2'}</button></div>
     <div class="play-status" role="status">${escapeHtml(message || (state.manualPaused?'Bấm ▶ để tiếp tục':state.currentDay===1&&!state.cookingTutorialDone?'Chọn theo công thức → Làm món → Giao khách':state.newsTicker?.text||'Bạn làm món · khách trong hàng vẫn đang chờ'))}</div>
     <details id="play-options" class="play-options" ${playOptionsOpen?'open':''}><summary>Quản lý ca · ${Object.keys(state.empire.shops).length} quán</summary><div><button data-type="OPEN_MAP">Xem map · chuyển quán vào khoảng nghỉ</button><button data-type="SPEED" data-payload="${state.speed===1?2:1}">Nhịp giờ x${state.speed} · đổi</button>${state.staffHiredToday?`<button data-type="TOGGLE_ASSIST">Nhờ nhân viên tự làm: ${state.assistEnabled?'Bật':'Tắt'}</button>`:'<small>Quán có quản lý sẽ tự bán khi bạn vắng.</small>'}<button data-type="CLOSE">Đóng quán này sớm</button></div></details>

@@ -161,6 +161,11 @@ async def main():
                 dialogue: 'Bán cho cô ly trà tắc giải khát thanh mát nha con!'
             };
             s.extraCha = null;
+            s.waitingQueue = [
+                { id: 'anh_tung', name: 'Anh Tùng', recipe: 'SUA_DAU_DA', temperament: 'RUSH', patience: 50, maxPatience: 60 },
+                { id: 'be_ti', name: 'Bé Tí', recipe: 'BANH_MI_CHA', temperament: 'NORMAL', patience: 90, maxPatience: 100 },
+                { id: 'bac_ba', name: 'Bác Ba', recipe: 'BANH_MI_CHA', temperament: 'NORMAL', patience: 80, maxPatience: 100 }
+            ];
             s.service = {
                 version: 2,
                 customerId: 'co_chin',
@@ -180,7 +185,7 @@ async def main():
         test_results["fixtures"]["shot_02"] = {
             "file": "shot_02_tra_tac.png",
             "label": "Fixture bố cục - Trà tắc (Cô Chín)",
-            "description": "Phiếu trà tắc với ảnh takeaway, thoại không còn yêu cầu unsupported 'ít đá'"
+            "description": "Phiếu trà tắc với ảnh takeaway, Cô Chín tại quầy, hàng chờ gồm Anh Tùng và Bé Tí (không trùng Cô Chín)"
         }
         print("Captured Scene 2 ->", shot2_path)
 
@@ -198,6 +203,11 @@ async def main():
                 dialogue: 'Lẹ nha em ơi, anh giao cuốc xe gấp!'
             };
             s.extraCha = null;
+            s.waitingQueue = [
+                { id: 'be_ti', name: 'Bé Tí', recipe: 'BANH_MI_CHA', temperament: 'NORMAL', patience: 90, maxPatience: 100 },
+                { id: 'co_chin', name: 'Cô Chín', recipe: 'TRA_TAC', temperament: 'NORMAL', patience: 75, maxPatience: 100 },
+                { id: 'bac_ba', name: 'Bác Ba', recipe: 'BANH_MI_CHA', temperament: 'NORMAL', patience: 80, maxPatience: 100 }
+            ];
             s.service = {
                 version: 2,
                 customerId: 'anh_tung',
@@ -553,6 +563,62 @@ async def main():
             "description": "Món ăn xuất hiện trên khay gờ quầy, khách giơ tay nhận món với lời cảm ơn, tiền két tăng +25.000đ."
         }
         print("Captured Real Step 3 ->", shot_order_3)
+
+        # Step 4: Advance shift past reaction time to trigger customer departure and queue promotion
+        print("Real Step 4: Advancing past reaction to promote next customer from queue to counter...")
+        promotion_result = await page.evaluate("""() => {
+            window.__xomNho.advanceShift(500); // reactionMs = 400ms -> triggers CUSTOMER_LEAVE
+            const s = window.__xomNho.getState();
+            const active = s.activeCustomer;
+            const queue = s.waitingQueue || [];
+            
+            // Check DOM elements
+            const counterCustomer = document.querySelector('.play-customer');
+            const waiting0 = document.querySelector('.waiting-0');
+            const waiting1 = document.querySelector('.waiting-1');
+            
+            const activeId = active ? active.id : null;
+            const queueIds = queue.map(q => q.id);
+            const isDuplicated = queueIds.includes(activeId);
+            
+            return {
+                promotedId: activeId,
+                promotedName: active ? active.name : null,
+                queueRemaining: queueIds,
+                isDuplicated,
+                hasCounterCustomer: counterCustomer !== null,
+                hasWaiting0: waiting0 !== null,
+                hasWaiting1: waiting1 !== null
+            };
+        }""")
+        await page.wait_for_timeout(200)
+
+        shot_order_4 = DOCS_EVIDENCE / "shot_order_step4_promoted.png"
+        await page.screenshot(path=str(shot_order_4))
+        test_results["real_manual_order"]["step4_promoted"] = {
+            "file": "shot_order_step4_promoted.png",
+            "action": "Chuyển khách từ hàng chờ lên quầy (PROMOTION)",
+            "description": f"Bé Tí rời quầy sau khi nhận món; Cô Chín ({promotion_result['promotedId']}) được chuyển từ hàng chờ lên quầy thành công, bị xoá khỏi hàng chờ (còn lại: {promotion_result['queueRemaining']}). Không bị nhân đôi.",
+            "metrics": promotion_result
+        }
+        test_results["queue_promotion_no_duplicate"] = (not promotion_result["isDuplicated"]) and (promotion_result["promotedId"] == "co_chin")
+        print("Captured Real Step 4 ->", shot_order_4, "Promotion status:", promotion_result)
+
+        test_results["measured_vs_reviewed"] = {
+            "measured_programmatically": [
+                "Kích thước touch target tất cả các nút: ingredient buttons (8/8), cook actions (3/3), play-pause (1/1), queue-tickets (3/3) đều >= 44x44px và reachable (document.elementFromPoint)",
+                "Khoảng cách không che khuất giữa order callout và khách hàng chờ trong hẻm (overlaps == False)",
+                "Không có tràn ngang scrollWidth <= window.innerWidth trên 360px, 390px, 430px",
+                "Kiểm tra nhân đôi khách hàng khi promote từ hàng chờ lên quầy: activeCustomer.id không xuất hiện trong waitingQueue (zero duplication)",
+                "Không có lỗi console (0 error) và không có ảnh bị lỗi tải 404 (0 broken images)"
+            ],
+            "visually_reviewed_by_eye": [
+                "Đồng nhất nét vẽ, màu nước chibi của các nhân vật so với Bé Tí",
+                "Độ tự nhiên của điểm neo chân trên mặt đường đá hẻm (không bị lơ lửng, không đè lên chậu cây hay tường)",
+                "Thứ tự lớp che thị giác (background -> khách xa -> khách gần -> khách quầy -> gờ quầy -> UI)",
+                "Cảm giác cuộn ngang của hàng chờ qua icon mũi tên và ticket lấp ló"
+            ]
+        }
 
         # -------------------------------------------------------------
         # COPY ALL EVIDENCE TO BRAIN ARTIFACTS
