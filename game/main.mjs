@@ -499,7 +499,7 @@ function renderShop() {
   const time=480+state.clock;
   const emotion=c?getCustomerEmotion(c):null;
   const visibleIngredients=Object.keys(ingredientMeta).filter(id=>id!=='egg'||state.knownRecipeIds.includes('BANH_MI_TRUNG'));
-  const title=c?recipes[c.recipe]?.name:'Quầy của bạn';
+  const title=c?(c.customDishName||recipes[c.recipe]?.name):'Quầy của bạn';
   const blocked=c && c.status!=='ARRIVED'&&c.status!=='SERVED';
   const q0=(state.waitingQueue||[])[0];
   const q1=(state.waitingQueue||[])[1];
@@ -507,7 +507,7 @@ function renderShop() {
   const waiting0Coords=q0?getCharacterStageCoords(q0,'WAITING_0'):null;
   const waiting1Coords=q1?getCharacterStageCoords(q1,'WAITING_1'):null;
   return `<div class="play-screen">
-    <header class="play-header"><div><b>${shopTitle()}</b><small>Ngày ${state.currentDay} · ${String(Math.floor(time/60)).padStart(2,'0')}:${String(Math.floor(time%60)).padStart(2,'0')} · ${state.servedOrders.length}/${state.dayCustomers.length} khách</small></div><span class="play-cash">${money(state.cash)}${floatingCash?`<i>${floatingCash}</i>`:''}</span><button class="play-pause" data-type="TOGGLE_PAUSE" aria-label="${state.manualPaused?'Tiếp tục':'Tạm dừng'}">${state.manualPaused?'▶':'Ⅱ'}</button></header>
+    <header class="play-header"><div><b>${shopTitle()}</b><small>Ngày ${state.currentDay} · ${String(Math.floor(time/60)).padStart(2,'0')}:${String(Math.floor(time%60)).padStart(2,'0')} · ${state.servedOrders.length}/${state.dayCustomers.length} khách</small></div><div class="play-cash-group">${floatingCash?`<span class="cash-floating-gain">${floatingCash}</span>`:''}<span class="play-cash">${money(state.cash)}</span></div><button class="play-pause" data-type="TOGGLE_PAUSE" aria-label="${state.manualPaused?'Tiếp tục':'Tạm dừng'}">${state.manualPaused?'▶':'Ⅱ'}</button></header>
     <div class="play-scene">
       <svg class="play-stage" viewBox="0 0 1200 896" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
         <image href="../assets/environment/alley_counter_clean.jpg" x="0" y="0" width="1200" height="896" preserveAspectRatio="none" />
@@ -522,28 +522,33 @@ function renderShop() {
         const speech = (customerReaction?.quote || (c?.id === 'be_ti' && state.extraCha ? 'Cho con bánh mì thêm chả nha chú!' : c?.dialogue))?.trim();
         return c && speech ? `<div class="customer-speech-bubble"><span>"${escapeHtml(speech)}"</span></div>` : '';
       })()}
-      <div class="play-speech customer-order-callout ${c ? '' : 'is-empty'}">
-        ${c ? `
-          <img src="${DISH_IMAGES[c.recipe]}" class="ticket-dish-img" alt="${escapeHtml(title)}">
-          <div class="ticket-dish-meta">
-            <div class="ticket-dish-title-row">
-              <span class="ticket-dish-name">${escapeHtml(title)}</span>
-              <span class="ticket-qty-pill">×1</span>
-            </div>
-            <div class="ticket-cust-sub">
-              <span class="ticket-cust-name">${escapeHtml(c.name)}</span>
-              ${c.temperament === 'RUSH' ? `<span class="ticket-rush-tag">⚡ Vội</span>` : ''}
-              ${c.id === 'be_ti' && state.extraCha === true ? `<span class="ticket-special-badge">⭐ Thêm chả</span>` : ''}
-            </div>
-          </div>
-        ` : `
-          <div class="ticket-empty-row">Khách đang tới…</div>
-        `}
-      </div>
       ${state.manualPaused?'<div class="play-pause-overlay">Đã tạm dừng</div>':''}
     </div>
+    <div class="active-order-strip customer-order-callout order-receipt ${c ? '' : 'is-empty'}">
+      ${c ? `
+        <div class="order-strip-main">
+          <img src="${DISH_IMAGES[c.recipe]}" class="ticket-dish-img" alt="${escapeHtml(title)}">
+          <div class="order-strip-content">
+            <div class="order-strip-title-row">
+              <span class="ticket-dish-name">${escapeHtml(title)}</span>
+              <span class="ticket-qty-pill">×1</span>
+              ${c.id === 'be_ti' && state.extraCha === true ? `<span class="ticket-special-badge">⭐ Thêm chả</span>` : ''}
+              ${c.temperament === 'RUSH' ? `<span class="ticket-rush-tag">⚡ Vội</span>` : ''}
+              <span class="ticket-cust-tag">Khách: <b>${escapeHtml(c.name)}</b></span>
+            </div>
+            <div class="receipt-checklist">
+              ${Object.entries(needs).map(([id,q])=>{const sel=selected[id]||0;const done=sel>=q;return `<span class="receipt-item ${done?'checked':'pending'}"><i class="receipt-mark">${done?'✓':'○'}</i> ${ingredientMeta[id]?.name||id} ${sel}/${q}</span>`}).join('')}
+            </div>
+          </div>
+        </div>
+      ` : `
+        <div class="order-strip-empty">
+          <span>Quầy chế biến · Chờ khách tới…</span>
+          <div class="receipt-checklist"><span class="receipt-item pending">Sẵn sàng nhận đơn</span></div>
+        </div>
+      `}
+    </div>
     <div class="play-queue"><span class="queue-header-label">Hàng chờ <i class="queue-scroll-indicator">›</i></span>${state.waitingQueue.length?state.waitingQueue.slice(0,3).map(q=>{const e=getCustomerEmotion(q);const dishName=recipes[q.recipe]?.name||'Món';const isChosen=state.prioritizedCustomerId===q.id;return `<button class="queue-ticket ${isChosen?'chosen':''}" data-type="PRIORITIZE" data-payload="${q.id}" aria-label="Ưu tiên ${escapeHtml(q.name)} (${escapeHtml(dishName)})"><img src="${DISH_IMAGES[q.recipe]}" class="queue-dish-thumb" alt="${escapeHtml(dishName)}"><div class="queue-ticket-meta"><div class="queue-cust-line"><b>${isChosen?'⭐ ':''}${escapeHtml(q.name)}</b><small class="${q.temperament==='RUSH'?'rush-label':''}">${q.temperament==='RUSH'?'⚡ Vội':e.label}</small></div><div class="queue-dish-line"><span class="queue-dish-name">${escapeHtml(dishName)}</span></div></div><i class="queue-patience-bar" style="width:${e.pct}%;background:${e.color}"></i></button>`}).join(''):'<small class="queue-empty-note">Hàng chờ rỗng · Chạm khách để ưu tiên làm trước</small>'}</div>
-    <div class="order-receipt"><b>${c?`Đang làm: ${escapeHtml(title)}${c.id==='be_ti'&&state.extraCha===true?' (Thêm chả)':''}`:'Quầy chế biến · Chờ khách'}</b><div class="receipt-checklist">${c?Object.entries(needs).map(([id,q])=>{const sel=selected[id]||0;const done=sel>=q;return `<span class="receipt-item ${done?'checked':'pending'}"><i class="receipt-mark">${done?'✓':'○'}</i> ${ingredientMeta[id]?.name||id} ${sel}/${q}</span>`}).join(''):'<span class="receipt-item pending">Sẵn sàng nhận đơn</span>'}</div></div>
     <div class="cooking-board ${cooking?'is-cooking':''}" aria-label="Bàn làm món">
       ${ready?`<img class="finished-dish" src="${DISH_IMAGES[c.recipe]}" alt="${escapeHtml(title)} đã làm xong"><b>Xong rồi! Giao khách nào</b>`:handoff?`<span>${blocked?'Khách không mua được món':'Khách nhận món · Chuẩn bị đơn tiếp theo'}</span>`:Object.values(selected).some(Boolean)?`<div class="selected-art">${Object.entries(selected).flatMap(([id,q])=>Array.from({length:q},()=>ingredientMeta[id].img?`<img src="${ingredientMeta[id].img}" alt="${ingredientMeta[id].name}">`:`<span>${ingredientMeta[id].name}</span>`)).join('')}</div><b>${cooking?'Đang làm món…':'Nguyên liệu bạn đã chọn'}</b>`:`<span>${c?'Chạm nguyên liệu bên dưới để làm món':'Sẵn sàng đón khách'}</span>`}
       ${cooking?`<div class="cook-progress"><i style="width:${autoPrepState?.progress||0}%"></i></div>`:''}
@@ -756,6 +761,7 @@ window.__xomNho = {
   getState: () => state,
   render,
   setAutoPrepState: (val) => { autoPrepState = val; },
+  setFloatingCash: (val) => { floatingCash = val; },
   advanceShift: (ms) => { state = advanceEmpire(state, ms); updateServiceView(); render(); },
   clearAllTimers
 };

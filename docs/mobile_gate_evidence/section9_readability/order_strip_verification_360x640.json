@@ -1,0 +1,51 @@
+{
+  "viewport": {
+    "width": 360,
+    "height": 640
+  },
+  "dishName": {
+    "text": "Bánh mì đặc biệt thập cẩm chả lụa pate xá xíu",
+    "fontSize": 16,
+    "fontSizeGte16": true,
+    "width": 302,
+    "height": 38.375,
+    "lineCount": 2,
+    "fitsMax2Lines": true
+  },
+  "qtyPill": {
+    "text": "×1",
+    "isSeparate": true,
+    "rect": {
+      "x": 50,
+      "y": 239.671875,
+      "w": 28.390625,
+      "h": 21.390625
+    }
+  },
+  "specialBadge": {
+    "text": "⭐ Thêm chả",
+    "hasExtraCha": true
+  },
+  "orderStripPlacement": {
+    "stripTop": 191.296875,
+    "sceneBottom": 191.296875,
+    "isDirectlyUnderScene": true,
+    "queueTop": 288,
+    "isAboveQueue": true
+  },
+  "cashFloatingGain": {
+    "exists": true,
+    "text": "+25.000đ",
+    "insideHeader": true,
+    "nextToCash": true,
+    "doesNotOverlapScene": true,
+    "doesNotOverlapStrip": true
+  },
+  "sceneClearance": {
+    "activeCustomerTop": 42.01687240600586,
+    "sceneTop": 50,
+    "headCropMargin": -7.983127593994141,
+    "noHeadCrop": false
+  },
+  "hasHorizontalScroll": false
+}
