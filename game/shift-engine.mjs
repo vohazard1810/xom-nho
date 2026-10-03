@@ -5,7 +5,8 @@ const terminal = new Set(['SERVED', 'OUT_OF_STOCK', 'MENU_DISABLED', 'PRICE_REJE
 export function orderBlocker(s, c) {
   const menu = s.menu[c.recipe], recipe = recipes[c.recipe];
   if (!recipe || !menu?.enabled) return 'MENU_DISABLED';
-  if (menu.sellPrice > recipe.basePrice && (c.priceSensitivity === 'HIGH' || (s.currentDay > 1 && s.rating < 3 && c.priceSensitivity === 'MEDIUM'))) return 'PRICE_TOO_HIGH';
+  const referencePrice=s.dayEvent.rival?.offer===c.recipe?s.dayEvent.rival.suggestedPrice:recipe.basePrice;
+  if (menu.sellPrice > referencePrice && (c.priceSensitivity === 'HIGH' || (s.currentDay > 1 && s.rating < 3 && c.priceSensitivity === 'MEDIUM'))) return 'PRICE_TOO_HIGH';
   return hasEnoughStock(s.stock, recipeNeeds(c.recipe, c.id === 'be_ti' && s.extraCha === true)) ? null : 'OUT_OF_STOCK';
 }
 export const cookingNeeds = s => s.activeCustomer ? recipeNeeds(s.activeCustomer.recipe, s.activeCustomer.id === 'be_ti' && s.extraCha === true) : {};
@@ -67,7 +68,7 @@ export function advanceShift(input, elapsedMs, options = {}) {
     // Upgrade existing saves without replaying completed transactions.
     if (!s.service || s.service.customerId !== c.id || s.service.version !== 2) {
       c.startedAt ??= s.clock;
-      s.service = {version:2,customerId:c.id,recipeId:c.recipe,isExtra:c.id==='be_ti'&&s.extraCha===true,selected:{},phase:terminal.has(c.status)?'REACTION':'SELECT',elapsedMs:0,prepMs:SHIFT_RULES.prepMs};
+      s.service = {version:2,customerId:c.id,recipeId:c.recipe,isExtra:c.id==='be_ti'&&s.extraCha===true,selected:{},phase:terminal.has(c.status)?'REACTION':'SELECT',elapsedMs:0,prepMs:c.recipe==='BANH_MI_TRUNG'?2200:c.recipe==='BANH_MI_CHA'?SHIFT_RULES.prepMs:1100};
       if (!terminal.has(c.status) && orderBlocker(s,c)) {s.service.phase='HANDOFF';s=action(s,'SERVE_AUTO').state;s.service.phase='REACTION';}
     }
     const p=s.service;

@@ -730,7 +730,8 @@ export function action(state, type, payload) {
     }
 
     // 2. Check customer price sensitivity (High tier vs HIGH sensitivity)
-    const isHighPrice = menuItem.sellPrice > recipeDef.basePrice;
+    const competitorPrice = s.dayEvent.rival?.offer === recipeId ? s.dayEvent.rival.suggestedPrice : recipeDef.basePrice;
+    const isHighPrice = menuItem.sellPrice > competitorPrice;
     // Customers with ordinary budgets become less willing to pay the top
     // tier after the shop's reputation has dropped. Day 1 fixture unaffected.
     if (isHighPrice && (cust.priceSensitivity === 'HIGH' || (s.currentDay > 1 && s.rating < 3 && cust.priceSensitivity === 'MEDIUM'))) {
@@ -882,6 +883,7 @@ export function action(state, type, payload) {
     const ratingCeiling = s.upgrades.vehicleCapacity <= 20 ? 3.5 : s.upgrades.vehicleCapacity <= 30 ? 4 : 5;
     s.rating = s.currentDay === 1 ? 3 : Math.max(1, Math.min(ratingCeiling, (s.rating ?? 3) + (avoidable > total / 3 ? -.5 : capacityServiceRate >= .8 && s.servedOrders.length >= 5 && avoidable === 0 ? .5 : 0)));
     s.screen = 'DAY_RESULT';
+    s.lifetimeServed = (s.lifetimeServed || 0) + s.servedOrders.length;
     s.resultRemainingMs = 12000;
     const feedback = [...s.missedOrders.map(o => ({ personId: o.personId, name: o.name, reason: o.reason, text: o.reason === 'OUT_OF_STOCK' ? 'Tiếc quá, quán hết món rồi; mai mình ghé sớm nhé.' : o.reason === 'WAIT_TOO_LONG' ? 'Quán làm lâu quá, trễ giờ làm của tôi rồi!' : o.reason === 'PRICE_TOO_HIGH' ? 'Giá hôm nay cao quá, để bữa khác ghé.' : o.reason === 'MENU_DISABLED' ? 'Hôm nay không có món mình thích rồi.' : 'Mình ghé mà quán chưa bán hoặc đã đóng.' })), ...s.servedOrders.map(o => ({ personId: o.personId, name: o.name, reason: 'SERVED', text: o.tip ? 'Ngon quá, gửi quán thêm chút tiền cà phê!' : o.personId === 'be_ti' && s.extraCha ? 'Nhiều chả quá, con thích lắm!' : 'Món vừa miệng, cảm ơn quán nha!' }))];
     s.lastDayReport = { day: s.currentDay, feedback, forecastTomorrow: dayConfig(s.currentDay + 1).forecast, recommendation: s.missedOrders.some(o => o.reason === 'WAIT_TOO_LONG') ? 'Khách phải chờ lâu: thử ưu tiên khách vội, dùng tập trung khi đông hoặc thuê người phụ.' : s.missedOrders.some(o => o.reason === 'OUT_OF_STOCK') ? 'Quán hết hàng: cân nhắc tăng sức chở và nhập theo các món khách hỏi nhiều.' : s.missedOrders.some(o => o.reason === 'PRICE_TOO_HIGH') ? 'Có khách chê giá cao: thử hạ giá món đó một mức vào ngày mai.' : s.missedOrders.some(o => o.reason === 'MISSED_LATE_OPENING') ? 'Khách sáng đã đi qua: thử mở sớm hơn và nhập đủ món ăn sáng.' : 'Giữ các món bán tốt và chừa tiền nhập hàng trước khi nâng cấp.', served: s.servedOrders.length, missed: s.missedOrders.length, cash: s.cash, revenue: s.revenue, cogs: s.servedOrders.reduce((n, o) => n + o.cogs, 0), spoilage: s.spoilageLoss, rating: s.rating };

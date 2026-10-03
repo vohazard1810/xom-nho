@@ -17,6 +17,12 @@ export const STAFF_ROLES=Object.freeze({
  driver:{name:'Giao hàng',wage:2500,unlockDay:15,online:true,description:'Giảm phí đơn giao ngoài; vẫn cần đủ nguyên liệu'}
 });
 const staffNames=['Dì Hạnh','Anh Phúc','Chị Lan','Chú Sơn','Bé Út','Cô Liên','Anh Bình'];
+export const STAFF_MILESTONES=Object.freeze({helper:15,manager:30,cleaner:30,buyer:50,keeper:50,packer:100,driver:100});
+export function staffRoleAvailable(s,role){
+ const def=STAFF_ROLES[role];if(!def)return false;
+ const served=Object.values(s.empire?.shops||{}).reduce((n,x)=>n+(x.state.lifetimeServed||0),0);
+ return s.currentDay>=def.unlockDay || (s.currentDay>=4 && served>=STAFF_MILESTONES[role]);
+}
 const strip=s=>{const n=structuredClone(s);delete n.empire;return n};
 const liveEmployees=(e,id)=>e.employees.filter(x=>x.shopId===id&&!x.restingToday);
 export function staffCondition(p){
@@ -53,7 +59,8 @@ function roster(id,s){
  const arch=WALK_IN_ARCHETYPES[id==='school'?'teen':'office'];
  return list.map((c,i)=>({...c,id:`${id}_${c.id}`,personId:`${id}_${arch.archetype}_${i}`,archetype:arch.archetype,visualVariantId:arch.visualVariantId,name:arch.names[(s.currentDay+i)%arch.names.length],temperament:id==='office'&&i%3===0?'RUSH':c.temperament,recipe:id==='school'?(i%2?'TRA_TAC':'BANH_MI_CHA'):(i%3===0?'SUA_DAU_DA':i%3===1?'BANH_MI_CHA':'TRA_TAC'),dialogue:arch.quotes[id==='office'?'RUSH':'NORMAL']}));
 }
-export function openingEligibility(input,id){const s=ensureEmpire(input),e=s.empire,loc=LOCATIONS[id];if(!loc||e.shops[id])return 'Đã có quán này.';if(s.currentDay<loc.unlockDay)return `Mở từ ngày ${loc.unlockDay}.`;const owned=Object.values(e.shops);if(owned.some(x=>(x.state.rating??0)<4))return 'Mỗi quán đang có cần đạt 4 sao.';if(owned.some(x=>!liveEmployees(e,x.id).some(p=>p.role==='manager')))return 'Thuê quản lý cho quán hiện tại trước khi mở rộng.';if(s.cash<loc.deposit+loc.reserve)return `Cần ${loc.deposit.toLocaleString('vi-VN')}đ đầu tư và giữ ${loc.reserve.toLocaleString('vi-VN')}đ vốn dự phòng.`;return null}
+const payloadThreshold=id=>id==='school'?30:100;
+export function openingEligibility(input,id){const s=ensureEmpire(input),e=s.empire,loc=LOCATIONS[id];if(!loc||e.shops[id])return 'Đã có quán này.';const totalServed=Object.values(e.shops).reduce((n,x)=>n+(x.state.lifetimeServed||0),0);const achievement=payloadThreshold(id);if(s.currentDay<loc.unlockDay && !(s.currentDay>=4&&totalServed>=achievement))return `Mở ngày ${loc.unlockDay} hoặc phục vụ ${achievement} đơn từ ngày 4.`;const owned=Object.values(e.shops);if(owned.some(x=>(x.state.rating??0)<4))return 'Mỗi quán đang có cần đạt 4 sao.';if(owned.some(x=>!liveEmployees(e,x.id).some(p=>p.role==='manager')))return 'Thuê quản lý cho quán hiện tại trước khi mở rộng.';if(s.cash<loc.deposit+loc.reserve)return `Cần ${loc.deposit.toLocaleString('vi-VN')}đ đầu tư và giữ ${loc.reserve.toLocaleString('vi-VN')}đ vốn dự phòng.`;return null}
 export function empireAction(input,type,payload){
  let root=ensureEmpire(input),e=structuredClone(root.empire),s=strip(e.shops[e.activeShopId].state);e.revisionCounter=Math.max(root.revision,e.revisionCounter||0);s.cash=root.cash;s.resultDetailsOpen=Boolean(root.resultDetailsOpen);if(root.resultRemainingMs!==undefined)s.resultRemainingMs=root.resultRemainingMs;
  const fail=error=>({state:input,error});const safe=['XOM_OI','MARKET','MENU'].includes(root.screen)&&!e.shiftRunning;
@@ -83,7 +90,7 @@ export function empireAction(input,type,payload){
  if(type.startsWith('STAFF_')){
   if(!safe)return fail('Chỉnh nhân sự trước ca.');
   if(type==='STAFF_HIRE'){
-   const role=payload,def=STAFF_ROLES[role];if(!def||root.currentDay<def.unlockDay)return fail('Vị trí này chưa mở.');if(def.seating&&!s.upgrades.seating)return fail('Quán có chỗ ngồi mới cần vị trí này.');if(def.online&&!s.onlineEnabledToday)return fail('Bật nhận đơn online trước khi thuê vị trí này.');if(e.employees.some(x=>x.shopId===e.activeShopId&&x.role===role))return fail('Quán đã có người ở vị trí này.');if(root.cash<5000+def.wage+15000)return fail('Cần phí tuyển 5k, tiền lương và ít nhất 15k vốn hàng.');
+   const role=payload,def=STAFF_ROLES[role];if(!def||!staffRoleAvailable(root,role))return fail('Vị trí này chưa mở.');if(def.seating&&!s.upgrades.seating)return fail('Quán có chỗ ngồi mới cần vị trí này.');if(def.online&&!s.onlineEnabledToday)return fail('Bật nhận đơn online trước khi thuê vị trí này.');if(e.employees.some(x=>x.shopId===e.activeShopId&&x.role===role))return fail('Quán đã có người ở vị trí này.');if(root.cash<5000+def.wage+15000)return fail('Cần phí tuyển 5k, tiền lương và ít nhất 15k vốn hàng.');
    const n=e.nextEmployeeId++;e.employees.push({id:`employee_${n}`,name:staffNames[(n-1)%staffNames.length],role,shopId:e.activeShopId,skill:1,fatigue:0,mood:80,restingToday:false,daysWorked:0,lastTrainedDay:0});s.cash-=5000;s.operatingExpenses+=5000;
   }else{
    const [id,target]=String(payload||'').split(':');const x=e.employees.find(p=>p.id===id);if(!x)return fail('Không tìm thấy nhân viên.');

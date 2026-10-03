@@ -87,20 +87,30 @@ export const TWENTY_ONE_DAY_EVENTS = [
   { event: 'anniversary_day', forecast: 'Tròn 3 tuần quán mở: bà con chòm xóm ghé chúc mừng tấp nập!', demandDelta: 5, costDelta: 0, tipBonus: 2000 }
 ];
 
-export function dayConfig(day) {
+export function dayConfig(day, progress = {}) {
   if (day === 1) return { marketPrices: null, ...TWENTY_ONE_DAY_EVENTS[0] };
-  const eventIdx = (day - 1) % TWENTY_ONE_DAY_EVENTS.length;
-  const choice = TWENTY_ONE_DAY_EVENTS[eventIdx] || TWENTY_ONE_DAY_EVENTS[(day - 1) % TWENTY_ONE_DAY_EVENTS.length];
+  // Seven introductory days, then a seeded calendar independent of a 21-day loop.
+  const seed = Math.imul(day, 2654435761) >>> 0;
+  const pool = TWENTY_ONE_DAY_EVENTS.slice(7,20);
+  const rivalDay = day > 7 && day % 6 === 2;
+  const choice = day <= 7 ? TWENTY_ONE_DAY_EVENTS[day-1] : rivalDay ? {
+    event:'rival_offer',forecast:'Xe bánh mì cô Tư có giá ưu đãi hôm nay. Khách cân nhắc giá; bạn có thể giữ giá, chọn giá mềm hoặc tập trung thức uống.',
+    demandDelta:0,costDelta:0,tipBonus:0
+  } : pool[seed % pool.length];
   
   // Market price dynamics
   const prices = {
     kumquat: choice.event === 'market_deal' ? 2000 : choice.event === 'hot_weather' ? 4000 : 3000,
     sugar_syrup: choice.event === 'market_deal' ? 2000 : day >= 5 ? 3000 : 2000,
-    ...(day >= 4 && day % 3 === 1 ? { egg: 4000 } : {})
+    egg: day >= 4 && day % 3 === 1 ? 4000 : 3000,
+    ...(day > 7 ? {cha:5000+(seed%3)*500,soy_milk:4000+((seed>>>4)%3)*500}: {})
   };
 
   return {
     ...choice,
+    generated:day>7,
+    seed,
+    rival:rivalDay?{id:'co_tu',name:'Xe bánh mì cô Tư',offer:'BANH_MI_CHA',suggestedPrice:22000}:null,
     marketPrices: prices,
     forecast: `Tin chợ: tắc ${prices.kumquat.toLocaleString('vi-VN')}đ/trái, nước đường ${prices.sugar_syrup.toLocaleString('vi-VN')}đ/muỗng. ${choice.forecast}`
   };
@@ -110,12 +120,13 @@ export function rosterForDay(day, rating = 3, seatingLevel = 0, canopy = 0, know
   if (day === 1) return null; // Day 1 retains its approved eight-customer fixture.
   const config = dayConfig(day);
   const reputationDemand = rating >= 4 ? 2 : rating < 2 ? -3 : rating < 3 ? -1 : 0;
-  const extra = Math.max(0, Math.min(10, day - 1)) + seatingLevel * 2 + reputationDemand + config.demandDelta + (config.event === 'rain' ? canopy : 0);
+  const growth = day <= 7 ? day-1 : 3 + Math.max(0,Math.floor((rating-3)*3)) + Math.min(4,(knownRecipes?.length||3)-3);
+  const extra = growth + seatingLevel * 2 + reputationDemand + config.demandDelta + (config.event === 'rain' ? canopy : 0);
   const count = Math.max(6, Math.min(20, 8 + extra));
   const recipes = ['BANH_MI_CHA', 'TRA_TAC', 'SUA_DAU_DA', 'BANH_MI_CHA', 'TRA_TAC', 'BANH_MI_TRUNG'];
   return Array.from({ length: count }, (_, i) => {
     // Select archetype deterministically first
-    const archKey = archetypeKeys[(day * 3 + i) % archetypeKeys.length];
+    const archKey = archetypeKeys[((config.seed>>>8) + i + Math.floor(rating*2)) % archetypeKeys.length];
     const arch = WALK_IN_ARCHETYPES[archKey];
     const nameIndex = (day * 7 + i) % arch.names.length;
     const name = arch.names[nameIndex];
@@ -133,7 +144,7 @@ export function rosterForDay(day, rating = 3, seatingLevel = 0, canopy = 0, know
       isRegular: false,
       recipe,
       arrivalMinute: day >= 3 ? (i < 3 ? 25 + [0, 5, 8][i] : 100 + Math.round((i - 3) * 215 / Math.max(1, count - 4))) : 25 + Math.round(i * 290 / Math.max(1, count - 1)),
-      priceSensitivity: config.event === 'payday' || config.event === 'month_end_bonus' ? 'LOW' : config.event === 'roadwork' ? (i % 2 ? 'HIGH' : 'MEDIUM') : temperament === 'RUSH' ? 'LOW' : (i % 3 === 0 ? 'HIGH' : 'MEDIUM'),
+      priceSensitivity: config.event === 'rival_offer' && recipe==='BANH_MI_CHA' ? (i%2?'HIGH':'MEDIUM') : config.event === 'payday' || config.event === 'month_end_bonus' ? 'LOW' : config.event === 'roadwork' ? (i % 2 ? 'HIGH' : 'MEDIUM') : temperament === 'RUSH' ? 'LOW' : (i % 3 === 0 ? 'HIGH' : 'MEDIUM'),
       temperament,
       dialogue
     };
