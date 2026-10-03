@@ -147,9 +147,9 @@ function persist() {
 
 function getCustomerEmotion(cust) {
   if (!cust) return { stage: 'CALM', icon: '😊', label: 'Bình tĩnh', color: '#16a34a', pct: 100 };
-  const pat = cust.patience !== undefined ? cust.patience : (cust.maxPatience || 100);
-  const max = cust.maxPatience || 100;
-  const pct = Math.max(0, Math.min(100, Math.round((pat / max) * 100)));
+  const pat = Number.isFinite(cust.patience) ? cust.patience : (cust.maxPatience || 100);
+  const max = (Number.isFinite(cust.maxPatience) && cust.maxPatience > 0) ? cust.maxPatience : 100;
+  const pct = Math.max(0, Math.min(100, Math.round((pat / max) * 100) || 0));
   if (pct > 50) {
     return { stage: 'CALM', icon: '😊', label: 'Bình tĩnh', color: '#16a34a', pct };
   } else if (pct > 20) {

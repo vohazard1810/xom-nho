@@ -1,0 +1,236 @@
+{
+  "360x640": {
+    "items": [
+      {
+        "name": "Nút Tạm dừng (.play-pause)",
+        "selector": ".play-pause",
+        "width": 44,
+        "height": 44,
+        "targetStandardPass": true,
+        "found": true
+      },
+      {
+        "name": "Thẻ Hàng chờ 1 - Cô Chín (.queue-ticket:nth-child(2))",
+        "selector": ".play-queue .queue-ticket:nth-of-type(1)",
+        "width": 125.8,
+        "height": 44,
+        "targetStandardPass": true,
+        "found": true
+      },
+      {
+        "name": "Thẻ Hàng chờ 2 - Anh Tùng (.queue-ticket:nth-child(3))",
+        "selector": ".play-queue .queue-ticket:nth-of-type(2)",
+        "width": 128.2,
+        "height": 44,
+        "targetStandardPass": true,
+        "found": true
+      },
+      {
+        "name": "Nguyên liệu - Bánh mì",
+        "selector": ".ingredient-button[data-payload=\"bread\"]",
+        "width": 84.8,
+        "height": 58.5,
+        "targetStandardPass": true,
+        "found": true
+      },
+      {
+        "name": "Nguyên liệu - Chả lụa",
+        "selector": ".ingredient-button[data-payload=\"cha\"]",
+        "width": 84.8,
+        "height": 58.5,
+        "targetStandardPass": true,
+        "found": true
+      },
+      {
+        "name": "Nguyên liệu - Dưa ngò",
+        "selector": ".ingredient-button[data-payload=\"vegetable\"]",
+        "width": 84.8,
+        "height": 58.5,
+        "targetStandardPass": true,
+        "found": true
+      },
+      {
+        "name": "Nguyên liệu - Đá bi",
+        "selector": ".ingredient-button[data-payload=\"ice\"]",
+        "width": 84.8,
+        "height": 58.5,
+        "targetStandardPass": true,
+        "found": true
+      },
+      {
+        "name": "Nguyên liệu - Nước đường",
+        "selector": ".ingredient-button[data-payload=\"sugar_syrup\"]",
+        "width": 84.8,
+        "height": 58.5,
+        "targetStandardPass": true,
+        "found": true
+      },
+      {
+        "name": "Nguyên liệu - Tắc tươi",
+        "selector": ".ingredient-button[data-payload=\"kumquat\"]",
+        "width": 84.8,
+        "height": 58.5,
+        "targetStandardPass": true,
+        "found": true
+      },
+      {
+        "name": "Nguyên liệu - Sữa đậu",
+        "selector": ".ingredient-button[data-payload=\"soy_milk\"]",
+        "width": 84.8,
+        "height": 58.5,
+        "targetStandardPass": true,
+        "found": true
+      },
+      {
+        "name": "Thao tác bếp - Làm lại (.undo-button)",
+        "selector": ".undo-button",
+        "width": 74.2,
+        "height": 44,
+        "targetStandardPass": true,
+        "found": true
+      },
+      {
+        "name": "Thao tác bếp - Làm món / Giao (.cook-main)",
+        "selector": ".cook-main",
+        "width": 194.8,
+        "height": 44,
+        "targetStandardPass": true,
+        "found": true
+      },
+      {
+        "name": "Thao tác bếp - Nhanh x2 (.boost-button)",
+        "selector": ".boost-button",
+        "width": 65,
+        "height": 44,
+        "targetStandardPass": true,
+        "found": true
+      },
+      {
+        "name": "Tùy chọn - Quản lý ca (.play-options summary)",
+        "selector": ".play-options summary",
+        "width": 360,
+        "height": 44,
+        "targetStandardPass": true,
+        "found": true
+      }
+    ],
+    "allPass": true
+  },
+  "390x844": {
+    "items": [
+      {
+        "name": "Nút Tạm dừng (.play-pause)",
+        "selector": ".play-pause",
+        "width": 44,
+        "height": 44,
+        "targetStandardPass": true,
+        "found": true
+      },
+      {
+        "name": "Thẻ Hàng chờ 1 - Cô Chín (.queue-ticket:nth-child(2))",
+        "selector": ".play-queue .queue-ticket:nth-of-type(1)",
+        "width": 129.8,
+        "height": 44,
+        "targetStandardPass": true,
+        "found": true
+      },
+      {
+        "name": "Thẻ Hàng chờ 2 - Anh Tùng (.queue-ticket:nth-child(3))",
+        "selector": ".play-queue .queue-ticket:nth-of-type(2)",
+        "width": 132.2,
+        "height": 44,
+        "targetStandardPass": true,
+        "found": true
+      },
+      {
+        "name": "Nguyên liệu - Bánh mì",
+        "selector": ".ingredient-button[data-payload=\"bread\"]",
+        "width": 89.8,
+        "height": 61.5,
+        "targetStandardPass": true,
+        "found": true
+      },
+      {
+        "name": "Nguyên liệu - Chả lụa",
+        "selector": ".ingredient-button[data-payload=\"cha\"]",
+        "width": 89.8,
+        "height": 61.5,
+        "targetStandardPass": true,
+        "found": true
+      },
+      {
+        "name": "Nguyên liệu - Dưa ngò",
+        "selector": ".ingredient-button[data-payload=\"vegetable\"]",
+        "width": 89.8,
+        "height": 61.5,
+        "targetStandardPass": true,
+        "found": true
+      },
+      {
+        "name": "Nguyên liệu - Đá bi",
+        "selector": ".ingredient-button[data-payload=\"ice\"]",
+        "width": 89.8,
+        "height": 61.5,
+        "targetStandardPass": true,
+        "found": true
+      },
+      {
+        "name": "Nguyên liệu - Nước đường",
+        "selector": ".ingredient-button[data-payload=\"sugar_syrup\"]",
+        "width": 89.8,
+        "height": 61.5,
+        "targetStandardPass": true,
+        "found": true
+      },
+      {
+        "name": "Nguyên liệu - Tắc tươi",
+        "selector": ".ingredient-button[data-payload=\"kumquat\"]",
+        "width": 89.8,
+        "height": 61.5,
+        "targetStandardPass": true,
+        "found": true
+      },
+      {
+        "name": "Nguyên liệu - Sữa đậu",
+        "selector": ".ingredient-button[data-payload=\"soy_milk\"]",
+        "width": 89.8,
+        "height": 61.5,
+        "targetStandardPass": true,
+        "found": true
+      },
+      {
+        "name": "Thao tác bếp - Làm lại (.undo-button)",
+        "selector": ".undo-button",
+        "width": 74.2,
+        "height": 44,
+        "targetStandardPass": true,
+        "found": true
+      },
+      {
+        "name": "Thao tác bếp - Làm món / Giao (.cook-main)",
+        "selector": ".cook-main",
+        "width": 222.8,
+        "height": 44,
+        "targetStandardPass": true,
+        "found": true
+      },
+      {
+        "name": "Thao tác bếp - Nhanh x2 (.boost-button)",
+        "selector": ".boost-button",
+        "width": 65,
+        "height": 44,
+        "targetStandardPass": true,
+        "found": true
+      },
+      {
+        "name": "Tùy chọn - Quản lý ca (.play-options summary)",
+        "selector": ".play-options summary",
+        "width": 390,
+        "height": 44,
+        "targetStandardPass": true,
+        "found": true
+      }
+    ],
+    "allPass": true
+  }
+}

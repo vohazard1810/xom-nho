@@ -1,0 +1,73 @@
+{
+  "test": "TRA_TAC Delivery and Double-Tap Idempotency Test",
+  "recipe": "TRA_TAC (Trà tắc)",
+  "customer": "Cô Chín",
+  "initialCash": 100000,
+  "finalCash": 115000,
+  "cashIncrease": 15000,
+  "salePrice": 15000,
+  "cashIncreasePass": true,
+  "stockDeduction": {
+    "ice": {
+      "before": 5,
+      "after": 4,
+      "consumed": 1
+    },
+    "sugar_syrup": {
+      "before": 5,
+      "after": 4,
+      "consumed": 1
+    },
+    "kumquat": {
+      "before": 5,
+      "after": 4,
+      "consumed": 1
+    }
+  },
+  "stockDeductionPass": true,
+  "rapidClickResults": [
+    {
+      "index": 1,
+      "text": "Đón khách",
+      "cash": 100000
+    },
+    {
+      "index": 2,
+      "text": "Đón khách",
+      "cash": 100000
+    },
+    {
+      "index": 3,
+      "text": "Đón khách",
+      "cash": 100000
+    }
+  ],
+  "doubleTapPreventionPass": true,
+  "servedOrdersCount": 1,
+  "servedOrderDetails": {
+    "customerId": "co_chin",
+    "ticketId": "co_chin_4.800000000000002",
+    "personId": "co_chin",
+    "name": "Cô Chín",
+    "recipe": "TRA_TAC",
+    "sellPrice": 15000,
+    "cogs": 5000,
+    "tip": 0,
+    "onlineFee": 0,
+    "isOnline": false,
+    "arrivedAt": 60,
+    "startedAt": 4.800000000000002,
+    "waitMinutes": 0,
+    "ingredientsUsed": {
+      "ice": 1,
+      "sugar_syrup": 1,
+      "kumquat": 1
+    },
+    "timestampMinute": 4.800000000000002
+  },
+  "uiEvidence": {
+    "cashGainText": "+15.000đ",
+    "cashDisplayText": "115.000đ",
+    "hasTrayDish": true
+  }
+}
