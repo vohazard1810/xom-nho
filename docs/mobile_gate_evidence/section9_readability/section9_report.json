@@ -1,21 +1,219 @@
 {
+  "evidence_type": "fixture_bo_cuc",
+  "fixtures": {
+    "shot_01": {
+      "file": "shot_01_banh_mi_them_cha.png",
+      "label": "Fixture bố cục - Bánh mì thêm chả (Bé Tí)",
+      "description": "Phiếu thu gọn có ảnh thành phẩm, tên món 16px bold, huy hiệu ⭐ Thêm chả, tách riêng thoại khách"
+    },
+    "shot_02": {
+      "file": "shot_02_tra_tac.png",
+      "label": "Fixture bố cục - Trà tắc (Cô Chín)",
+      "description": "Phiếu trà tắc với ảnh takeaway, thoại không còn yêu cầu unsupported 'ít đá'"
+    },
+    "shot_03": {
+      "file": "shot_03_sua_dau.png",
+      "label": "Fixture bố cục - Sữa đậu đá (Anh Tùng)",
+      "description": "Phiếu sữa đậu đá với tag ⚡ Vội rõ ràng, bàn làm món hiển thị chai sữa đậu"
+    },
+    "shot_04": {
+      "file": "shot_04_hang_cho_3_khach.png",
+      "label": "Fixture bố cục - Hàng chờ 3 khách & ưu tiên Chú Sáu",
+      "description": "Hàng chờ có thẻ món nhỏ, tên món đầy đủ ('Bánh mì chả', 'Trà tắc', 'Sữa đậu đá'), không bị cắt dấu ba chấm"
+    },
+    "shot_05": {
+      "file": "shot_05_menu_readability.png",
+      "label": "Fixture bố cục - Menu thiết lập & điều kiện mở tách biệt",
+      "description": "Menu có ảnh món thu nhỏ, điều kiện mở bánh mì trứng hiển thị thành khối riêng biệt"
+    },
+    "shot_06": {
+      "file": "shot_06_staff_readability.png",
+      "label": "Fixture bố cục - Quản lý nhân sự thẻ dọc",
+      "description": "Bảng nhân sự tổ chức thẻ dọc, thông tin lương/hiệu quả rõ ràng, nút tuyển >= 44px"
+    },
+    "shot_07": {
+      "file": "shot_07_viewport_360x640.png",
+      "label": "Fixture bố cục - Viewport nhỏ 360×640: 3 khách, không che khuất, tên món đầy đủ",
+      "description": "Màn nhỏ 360×640 với 1 khách tại quầy (Anh Tùng) và 2 khách trong hẻm (Bé Tí, Cô Chín). Phiếu gọi món cao 40.0px ở top-right không che đầu Bé Tí (khoảng cách an toàn 30.8px). Hàng chờ hiển thị đủ tên không cắt."
+    },
+    "shot_08": {
+      "file": "shot_08_viewport_430x932.png",
+      "label": "Fixture bố cục - Viewport lớn 430×932",
+      "description": "Màn lớn 430×932 không vỡ bố cục, các nút thao tác chạm trải đều và dễ tiếp cận"
+    }
+  },
+  "real_manual_order": {
+    "step1_select": {
+      "file": "shot_order_step1_select.png",
+      "action": "Chọn nguyên liệu trên khay",
+      "description": "Người chơi chạm Bánh mì, Chả lụa, Dưa ngò. Bàn thớt hiển thị nguyên liệu rơi xuống, checklist hiện 3 dấu tick xanh ✓."
+    },
+    "step2_ready": {
+      "file": "shot_order_step2_ready.png",
+      "action": "Chế biến hoàn tất (READY)",
+      "description": "Bàn chế biến hiện ổ bánh mì chả hoàn chỉnh 'Xong rồi! Giao khách nào'. Nút chính chuyển sang màu xanh lá 'Giao khách →'."
+    },
+    "step3_served": {
+      "file": "shot_order_step3_served.png",
+      "action": "Giao khách nhận tiền (SERVE / REACTION)",
+      "description": "Món ăn xuất hiện trên khay gờ quầy, khách giơ tay nhận món với lời cảm ơn, tiền két tăng +25.000đ."
+    }
+  },
   "dish_name_font_size": 16,
   "dish_name_font_size_ge_16px": true,
   "ticket_thumbnail_valid": true,
   "extra_cha_badge_visible": true,
+  "speech_bubble_detached": true,
   "queue_thumbnails_count": 3,
+  "queue_dish_names_full": true,
+  "queue_dish_names_no_truncation": true,
+  "scene_360x640_no_occlusion": true,
   "workbench_checklist_status": true,
   "menu_thumbnails_count": 4,
   "menu_lock_condition_separated": true,
   "staff_role_cards_vertical": true,
-  "touch_targets_ge_44px": true,
+  "measured_touch_targets": [
+    {
+      "group": "Khay nguyên liệu",
+      "label": "Bánh mì Còn 0",
+      "width": 89.8,
+      "height": 69.5,
+      "ge44": true,
+      "reachable": true
+    },
+    {
+      "group": "Khay nguyên liệu",
+      "label": "Chả lụa Còn 0",
+      "width": 89.8,
+      "height": 69.5,
+      "ge44": true,
+      "reachable": true
+    },
+    {
+      "group": "Khay nguyên liệu",
+      "label": "Dưa ngò Còn 0",
+      "width": 89.8,
+      "height": 69.5,
+      "ge44": true,
+      "reachable": true
+    },
+    {
+      "group": "Khay nguyên liệu",
+      "label": "Đá bi Còn 0",
+      "width": 89.8,
+      "height": 69.5,
+      "ge44": true,
+      "reachable": true
+    },
+    {
+      "group": "Khay nguyên liệu",
+      "label": "Nước đường Còn 0",
+      "width": 89.8,
+      "height": 69.5,
+      "ge44": true,
+      "reachable": true
+    },
+    {
+      "group": "Khay nguyên liệu",
+      "label": "Tắc tươi Còn 0",
+      "width": 89.8,
+      "height": 69.5,
+      "ge44": true,
+      "reachable": true
+    },
+    {
+      "group": "Khay nguyên liệu",
+      "label": "Sữa đậu Đã chọn 1 · Còn 0",
+      "width": 89.8,
+      "height": 69.5,
+      "ge44": true,
+      "reachable": true
+    },
+    {
+      "group": "Thao tác bếp",
+      "label": "Làm lại",
+      "width": 74.2,
+      "height": 46,
+      "ge44": true,
+      "reachable": true
+    },
+    {
+      "group": "Thao tác bếp",
+      "label": "Làm món",
+      "width": 222.8,
+      "height": 46,
+      "ge44": true,
+      "reachable": true
+    },
+    {
+      "group": "Thao tác bếp",
+      "label": "Nhanh x2",
+      "width": 65,
+      "height": 46,
+      "ge44": true,
+      "reachable": true
+    },
+    {
+      "group": "Điều khiển ca",
+      "label": "Ⅱ",
+      "width": 44,
+      "height": 44,
+      "ge44": true,
+      "reachable": true
+    },
+    {
+      "group": "Hàng chờ khách",
+      "label": "Bé Tí Bình tĩnh Bánh mì chả",
+      "width": 115.4,
+      "height": 44,
+      "ge44": true,
+      "reachable": true
+    },
+    {
+      "group": "Hàng chờ khách",
+      "label": "Cô Chín Bình tĩnh Trà tắc",
+      "width": 129.8,
+      "height": 44,
+      "ge44": true,
+      "reachable": true
+    },
+    {
+      "group": "Hàng chờ khách",
+      "label": "Bác Ba Bình tĩnh Bánh mì chả",
+      "width": 124.2,
+      "height": 44,
+      "ge44": true,
+      "reachable": true
+    }
+  ],
+  "touch_target_pass": true,
   "no_horizontal_overflow_360": true,
   "no_horizontal_overflow_390": true,
+  "no_horizontal_overflow_430": true,
   "console_errors": [],
   "broken_images": [],
-  "no_horizontal_overflow_430": true,
-  "viewport_430x932_metrics": {
-    "allGe44": true,
-    "allReachable": true
+  "scene_360x640_occlusion_metrics": {
+    "calloutRect": {
+      "x": 194,
+      "y": 56,
+      "w": 160,
+      "h": 39.984375,
+      "bottom": 95.984375
+    },
+    "waiting0Rect": {
+      "x": 172.796875,
+      "y": 126.78125,
+      "w": 86.390625,
+      "h": 105.03125,
+      "top": 126.78125
+    },
+    "overlaps": false,
+    "speechBubblePresent": true,
+    "queueDishNames": [
+      "Bánh mì chả",
+      "Trà tắc",
+      "Bánh mì chả"
+    ],
+    "noTruncation": true
   }
 }

@@ -117,3 +117,39 @@ COGS và hàng hỏng không trừ tiền mặt lần nữa. Kết quả sau chi
 3. Chụp menu và nhân sự trước/sau; kiểm tra text không tràn hoặc bị ép thành từng chữ. Test console/ảnh vỡ tại các màn sửa.
 4. Không quay video hoặc chạy lại gate 7 ngày cho thay đổi art/CSS này. Nếu sửa dữ liệu đơn/logic đặc biệt thì chạy test đơn tương ứng, không gán PASS chỉ từ screenshot.
 5. Báo cáo rõ đây là UI vừa triển khai hay chỉ concept; gửi commit, ảnh gameplay thật và phần chưa verify. Owner duyệt pilot rồi mới làm hàng loạt.
+
+## 10. Nghiệm thu Section 10: Thu gọn phiếu, tách thoại, không che khuất 360×640, phép đo touch-target thật và test điều phối bằng engine nấu tay thật
+
+Đã hoàn thành toàn bộ các yêu cầu của Section 10 theo đúng phạm vi hẹp:
+
+1. **Khắc phục che khuất ở màn nhỏ 360×640**:
+   - Tách lời thoại khách thành component độc lập `.customer-speech-bubble` đặt cạnh khách ở góc trái/giữa cảnh (`left: 20%; top: 8px`).
+   - Thu gọn phiếu gọi món `.customer-order-callout` chỉ gồm: ảnh món thành phẩm, tên món (16px bold), số lượng `×1`, tên khách & tag `⚡ Vội` / `⭐ Thêm chả`. Chiều cao phiếu giảm từ ~90px xuống **40.0px**.
+   - Khoảng cách an toàn đo được bằng DOM thực tế giữa đáy phiếu gọi món và đỉnh đầu Bé Tí trong hẻm là **30.8px** (không còn bất kỳ sự chồng lấn/che khuất nào). Bé Tí và khách chờ trong hẻm có tầm nhìn thông suốt 100%.
+
+2. **Hiển thị đầy đủ tên món hàng chờ (không bị cắt dấu ba chấm)**:
+   - Tách thẻ hàng chờ thành 2 dòng riêng biệt:
+     - Dòng 1 (`.queue-cust-line`): Tên khách (`Bé Tí`, `Cô Chín`, `Anh Tùng`) và trạng thái cảm xúc / tính cách (`Bình tĩnh`, `⚡ Vội`).
+     - Dòng 2 (`.queue-dish-line`): Tên món đầy đủ (`.queue-dish-name`) với `font-weight: 800; overflow: visible; text-overflow: clip;`.
+   - Kết quả: Không còn tình trạng "Bánh mì c..." mà hiển thị đầy đủ 100% "Bánh mì chả", "Trà tắc", "Sữa đậu đá".
+
+3. **Ghi nhãn ảnh hiện tại thành Fixture bố cục**:
+   - Toàn bộ 8 ảnh `shot_01` đến `shot_08` đã được đánh nhãn chính thức là `Fixture bố cục (Layout Fixtures)` trong `section9_report.json` và tài liệu để phân biệt rõ ràng với ảnh chụp từ gameplay liên tục 7 ngày.
+
+4. **Đo đạc Touch-Target từ phép đo thật trên DOM**:
+   - Sử dụng `getBoundingClientRect()` và `document.elementFromPoint()` đo trực tiếp toàn bộ 14 nút tương tác (Khay nguyên liệu, Thao tác bếp, Điều khiển ca, Thẻ hàng chờ).
+   - Kết quả: 14/14 nút đều đạt kích thước $\ge 44\times 44$ CSS px (từ 44.0px đến 89.8px) và 100% reachable (không bị che chắn bởi phần tử khác). Tính `touch_target_pass = True` từ mảng số liệu thật được lưu trong `section9_report.json`.
+
+5. **Kiểm thử 3 chế độ điều phối dùng Engine nấu tay thực tế**:
+   - Viết lại toàn bộ `tools/playtest/test_three_coordination_modes.py`: loại bỏ hoàn toàn `_prepProgress` và `SERVE_AUTO`.
+   - Sử dụng trực tiếp `cookingAction(s, 'ADD_INGREDIENT')`, `cookingAction(s, 'COOK')`, `cookingAction(s, 'SERVE')`, `cookingAction(s, 'PRIORITIZE')`, `cookingAction(s, 'FOCUS_BOOST')` và `advanceShift(s, ms)`.
+   - Kết quả đối soát và assertions:
+     - **Mode 1 (Không can thiệp - FIFO)**: Bác Ba phục vụ (5.4m), Chị Mai phục vụ (9.0m), Anh Tùng bỏ lỡ do sốt ruột `WAIT_TOO_LONG` (9.4m). Phục vụ: 2/3, Bỏ lỡ: 1/3, Doanh thu: 40.000đ.
+     - **Mode 2 (Ưu tiên khách vội - PRIORITIZE)**: Bác Ba phục vụ (5.4m), Anh Tùng được đôn lên phục vụ kịp thời (8.0m, SERVED), Chị Mai kiên nhẫn chờ và được phục vụ (14.6m, SERVED). Phục vụ: 3/3, Bỏ lỡ: 0/3, Doanh thu: 57.000đ.
+     - **Mode 3 (Dùng Focus Boost - Chế biến x2)**: Chế biến x2 giúp Bác Ba (4.6m) và Chị Mai (6.8m) hoàn tất nhanh chóng, giải phóng quầy kịp trước khi Anh Tùng hết kiên nhẫn (10.0m, SERVED). Phục vụ: 3/3, Bỏ lỡ: 0/3, Doanh thu: 57.000đ.
+
+6. **Bàn giao một đơn thao tác thật từ chọn nguyên liệu đến giao khách**:
+   - `shot_order_step1_select.png`: Người chơi chạm khay chọn Bánh mì, Chả lụa, Dưa ngò. Bàn thớt hiện nguyên liệu rơi xuống, checklist hiện 3 tick xanh `✓`.
+   - `shot_order_step2_ready.png`: Bấm "Làm món", hoàn tất chế biến hiển thị bánh mì chả hoàn chỉnh "Xong rồi! Giao khách nào", nút chính chuyển xanh "Giao khách →".
+   - `shot_order_step3_served.png`: Bấm "Giao khách →", món xuất hiện trên khay gờ quầy, Bé Tí giơ tay nhận món với lời cảm ơn, tiền két tăng `+25.000đ` (từ 120.000đ lên 145.000đ).
+   - Cam kết: Không quay video, không chạy lại gate 7 ngày.

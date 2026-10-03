@@ -456,33 +456,29 @@ function renderShop() {
       ${(state.waitingQueue||[]).slice(0,2).map((q,i)=>`<img class="play-waiting waiting-${i}" src="${getCustomerSprite(q)}" alt="${escapeHtml(q.name)} đang chờ">`).join('')}
       ${c?`<img class="play-customer ${c.id==='be_ti'?'small-child':c.archetype==='teen'?'teen':''} ${phase==='REACTION'?'react':''}" src="${getCustomerSprite(c,autoPrepState?.customerPose)}" alt="${escapeHtml(c.name)}">`:''}
       <img class="play-foreground" src="${COUNTER_SHELF_FOREGROUND_IMG}" alt="Gờ quầy">
+      ${c?`<div class="customer-speech-bubble"><span>"${escapeHtml(customerReaction?.quote || (c.id === 'be_ti' && state.extraCha ? 'Cho con bánh mì thêm chả nha chú!' : c.dialogue))}"</span></div>`:''}
       <div class="play-speech customer-order-callout ${c ? '' : 'is-empty'}">
         ${c ? `
-          <div class="ticket-dish-row">
-            <img src="${DISH_IMAGES[c.recipe]}" class="ticket-dish-img" alt="${escapeHtml(title)}">
-            <div class="ticket-dish-meta">
-              <div class="ticket-dish-title-row">
-                <span class="ticket-dish-name">${escapeHtml(title)}</span>
-                <span class="ticket-qty-pill">×1</span>
-              </div>
-              ${c.id === 'be_ti' && state.extraCha === true ? `<div class="ticket-special-badge">⭐ Thêm chả</div>` : ''}
-              <div class="ticket-cust-sub">
-                <span class="ticket-cust-name">${escapeHtml(c.name)}</span>
-                ${c.temperament === 'RUSH' ? `<span class="ticket-rush-tag">⚡ Vội</span>` : ''}
-              </div>
+          <img src="${DISH_IMAGES[c.recipe]}" class="ticket-dish-img" alt="${escapeHtml(title)}">
+          <div class="ticket-dish-meta">
+            <div class="ticket-dish-title-row">
+              <span class="ticket-dish-name">${escapeHtml(title)}</span>
+              <span class="ticket-qty-pill">×1</span>
+            </div>
+            <div class="ticket-cust-sub">
+              <span class="ticket-cust-name">${escapeHtml(c.name)}</span>
+              ${c.temperament === 'RUSH' ? `<span class="ticket-rush-tag">⚡ Vội</span>` : ''}
+              ${c.id === 'be_ti' && state.extraCha === true ? `<span class="ticket-special-badge">⭐ Thêm chả</span>` : ''}
             </div>
           </div>
-          <div class="ticket-dialogue-row">
-            <span>"${escapeHtml(customerReaction?.quote || (c.id === 'be_ti' && state.extraCha ? 'Cho con bánh mì thêm chả nha chú!' : c.dialogue))}"</span>
-          </div>
         ` : `
-          <div class="ticket-empty-row">Khách đang ghé tới…</div>
+          <div class="ticket-empty-row">Khách đang tới…</div>
         `}
       </div>
       ${handoff&&c?.status==='SERVED'?`<img class="play-tray-dish" src="${DISH_IMAGES[c.recipe]}" alt="${escapeHtml(title)} trên khay quầy">`:''}
       ${state.manualPaused?'<div class="play-pause-overlay">Đã tạm dừng</div>':''}
     </div>
-    <div class="play-queue"><span class="queue-header-label">Hàng chờ</span>${state.waitingQueue.length?state.waitingQueue.slice(0,3).map(q=>{const e=getCustomerEmotion(q);const dishName=recipes[q.recipe]?.name||'Món';const isChosen=state.prioritizedCustomerId===q.id;return `<button class="queue-ticket ${isChosen?'chosen':''}" data-type="PRIORITIZE" data-payload="${q.id}" aria-label="Ưu tiên ${escapeHtml(q.name)} (${escapeHtml(dishName)})"><img src="${DISH_IMAGES[q.recipe]}" class="queue-dish-thumb" alt="${escapeHtml(dishName)}"><div class="queue-ticket-meta"><div class="queue-title-line"><b>${isChosen?'⭐ ':''}${escapeHtml(q.name)}</b></div><div class="queue-sub-line"><span class="queue-dish-name">${escapeHtml(dishName)}</span><small class="${q.temperament==='RUSH'?'rush-label':''}">· ${q.temperament==='RUSH'?'⚡ Vội':e.label}</small></div></div><i class="queue-patience-bar" style="width:${e.pct}%;background:${e.color}"></i></button>`}).join(''):'<small class="queue-empty-note">Hàng chờ rỗng · Chạm khách để ưu tiên làm trước</small>'}</div>
+    <div class="play-queue"><span class="queue-header-label">Hàng chờ</span>${state.waitingQueue.length?state.waitingQueue.slice(0,3).map(q=>{const e=getCustomerEmotion(q);const dishName=recipes[q.recipe]?.name||'Món';const isChosen=state.prioritizedCustomerId===q.id;return `<button class="queue-ticket ${isChosen?'chosen':''}" data-type="PRIORITIZE" data-payload="${q.id}" aria-label="Ưu tiên ${escapeHtml(q.name)} (${escapeHtml(dishName)})"><img src="${DISH_IMAGES[q.recipe]}" class="queue-dish-thumb" alt="${escapeHtml(dishName)}"><div class="queue-ticket-meta"><div class="queue-cust-line"><b>${isChosen?'⭐ ':''}${escapeHtml(q.name)}</b><small class="${q.temperament==='RUSH'?'rush-label':''}">${q.temperament==='RUSH'?'⚡ Vội':e.label}</small></div><div class="queue-dish-line"><span class="queue-dish-name">${escapeHtml(dishName)}</span></div></div><i class="queue-patience-bar" style="width:${e.pct}%;background:${e.color}"></i></button>`}).join(''):'<small class="queue-empty-note">Hàng chờ rỗng · Chạm khách để ưu tiên làm trước</small>'}</div>
     <div class="order-receipt"><b>${c?`Đang làm: ${escapeHtml(title)}${c.id==='be_ti'&&state.extraCha===true?' (Thêm chả)':''}`:'Quầy chế biến · Chờ khách'}</b><div class="receipt-checklist">${c?Object.entries(needs).map(([id,q])=>{const sel=selected[id]||0;const done=sel>=q;return `<span class="receipt-item ${done?'checked':'pending'}"><i class="receipt-mark">${done?'✓':'○'}</i> ${ingredientMeta[id]?.name||id} ${sel}/${q}</span>`}).join(''):'<span class="receipt-item pending">Sẵn sàng nhận đơn</span>'}</div></div>
     <div class="cooking-board ${cooking?'is-cooking':''}" aria-label="Bàn làm món">
       ${ready?`<img class="finished-dish" src="${DISH_IMAGES[c.recipe]}" alt="${escapeHtml(title)} đã làm xong"><b>Xong rồi! Giao khách nào</b>`:handoff?`<span>${blocked?'Khách không mua được món':'Khách nhận món · Chuẩn bị đơn tiếp theo'}</span>`:Object.values(selected).some(Boolean)?`<div class="selected-art">${Object.entries(selected).flatMap(([id,q])=>Array.from({length:q},()=>ingredientMeta[id].img?`<img src="${ingredientMeta[id].img}" alt="${ingredientMeta[id].name}">`:`<span>${ingredientMeta[id].name}</span>`)).join('')}</div><b>${cooking?'Đang làm món…':'Nguyên liệu bạn đã chọn'}</b>`:`<span>${c?'Chạm nguyên liệu bên dưới để làm món':'Sẵn sàng đón khách'}</span>`}
@@ -696,5 +692,6 @@ window.__xomNho = {
   getState: () => state,
   render,
   setAutoPrepState: (val) => { autoPrepState = val; },
+  advanceShift: (ms) => { state = advanceEmpire(state, ms); updateServiceView(); render(); },
   clearAllTimers
 };
