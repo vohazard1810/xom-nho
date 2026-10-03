@@ -140,7 +140,7 @@ async def main():
                 recipe: 'TRA_TAC',
                 status: 'ARRIVED',
                 temperament: 'NORMAL',
-                dialogue: 'Bán cho cô ly trà tắc ít đá nha con!'
+                dialogue: 'Bán cho cô ly trà tắc giải khát thanh mát nha con!'
             };
             s.extraCha = null;
             s.service = {
@@ -324,6 +324,32 @@ async def main():
         shot_360_path = DOCS_EVIDENCE / "shot_07_viewport_360x640.png"
         await page.screenshot(path=str(shot_360_path))
         print("Captured 360x640 Viewport ->", shot_360_path)
+
+        # Check 430x932
+        await page.set_viewport_size({"width": 430, "height": 932})
+        await page.wait_for_timeout(100)
+        overflow_430 = await page.evaluate("() => document.documentElement.scrollWidth > window.innerWidth")
+        test_results["no_horizontal_overflow_430"] = not overflow_430
+
+        btn_metrics_430 = await page.evaluate("""() => {
+            const buttons = [...document.querySelectorAll('.ingredient-button, .cook-actions button, .play-pause')];
+            return {
+                allGe44: buttons.every(b => {
+                    const r = b.getBoundingClientRect();
+                    return r.width >= 44 && r.height >= 44;
+                }),
+                allReachable: buttons.every(b => {
+                    const r = b.getBoundingClientRect();
+                    const hit = document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2);
+                    return hit === b || b.contains(hit);
+                })
+            };
+        }""")
+        test_results["viewport_430x932_metrics"] = btn_metrics_430
+
+        shot_430_path = DOCS_EVIDENCE / "shot_08_viewport_430x932.png"
+        await page.screenshot(path=str(shot_430_path))
+        print("Captured 430x932 Viewport ->", shot_430_path)
 
         # Copy all screenshots to BRAIN artifacts
         if BRAIN.exists():

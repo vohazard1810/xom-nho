@@ -60,7 +60,7 @@ export const fixtureCustomers = Object.freeze([
     arrivalMinute: 75, // 09:15
     priceSensitivity: 'MEDIUM',
     temperament: 'NORMAL',
-    dialogue: 'Cho chị một ly trà tắc nhiều đá mát lạnh nghen!'
+    dialogue: 'Cho chị một ly trà tắc giải khát mát lạnh nghen!'
   },
   {
     id: 'be_ti',

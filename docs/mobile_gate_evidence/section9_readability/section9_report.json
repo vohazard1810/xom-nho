@@ -12,5 +12,10 @@
   "no_horizontal_overflow_360": true,
   "no_horizontal_overflow_390": true,
   "console_errors": [],
-  "broken_images": []
+  "broken_images": [],
+  "no_horizontal_overflow_430": true,
+  "viewport_430x932_metrics": {
+    "allGe44": true,
+    "allReachable": true
+  }
 }
