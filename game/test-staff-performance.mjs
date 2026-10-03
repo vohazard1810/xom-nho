@@ -1,0 +1,30 @@
+import assert from 'node:assert/strict';
+import {fresh,encode,decode} from './day1-core.mjs';
+import {ensureEmpire,empireAction,advanceEmpire,staffCondition} from './empire-engine.mjs';
+const run=(s,t,p)=>{const r=empireAction(s,t,p);assert.equal(r.error,undefined,r.error);return r.state;};
+let base=fresh();base.currentDay=8;base.screen='XOM_OI';base.cash=200000;base.dayStartingCash=200000;
+base=run(ensureEmpire(base),'STAFF_HIRE','helper');
+const id=base.empire.employees[0].id;
+base.empire.employees[0].mood=30;
+const before=base.cash,expenses=base.operatingExpenses;
+base=run(base,'STAFF_BONUS',id);
+assert.equal(base.cash,before-5000);assert.equal(base.operatingExpenses,expenses+5000);
+assert.equal(base.empire.employees[0].mood,50);
+assert.ok(empireAction(base,'STAFF_BONUS',id).error);
+assert.equal(decode(encode(base)).empire.employees[0].lastBonusDay,8);
+assert.ok(staffCondition({fatigue:0,mood:90}).efficiency>staffCondition({fatigue:0,mood:30}).efficiency);
+function closeShift(input,served,resting=false){
+ const s=structuredClone(input);s.screen='SHOP';s.empire.shiftRunning=true;
+ const b=s.empire.shops.home.state;b.screen='DAY_RESULT';b.servedOrders=Array.from({length:served},(_,i)=>({customerId:String(i),recipe:'BANH_MI_CHA',sellPrice:25000,cogs:11000}));
+ s.empire.employees[0].restingToday=resting;
+ return advanceEmpire(s,100);
+}
+const quiet=closeShift(base,0),busy=closeShift(base,20);
+assert.ok(busy.empire.employees[0].fatigue>quiet.empire.employees[0].fatigue);
+const tired=structuredClone(base);tired.empire.employees[0].fatigue=80;
+const rested=closeShift(tired,0,true);
+assert.equal(rested.empire.employees[0].fatigue,50);assert.equal(rested.empire.employees[0].daysWorked,0);
+assert.equal(rested.empire.employees[0].lastShift.rested,true);
+assert.match(staffCondition({fatigue:80,mood:80,skill:1}).advice,/nghỉ/);
+assert.equal(busy.empire.report.shops[0].employees[0].lastShift.served,20);
+console.log('PASS: bonus cash/expenses, duplicate guard, save, morale, workload fatigue, rest and staff report');

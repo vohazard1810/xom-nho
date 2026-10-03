@@ -19,6 +19,12 @@ export const STAFF_ROLES=Object.freeze({
 const staffNames=['Dì Hạnh','Anh Phúc','Chị Lan','Chú Sơn','Bé Út','Cô Liên','Anh Bình'];
 const strip=s=>{const n=structuredClone(s);delete n.empire;return n};
 const liveEmployees=(e,id)=>e.employees.filter(x=>x.shopId===id&&!x.restingToday);
+export function staffCondition(p){
+ const fatigue=Math.max(0,Math.min(100,p.fatigue??0));
+ const mood=Math.max(0,Math.min(100,p.mood??80));
+ return {efficiency:(1-fatigue/150)*(.8+.2*mood/100),
+  advice:fatigue>=70?'Cho nghỉ một ca để hồi sức.':mood<50?'Động viên hoặc thưởng; tránh tăng tải ngay.':p.skill<3?'Có thể đào tạo để cải thiện tay nghề.':'Giữ phân ca hiện tại.'};
+}
 const cargoBonus=(e,id)=>{const p=liveEmployees(e,id).find(x=>x.role==='buyer');return p?10+5*p.skill:0};
 function keeperTraffic(e,id,s){
  s.dayCustomers=s.dayCustomers.filter(c=>!c.id.startsWith('keeper_'));
@@ -35,9 +41,9 @@ function employeeEffects(e,id,s,away=false){
  const workers=liveEmployees(e,id), manager=workers.find(x=>x.role==='manager');
  s.staffHiredToday=workers.some(x=>x.role==='helper'||x.role==='manager')||Boolean(s.legacyHelperToday);
  if(away)s.assistEnabled=Boolean(manager);
- const boost=workers.reduce((n,x)=>n+({manager:.06,helper:.14,cleaner:.05}[x.role]||0)*x.skill*(1-x.fatigue/150),0);
- const hands=away?Math.max(.55,.65+.12*(manager?.skill||0)-.002*(manager?.fatigue||0)):1.25;
- s.employeeSpeed=(1+boost+(s.legacyHelperToday?.35:0))*hands;s.packingSpeed=1+workers.filter(x=>x.role==='packer').reduce((n,x)=>n+.2*x.skill*(1-x.fatigue/150),0);
+ const boost=workers.reduce((n,x)=>n+({manager:.06,helper:.14,cleaner:.05}[x.role]||0)*x.skill*staffCondition(x).efficiency,0);
+ const hands=away?Math.max(.5,(.65+.12*(manager?.skill||0)-.002*(manager?.fatigue||0))*(manager?(.8+.2*(manager.mood??80)/100):1)):1.25;
+ s.employeeSpeed=(1+boost+(s.legacyHelperToday?.35:0))*hands;s.packingSpeed=1+workers.filter(x=>x.role==='packer').reduce((n,x)=>n+.2*x.skill*staffCondition(x).efficiency,0);
  const driver=workers.find(x=>x.role==='driver');s.deliverySaving=driver?Math.min(1900,1200+300*driver.skill):0;
  return manager;
 }
@@ -82,6 +88,7 @@ export function empireAction(input,type,payload){
   }else{
    const [id,target]=String(payload||'').split(':');const x=e.employees.find(p=>p.id===id);if(!x)return fail('Không tìm thấy nhân viên.');
    if(type==='STAFF_TRAIN'){if(x.skill>=3||x.lastTrainedDay===root.currentDay)return fail('Tối đa cấp 3; mỗi người học một lần/ngày.');if(root.cash<8000)return fail('Cần 8k đào tạo.');x.skill++;x.lastTrainedDay=root.currentDay;x.mood=Math.min(100,x.mood+5);s.cash-=8000;s.operatingExpenses+=8000}
+   else if(type==='STAFF_BONUS'){if(x.lastBonusDay===root.currentDay)return fail('Đã thưởng người này hôm nay.');if(root.cash<5000)return fail('Cần 5.000đ để thưởng động viên.');x.lastBonusDay=root.currentDay;x.mood=Math.min(100,x.mood+20);s.cash-=5000;s.operatingExpenses+=5000}
    else if(type==='STAFF_REST')x.restingToday=!x.restingToday;
    else if(type==='STAFF_MOVE'){const to=e.shops[target]?.state,def=STAFF_ROLES[x.role];if(!to||e.employees.some(p=>p.id!==id&&p.shopId===target&&p.role===x.role))return fail('Quán đích không hợp lệ hoặc đã có vị trí đó.');if(def.seating&&!to.upgrades.seating)return fail('Quán đích chưa có chỗ ngồi.');if(def.online&&!to.onlineEnabledToday)return fail('Quán đích chưa bật online.');x.shopId=target}
    else if(type==='STAFF_RELEASE')e.employees=e.employees.filter(p=>p.id!==id);
@@ -125,9 +132,17 @@ export function empireAction(input,type,payload){
  if(type==='BASKET'||type==='BUY'||type==='CONFIG_MENU'||type==='SET_OPENING_TIME')e.shops[e.activeShopId].ready=false;
  return{state:pack(e,s,s.cash)};
 }
-function shopReport(e,x){const s=x.state,l=calculateLedger(s),workers=liveEmployees(e,x.id);const reasons=Object.fromEntries(Object.entries(l.missedByReason).filter(([,a])=>a.length).map(([k,a])=>[k,a.length]));const advice=reasons.OUT_OF_STOCK?'Tăng lượng nhập hoặc sức chở; không phải lỗi nhân viên.':reasons.PRICE_TOO_HIGH?'Thử hạ giá món bị từ chối.':reasons.WAIT_TOO_LONG?'Đào tạo phụ bếp, bổ sung người hoặc chủ hỗ trợ giờ đông.':l.resultAfterSpoilageAndExpenses<0?'Chi phí đang cao: kiểm tra lương và lượng hàng hỏng.':'Quán vận hành ổn; giữ đủ hàng và vốn dự phòng.';return{id:x.id,name:LOCATIONS[x.id].name,served:l.servedCount,missed:l.missedCount,revenue:l.totalSalesRevenue,cogs:l.cogsSoldItemsOnly,gross:l.grossOperatingProfit,profit:l.resultAfterSpoilageAndExpenses,spent:l.spentOnMorningStock,ops:l.operatingExpenses,investment:l.upgradeOutlay,spoilage:l.spoilageLoss,fees:l.onlineFees,tips:l.tipsCollected,sideIncome:l.sideJobIncome,rating:s.rating,reasons,advice,feedback:s.lastDayReport?.feedback.slice(0,3)||[],employees:workers.map(p=>({id:p.id,name:p.name,role:p.role,skill:p.skill,fatigue:p.fatigue,mood:p.mood}))}}
+function shopReport(e,x){const s=x.state,l=calculateLedger(s),workers=e.employees.filter(p=>p.shopId===x.id);const reasons=Object.fromEntries(Object.entries(l.missedByReason).filter(([,a])=>a.length).map(([k,a])=>[k,a.length]));const advice=reasons.OUT_OF_STOCK?'Tăng lượng nhập hoặc sức chở; không phải lỗi nhân viên.':reasons.PRICE_TOO_HIGH?'Thử hạ giá món bị từ chối.':reasons.WAIT_TOO_LONG?'Đào tạo phụ bếp, bổ sung người hoặc chủ hỗ trợ giờ đông.':l.resultAfterSpoilageAndExpenses<0?'Chi phí đang cao: kiểm tra lương và lượng hàng hỏng.':'Quán vận hành ổn; giữ đủ hàng và vốn dự phòng.';return{id:x.id,name:LOCATIONS[x.id].name,served:l.servedCount,missed:l.missedCount,revenue:l.totalSalesRevenue,cogs:l.cogsSoldItemsOnly,gross:l.grossOperatingProfit,profit:l.resultAfterSpoilageAndExpenses,spent:l.spentOnMorningStock,ops:l.operatingExpenses,investment:l.upgradeOutlay,spoilage:l.spoilageLoss,fees:l.onlineFees,tips:l.tipsCollected,sideIncome:l.sideJobIncome,rating:s.rating,reasons,advice,feedback:s.lastDayReport?.feedback.slice(0,3)||[],employees:workers.map(p=>({id:p.id,name:p.name,role:p.role,skill:p.skill,fatigue:p.fatigue,mood:p.mood,lastShift:p.lastShift,advice:staffCondition(p).advice}))}}
 function finishDay(e,cash){
- for(const p of e.employees){if(p.restingToday||e.shops[p.shopId].closedToday){p.fatigue=Math.max(0,p.fatigue-30);p.mood=Math.min(100,p.mood+8)}else{p.daysWorked++;p.fatigue=Math.min(100,p.fatigue+18);p.mood=Math.max(20,p.mood-(p.fatigue>70?6:0))}}
+ for(const p of e.employees){
+  const branch=e.shops[p.shopId],rested=p.restingToday||branch.closedToday;
+  const before={fatigue:p.fatigue,mood:p.mood};
+  const served=branch.state.servedOrders.length;
+  const fatigueGain=Math.min(28,8+Math.ceil(served*.7));
+  if(rested){p.fatigue=Math.max(0,p.fatigue-30);p.mood=Math.min(100,p.mood+8)}
+  else{p.daysWorked++;p.fatigue=Math.min(100,p.fatigue+fatigueGain);p.mood=Math.max(20,p.mood-(p.fatigue>=70?6:0))}
+  p.lastShift={day:branch.state.currentDay,rested,served:rested?0:served,fatigueChange:p.fatigue-before.fatigue,moodChange:p.mood-before.mood,advice:staffCondition(p).advice};
+ }
  const shops=Object.values(e.shops).map(x=>shopReport(e,x));const movement=shops.reduce((n,x)=>n-x.spent-x.ops-x.investment-x.fees+x.revenue+x.tips+x.sideIncome,0);
  e.report={day:e.shops[e.activeShopId].state.currentDay,openingCash:e.openingCash,closingCash:cash,cashMovement:movement,reconciled:e.openingCash+movement===cash,profit:shops.reduce((n,x)=>n+x.profit,0),shops};e.history.push(e.report);e.history=e.history.slice(-21);e.shiftRunning=false;e.mapOpen=false;e.staffOpen=false;
  const s=strip(e.shops[e.activeShopId].state);s.screen='DAY_RESULT';s.resultRemainingMs=12000;return pack(e,s,cash);
