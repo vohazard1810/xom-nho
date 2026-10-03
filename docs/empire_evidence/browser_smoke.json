@@ -1,0 +1,33 @@
+{
+  "status": "PASS",
+  "fixtureStart": {
+    "day": 8,
+    "cash": 900000,
+    "rating": 4
+  },
+  "shops": [
+    {
+      "id": "home",
+      "served": 15,
+      "profit": 98000
+    },
+    {
+      "id": "school",
+      "served": 10,
+      "profit": 108000
+    }
+  ],
+  "reconciled": true,
+  "closingCash": 986000,
+  "hireTrain": true,
+  "backgroundSales": true,
+  "manualOwner": true,
+  "mapPause": true,
+  "midOrderSwitchBlocked": true,
+  "breakSwitch": true,
+  "realReload": true,
+  "nextDaySynchronized": true,
+  "errors": [],
+  "failures": [],
+  "videoRecorded": false
+}

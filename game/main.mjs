@@ -1,18 +1,15 @@
-import { advanceShift, serviceVisual, cookingAction, cookingNeeds, cookingComplete } from './shift-engine.mjs';
+import { serviceVisual, cookingNeeds, cookingComplete } from './shift-engine.mjs';
+import { ensureEmpire, empireAction, advanceEmpire, LOCATIONS, STAFF_ROLES, openingEligibility } from './empire-engine.mjs';
 import {
   ingredients,
   recipes,
-  fixtureCustomers,
   SAVE_KEY,
-  BIKE_CAPACITY,
   UPGRADE_CATALOG,
   fresh,
   totalBasketUnits,
   totalBasketCost,
   recipeNeeds,
   hasEnoughStock,
-  calculateRecipeCost,
-  action,
   calculateLedger,
   encode,
   decode
@@ -125,7 +122,7 @@ function playTap(type = 'default') {
 // Storage helpers
 const load = () => { try { return [0, 1].map(i => decode(localStorage.getItem(SAVE_KEY + ':' + i))).filter(Boolean).sort((a, b) => b.revision - a.revision)[0] || null; } catch { return null; } };
 let saved = load();
-let state = saved || fresh();
+let state = ensureEmpire(saved || fresh());
 let message = '';
 
 // Simulation and Animation State
@@ -136,6 +133,7 @@ let floatingCash = null; // e.g. "+25.000đ"
 let customerReaction = null; // { quote: string, status: 'happy'|'disappointed' }
 let resultTimer = null;
 let resultDetailsOpen = Boolean(state.resultDetailsOpen);
+let playOptionsOpen = false;
 const vnCalendarDate = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
 
 const money = n => new Intl.NumberFormat('vi-VN').format(n) + 'đ';
@@ -211,10 +209,10 @@ function send(type, payload) {
   if (type === 'REPLAY') {
     clearAllTimers();
     try { localStorage.removeItem(SAVE_KEY + ':0'); localStorage.removeItem(SAVE_KEY + ':1'); } catch {}
-    state = fresh();
+    state = ensureEmpire(fresh());
     resultDetailsOpen = false;
   } else {
-    const r = cookingAction(state, type, payload);
+    const r = empireAction(state, type, payload);
     if (r.error) { message = r.error; render(); return; }
     state = r.state;
   }
@@ -231,10 +229,10 @@ function startSimulationLoop() {
   if (simInterval) return;
   updateServiceView();
   simInterval = setInterval(() => {
-    if (document.hidden || state.screen !== 'SHOP' || state.isPaused || state.manualPaused) return;
+    if (document.hidden || state.screen !== 'SHOP' || state.isPaused || state.manualPaused || state.empire?.mapOpen || state.empire?.staffOpen) return;
     const before = state.activeCustomer?.id + ':' + state.service?.phase;
     const revenue = state.revenue;
-    state = advanceShift(state, 200);
+    state = advanceEmpire(state, 200);
     updateServiceView();
     if (state.revenue > revenue) playCoins();
     else if (before !== state.activeCustomer?.id + ':' + state.service?.phase && state.service?.phase === 'HANDOFF') playChime();
@@ -281,9 +279,9 @@ function renderXomOi() {
     <div class="forecast-card"><b>Tin xóm hôm nay</b><p>${escapeHtml(forecast)}</p></div>
     ${message?`<div class="alert-message">${escapeHtml(message)}</div>`:''}
     <button class="btn-primary" data-type="NAVIGATE">Đi chợ nhập hàng →</button>
+    <div class="empire-nav"><button data-type="OPEN_MAP">Bản đồ xóm · ${Object.keys(state.empire.shops).length} quán</button><button data-type="OPEN_STAFF">Nhân sự · ${state.empire.employees.filter(x=>x.shopId===state.empire.activeShopId).length} người</button></div>
     ${state.currentDay>1?`<h3>Nâng cấp quán</h3><div class="upgrade-grid">${Object.entries(UPGRADE_CATALOG).filter(([id,u])=>state.currentDay>=(u.unlockDay||2)).map(([id,u])=>{const level=state.upgrades[id]||0,cost=level===1?(u.nextCost||u.cost):u.cost;return `<button data-type="UPGRADE" data-payload="${id}" ${level>=u.maxLevel||state.cash<cost||(id==='cargo'&&state.upgrades.bike_basket<2)?'disabled':''}><b>${u.name}</b><span>${level>=u.maxLevel?'Đã nâng tối đa':money(cost)}</span><small>${escapeHtml(u.description)}</small></button>`}).join('')}</div>
       ${state.currentDay>=3?`<button class="btn-secondary" data-type="LEARN_RECIPE" data-payload="BANH_MI_TRUNG" ${!state.upgrades.counter||state.knownRecipeIds.includes('BANH_MI_TRUNG')||state.cash<12000?'disabled':''}>Học bánh mì ốp la · 12k ${state.knownRecipeIds.includes('BANH_MI_TRUNG')?'· Đã học':''}</button>`:''}
-      ${state.currentDay>=8?`<button class="btn-secondary" data-type="HIRE_STAFF" ${state.staffHiredToday||state.cash<8000?'disabled':''}>Thuê phụ việc · 8k/ca · có thể tự làm đơn</button>`:''}
       ${state.currentDay>=15?`<button class="btn-secondary" data-type="ENABLE_ONLINE" ${state.onlineEnabledToday?'disabled':''}>Nhận thêm đơn online · phí 2k/đơn</button>`:''}
       ${state.cash<11000&&!state.sideJobIncome?'<button class="btn-secondary" data-type="SIDE_JOB">Phụ dọn sân · nhận 15k vốn</button>':''}
     `:'<p class="morning-help">Bạn chọn nguyên liệu, làm món và giao khách. Ngày đầu có hướng dẫn ngay tại quầy.</p>'}
@@ -419,7 +417,8 @@ function renderMenuSetup() {
       ${message ? `<div class="alert-message">${message}</div>` : ''}
 
       <div class="menu-footer">
-        <button class="btn-primary" data-type="START_DAY">🏪 Mở Quán Đón Khách</button>
+        <button class="btn-primary" data-type="START_DAY">${Object.keys(state.empire.shops).length>1?'Chuẩn bị xong · Mở các quán':'Mở quán đón khách'}</button>
+        <div class="empire-nav"><button data-type="OPEN_MAP">Bản đồ & các quán</button><button data-type="OPEN_STAFF">Nhân sự</button></div>
       </div>
     </div>
   `;
@@ -456,12 +455,13 @@ function renderShop() {
     <div class="ingredient-tray">${visibleIngredients.map(id=>{const meta=ingredientMeta[id],q=selected[id]||0,n=state.stock[id]||0;return `<button class="ingredient-button ${q?'picked':''}" data-type="ADD_INGREDIENT" data-payload="${id}" ${!canSelect||n===0?'disabled':''} aria-label="Chọn ${meta.name}, còn ${n}">${meta.img?`<img src="${meta.img}" alt="">`:'<span class="egg-placeholder">Trứng</span>'}<b>${meta.name}</b><small>${q?`Đã chọn ${q} · `:''}Còn ${n}</small></button>`}).join('')}</div>
     <div class="cook-actions"><button class="undo-button" data-type="UNDO_INGREDIENTS" ${!canSelect||!Object.values(selected).some(Boolean)?'disabled':''} aria-label="Bỏ nguyên liệu đã chọn">Làm lại</button><button class="cook-main ${ready?'ready':''}" data-type="${ready?'SERVE':'COOK'}" ${state.manualPaused||state.isPaused||!(ready||cookingComplete(state))?'disabled':''}>${ready?'Giao khách →':cooking?'Đang làm món…':canSelect?'Làm món':'Đón khách'}</button><button class="boost-button" data-type="FOCUS_BOOST" ${state.isPaused||state.manualPaused||state.focusBoost.active||state.focusBoost.cooldownSeconds>0?'disabled':''} aria-label="Tập trung làm món nhanh gấp đôi">${state.focusBoost.active?'x2':state.focusBoost.cooldownSeconds>0?Math.ceil(state.focusBoost.cooldownSeconds)+'s':'Nhanh x2'}</button></div>
     <div class="play-status" role="status">${escapeHtml(message || (state.manualPaused?'Bấm ▶ để tiếp tục':state.currentDay===1&&!state.cookingTutorialDone?'Chọn theo công thức → Làm món → Giao khách':state.newsTicker?.text||'Bạn làm món · khách trong hàng vẫn đang chờ'))}</div>
-    <details class="play-options"><summary>Quản lý ca</summary><div><button data-type="SPEED" data-payload="${state.speed===1?2:1}">Nhịp giờ x${state.speed} · đổi</button>${state.staffHiredToday?`<button data-type="TOGGLE_ASSIST">Phụ việc tự làm: ${state.assistEnabled?'Bật':'Tắt'}</button>`:'<small>Thuê phụ việc từ ngày 8 để tự làm đơn</small>'}<button data-type="CLOSE">Đóng quán sớm</button></div></details>
+    <details id="play-options" class="play-options" ${playOptionsOpen?'open':''}><summary>Quản lý ca · ${Object.keys(state.empire.shops).length} quán</summary><div><button data-type="OPEN_MAP">Xem map · chuyển quán vào khoảng nghỉ</button><button data-type="SPEED" data-payload="${state.speed===1?2:1}">Nhịp giờ x${state.speed} · đổi</button>${state.staffHiredToday?`<button data-type="TOGGLE_ASSIST">Nhờ nhân viên tự làm: ${state.assistEnabled?'Bật':'Tắt'}</button>`:'<small>Quán có quản lý sẽ tự bán khi bạn vắng.</small>'}<button data-type="CLOSE">Đóng quán này sớm</button></div></details>
     ${state.activeDecision?`<div class="decision-modal-backdrop"><div class="decision-card"><h3>${escapeHtml(state.activeDecision.title)}</h3><p>${escapeHtml(state.activeDecision.message)}</p>${state.activeDecision.options.map(o=>`<button class="btn-decision" data-type="DECIDE" data-payload="${o.key}" ${o.key==='yes'&&((state.activeDecision.id==='EXTRA_CHA'&&state.stock.cha<2)||(state.activeDecision.id==='ROADWORK_SIGN'&&state.cash<3000))?'disabled':''}>${o.label}</button>`).join('')}<small>Đồng hồ dừng trong lúc bạn chọn.</small></div></div>`:''}
   </div>`;
 }
 
 function renderDayResult() {
+  if (state.empire?.report) return renderEmpireResult();
   const l=calculateLedger(state), report=state.lastDayReport;
   return `<header class="top-nav"><b>${shopTitle()}</b><span class="wallet-badge">${money(l.finalCashInDrawer)}</span></header><section class="end-day">
     <div class="end-day-badge">Hết ca · Ngày ${state.currentDay}</div><h2>Hôm nay quán thế nào?</h2>
@@ -474,6 +474,28 @@ function renderDayResult() {
       <h3>Lý do lỡ khách</h3>${Object.entries(l.missedByReason||{}).filter(([,a])=>a.length).map(([reason,a])=>`<p>${escapeHtml({WAIT_TOO_LONG:'Đợi quá lâu',OUT_OF_STOCK:'Hết hàng',MENU_DISABLED:'Món không bán',PRICE_TOO_HIGH:'Giá cao',MISSED_LATE_OPENING:'Mở muộn',MISSED_EARLY_CLOSING:'Quán đóng cửa'}[reason]||reason)}: ${a.length}</p>`).join('')||'<p>Không lỡ khách nào.</p>'}
       ${(report?.feedback||[]).map(f=>`<p><b>${escapeHtml(f.name)}:</b> ${escapeHtml(f.text)}</p>`).join('')}<h3>Ngày mai</h3><p>${escapeHtml(report?.forecastTomorrow||'')}</p>
     </div></details><button class="btn-tertiary" data-type="REPLAY">Chơi lại từ đầu</button></section>`;
+}
+
+
+
+function renderMapPanel(){
+ const e=state.empire,id=e.mapFocusId||e.activeShopId,loc=LOCATIONS[id],x=e.shops[id];
+ const workers=e.employees.filter(p=>p.shopId===id&&!p.restingToday),manager=workers.find(p=>p.role==='manager'),reason=openingEligibility(state,id);
+ return `<div class="empire-backdrop"><section class="empire-panel"><header><h2>Bản đồ xóm</h2><button data-type="CLOSE_MAP" aria-label="Đóng bản đồ">×</button></header><p class="panel-hint">${e.shiftRunning?'Map đang tạm dừng · chuyển quán vào khoảng nghỉ.':'Chạm địa điểm để chuẩn bị hoặc mở thêm quán.'}</p>
+ <div class="town-board"><svg viewBox="0 0 320 200" aria-hidden="true"><path d="M20 150 Q70 145 70 95 T170 100 T285 45" fill="none" stroke="#b4a486" stroke-width="26"/><path d="M20 150 Q70 145 70 95 T170 100 T285 45" fill="none" stroke="#ead9b9" stroke-width="19"/><path d="M180 100 Q200 145 235 175" fill="none" stroke="#ead9b9" stroke-width="15"/></svg><span class="map-street-name">Hẻm Hoa Giấy</span>${Object.entries(LOCATIONS).map(([key,l])=>`<button class="map-node node-${key} ${e.shops[key]?'owned':'locked'} ${id===key?'focused':''}" data-type="MAP_FOCUS" data-payload="${key}"><i class="house-marker"></i><b>${key==='home'?'Đầu hẻm':key==='school'?'Cổng trường':'Văn phòng'}</b><small>${e.shops[key]?(e.shops[key].closedToday?'Nghỉ hôm nay':e.activeShopId===key?'Bạn ở đây':e.shiftRunning?'Đang bán':'Đã mở'):'Chưa mở'}</small></button>`).join('')}</div>
+ <article class="map-location ${x?'owned':'locked'}"><small>${loc.district}</small><h3>${escapeHtml(id==='home'?e.shops.home.state.shopName:loc.name)}</h3><p>${loc.description}</p>${x?`<div class="map-metrics"><span>${(x.state.rating??0).toFixed(1)} ★</span><span>${x.state.servedOrders.length} đơn hôm nay</span></div><p>${e.shiftRunning?x.state.screen==='DAY_RESULT'?'Đã đóng ca':e.activeShopId===id?'Bạn đang đứng bán':manager?'Quản lý đang tự bán':'Chờ chủ':x.closedToday?'Nghỉ hôm nay':x.ready?'Đã chuẩn bị':x.state.screen==='MENU'?'Cần xác nhận menu':'Chưa chuẩn bị'}</p><small>${manager?'Quản lý: '+escapeHtml(manager.name):'Chưa có quản lý'} · ${workers.length} người</small><button data-type="SWITCH_SHOP" data-payload="${id}">${e.activeShopId===id?'Về quán đang chọn':'Đến quán này'}</button>${!e.shiftRunning?`<button class="shop-day-toggle" data-type="TOGGLE_SHOP_DAY" data-payload="${id}">${x.closedToday?'Mở lại hôm nay':'Cho quán nghỉ hôm nay'}</button>`:''}`:`<small>${escapeHtml(reason||'Đủ điều kiện mở quán!')}</small><button data-type="OPEN_LOCATION" data-payload="${id}" ${reason||e.shiftRunning?'disabled':''}>Thuê mặt bằng · ${money(loc.deposit)}</button>`}</article>${message?`<div class="alert-message">${escapeHtml(message)}</div>`:''}<small class="map-footnote">Vốn chung · kho riêng · quán vắng chủ cần quản lý.</small></section></div>`;
+}
+
+function renderEmpirePanels(){
+ const e=state.empire;if(!e)return '';
+ if(e.mapOpen)return renderMapPanel();
+ if(e.staffOpen){const people=e.employees.filter(p=>p.shopId===e.activeShopId);return `<div class="empire-backdrop"><section class="empire-panel"><header><h2>Nhân sự · ${shopTitle()}</h2><button data-type="CLOSE_STAFF" aria-label="Đóng nhân sự">×</button></header><p class="panel-hint">Tuyển: 5k/người. Lương thu một lần lúc mở ca; người nghỉ không nhận lương ca đó.</p><div class="staff-list">${people.map(x=>`<article class="employee-card"><h3>${escapeHtml(x.name)} · ${STAFF_ROLES[x.role].name}</h3><div class="employee-meters"><span>Tay nghề ${x.skill}/3</span><span>Mệt ${x.fatigue}/100</span><span>Tinh thần ${x.mood}/100</span></div><small>${money(STAFF_ROLES[x.role].wage)}/ca · ${x.restingToday?'Nghỉ ca hôm nay':x.daysWorked+' ca đã làm'}</small><div class="employee-actions"><button data-type="STAFF_TRAIN" data-payload="${x.id}" ${x.skill>=3||x.lastTrainedDay===state.currentDay?'disabled':''}>Đào tạo · 8k</button><button data-type="STAFF_REST" data-payload="${x.id}">${x.restingToday?'Đi làm lại':'Cho nghỉ ca'}</button>${Object.keys(e.shops).filter(id=>id!==x.shopId).map(id=>`<button data-type="STAFF_MOVE" data-payload="${x.id}:${id}">Chuyển → ${LOCATIONS[id].name}</button>`).join('')}<button class="release-staff" data-type="STAFF_RELEASE" data-payload="${x.id}">Kết thúc hợp đồng</button></div></article>`).join('')||'<p>Quán chưa có nhân viên. Bạn đang tự đứng bán.</p>'}</div><h3>Tuyển thêm</h3><div class="hire-grid">${Object.entries(STAFF_ROLES).map(([id,def])=>{const exists=people.some(x=>x.role===id),locked=state.currentDay<def.unlockDay||def.seating&&!state.upgrades.seating||def.online&&!state.onlineEnabledToday;return `<button data-type="STAFF_HIRE" data-payload="${id}" ${exists||locked?'disabled':''}><b>${def.name}</b><span>${money(def.wage)}/ca</span><small>${exists?'Đã tuyển':state.currentDay<def.unlockDay?'Mở ngày '+def.unlockDay:def.seating&&!state.upgrades.seating?'Cần chỗ ngồi':def.online&&!state.onlineEnabledToday?'Cần bật online':def.description}</small></button>`}).join('')}</div>${message?`<div class="alert-message">${escapeHtml(message)}</div>`:''}</section></div>`;}
+ return '';
+}
+function renderEmpireResult(){
+ const r=state.empire.report;
+ const reasonNames={OUT_OF_STOCK:'Hết hàng',WAIT_TOO_LONG:'Đợi lâu',PRICE_TOO_HIGH:'Giá cao',MENU_DISABLED:'Không bán món',MISSED_LATE_OPENING:'Mở muộn',MISSED_EARLY_CLOSING:'Đóng cửa'};
+ return `<header class="top-nav"><b>Tổng kết các quán</b><span class="wallet-badge">${money(r.closingCash)}</span></header><section class="end-day"><div class="end-day-badge">Hết ca · Ngày ${r.day}</div><h2>Hôm nay xóm thế nào?</h2><div class="day-stats"><div><b>${r.shops.length}</b><small>Quán vận hành</small></div><div><b>${r.shops.reduce((n,x)=>n+x.served,0)}</b><small>Khách phục vụ</small></div><div><b>${money(r.profit)}</b><small>Kết quả sau chi phí</small></div></div><div class="branch-results">${r.shops.map(x=>`<article><header><h3>${escapeHtml(x.name)}</h3><b>${x.rating?.toFixed(1)} ★</b></header><div class="map-metrics"><span>${x.served}/${x.served+x.missed} khách</span><b class="${x.profit>=0?'text-green':'text-red'}">${money(x.profit)}</b></div><small>Thu ${money(x.revenue)} · vốn đã bán ${money(x.cogs)} · lương/việc ${money(x.ops)}</small><p>${Object.entries(x.reasons).map(([k,n])=>`${reasonNames[k]||k}: ${n}`).join(' · ')||'Không lỡ khách'}</p><div class="next-tip">${escapeHtml(x.advice)}</div><h4>Khách nói gì?</h4>${x.feedback.slice(0,2).map(f=>`<p><b>${escapeHtml(f.name)}:</b> ${escapeHtml(f.text)}</p>`).join('')}${x.employees.length?`<details><summary>Nhân viên cuối ca</summary>${x.employees.map(p=>`<p>${escapeHtml(p.name)} · ${STAFF_ROLES[p.role].name} · mệt ${p.fatigue}/100 · tinh thần ${p.mood}/100</p>`).join('')}</details>`:''}</article>`).join('')}</div><button class="btn-primary" data-type="NEXT_DAY">Chuẩn bị ngày ${r.day+1} →</button><small class="result-countdown">Tự sang ngày sau <b id="next-day-countdown">${Math.ceil((state.resultRemainingMs??12000)/1000)}</b>s · mở sổ để dừng</small><details id="day-ledger-details" ${resultDetailsOpen?'open':''}><summary>Sổ tiền chung & đối soát</summary><div class="compact-ledger"><div><span>Vốn đầu ngày</span><b>${money(r.openingCash)}</b></div><div><span>Biến động tiền mặt</span><b>${money(r.cashMovement)}</b></div><div><span>Tiền cuối ngày</span><b>${money(r.closingCash)}</b></div><p>${r.reconciled?'Đối soát khớp các giao dịch từng quán.':'Có chênh lệch cần kiểm tra.'}</p>${r.shops.map(x=>`<p><b>${x.name}</b> · nhập ${money(x.spent)} · đầu tư ${money(x.investment)} · hàng hỏng ${money(x.spoilage)} · tip ${money(x.tips)} · phí giao ${money(x.fees)}</p>`).join('')}</div></details><button class="btn-tertiary" data-type="REPLAY">Chơi lại từ đầu</button></section>`;
 }
 
 let renderedScreen = null;
@@ -493,7 +515,7 @@ function patchNode(old, next) {
   }
 }
 function render() {
-  const html = ({ HOME: renderHome, XOM_OI: renderXomOi, MARKET: renderMarket, MENU: renderMenuSetup, SHOP: renderShop, DAY_RESULT: renderDayResult }[state.screen])();
+  const html = ({ HOME: renderHome, XOM_OI: renderXomOi, MARKET: renderMarket, MENU: renderMenuSetup, SHOP: renderShop, DAY_RESULT: renderDayResult }[state.screen])() + renderEmpirePanels();
   // Preserve buttons, images and CSS animation nodes between clock updates.
   if (renderedScreen === state.screen && document.createElement) {
     const draft = document.createElement('main');
@@ -513,6 +535,16 @@ function render() {
 // ─────────────────────────────────────────────────────────────
 
 $.addEventListener('click', e => {
+  const playSummary = e.target.closest('#play-options > summary');
+  if (playSummary) { playOptionsOpen = !playSummary.parentElement.open; return; }
+  const ledgerSummary = e.target.closest('#day-ledger-details > summary');
+  if (ledgerSummary) {
+    resultDetailsOpen = !ledgerSummary.parentElement.open;
+    state.resultDetailsOpen = resultDetailsOpen;
+    state.revision += 1;
+    persist();
+    return;
+  }
   const b = e.target.closest('[data-type]');
   if (!b) return;
   if (b.disabled) return;
@@ -535,6 +567,8 @@ $.addEventListener('click', e => {
     }
     return;
   }
+
+  if (t === 'STAFF_RELEASE' && !window.confirm('Kết thúc hợp đồng nhân viên này? Quán có thể thiếu người vận hành.')) return;
 
   if (t === 'REPLAY') {
     if (!window.confirm('Chơi lại sẽ xóa tiến độ quán trên máy này. Bạn muốn bắt đầu lại?')) return;
@@ -598,6 +632,7 @@ $.addEventListener('click', e => {
 });
 
 $.addEventListener('toggle', e => {
+  if (e.target?.id === 'play-options') { playOptionsOpen = e.target.open; return; }
   if (e.target?.id !== 'day-ledger-details') return;
   resultDetailsOpen = e.target.open;
   state.resultDetailsOpen = resultDetailsOpen;
@@ -612,7 +647,7 @@ $.addEventListener('keydown', e => {
 });
 // Initial boot
 updateServiceView();
-const loginClaim = action(state, 'CLAIM_LOGIN', vnCalendarDate());
+const loginClaim = empireAction(state, 'CLAIM_LOGIN', vnCalendarDate());
 if (!loginClaim.error && loginClaim.state !== state) { state = loginClaim.state; persist(); }
 render();
 if (state.screen === 'SHOP') {

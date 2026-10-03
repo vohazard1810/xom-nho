@@ -1,0 +1,126 @@
+{
+  "status": "PASS",
+  "twoShopDay": {
+    "day": 8,
+    "openingCash": 900000,
+    "closingCash": 986000,
+    "cashMovement": 86000,
+    "reconciled": true,
+    "profit": 206000,
+    "shops": [
+      {
+        "id": "home",
+        "name": "Quán đầu hẻm",
+        "served": 15,
+        "missed": 5,
+        "revenue": 235000,
+        "cogs": 120000,
+        "gross": 115000,
+        "profit": 98000,
+        "spent": 120000,
+        "ops": 23000,
+        "investment": 120000,
+        "spoilage": 0,
+        "fees": 0,
+        "tips": 6000,
+        "sideIncome": 0,
+        "rating": 4.5,
+        "reasons": {
+          "OUT_OF_STOCK": 5
+        },
+        "advice": "Tăng lượng nhập hoặc sức chở; không phải lỗi nhân viên.",
+        "feedback": [
+          {
+            "personId": "elder_1",
+            "name": "Cô Vân",
+            "reason": "OUT_OF_STOCK",
+            "text": "Tiếc quá, quán hết món rồi; mai mình ghé sớm nhé."
+          },
+          {
+            "personId": "teen_2",
+            "name": "Bạn Thảo",
+            "reason": "OUT_OF_STOCK",
+            "text": "Tiếc quá, quán hết món rồi; mai mình ghé sớm nhé."
+          },
+          {
+            "personId": "office_3",
+            "name": "Anh Bảo",
+            "reason": "OUT_OF_STOCK",
+            "text": "Tiếc quá, quán hết món rồi; mai mình ghé sớm nhé."
+          }
+        ],
+        "employees": [
+          {
+            "id": "employee_1",
+            "name": "Dì Hạnh",
+            "role": "manager",
+            "skill": 2,
+            "fatigue": 18,
+            "mood": 85
+          }
+        ]
+      },
+      {
+        "id": "school",
+        "name": "Quán cổng trường",
+        "served": 10,
+        "missed": 10,
+        "revenue": 200000,
+        "cogs": 95000,
+        "gross": 105000,
+        "profit": 108000,
+        "spent": 95000,
+        "ops": 0,
+        "investment": 0,
+        "spoilage": 0,
+        "fees": 0,
+        "tips": 3000,
+        "sideIncome": 0,
+        "rating": 3.5,
+        "reasons": {
+          "OUT_OF_STOCK": 10
+        },
+        "advice": "Tăng lượng nhập hoặc sức chở; không phải lỗi nhân viên.",
+        "feedback": [
+          {
+            "personId": "school_teen_10",
+            "name": "Em Tuấn",
+            "reason": "OUT_OF_STOCK",
+            "text": "Tiếc quá, quán hết món rồi; mai mình ghé sớm nhé."
+          },
+          {
+            "personId": "school_teen_11",
+            "name": "Bé Vy",
+            "reason": "OUT_OF_STOCK",
+            "text": "Tiếc quá, quán hết món rồi; mai mình ghé sớm nhé."
+          },
+          {
+            "personId": "school_teen_12",
+            "name": "Em Nam",
+            "reason": "OUT_OF_STOCK",
+            "text": "Tiếc quá, quán hết món rồi; mai mình ghé sớm nhé."
+          }
+        ],
+        "employees": []
+      }
+    ]
+  },
+  "roles": [
+    "helper",
+    "manager",
+    "cleaner",
+    "keeper",
+    "buyer",
+    "packer",
+    "driver"
+  ],
+  "singleCash": 127000,
+  "sharedClock": true,
+  "backgroundRealSales": true,
+  "reload": true,
+  "thirdLocation": true,
+  "plannedClosure": true,
+  "campaignDays": 15,
+  "portfolioDays": 8,
+  "allDailyCashReconciled": true
+}

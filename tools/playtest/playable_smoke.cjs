@@ -13,6 +13,7 @@ const fs = require('node:fs');
  p.on('pageerror',e=>errors.push(e.message));
  p.on('response',r=>{if(r.status()>=400) failures.push(`${r.status()} ${r.url()}`)});
  await p.clock.install();
+ await p.clock.pauseAt(new Date(await p.evaluate(()=>Date.now())));
  await p.goto(process.env.XOM_GAME_URL || `http://127.0.0.1:${server.address().port}/game/`);
  await p.locator('#shop-name-input').fill('Quán Bé Mây Ở Đầu Hẻm');
  await p.locator('[data-type=SET_SHOP_NAME]').click();

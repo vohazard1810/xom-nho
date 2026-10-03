@@ -1,3 +1,5 @@
+> Cập nhật: kiến trúc nhiều quán/nhân sự đã triển khai. Xem [ANTIGRAVITY_MULTI_SHOP_HANDOFF.md](ANTIGRAVITY_MULTI_SHOP_HANDOFF.md). Nội dung dưới mô tả baseline nấu tay trước khi thêm map.
+
 # Xóm Nhỏ — hands-on gameplay handoff
 
 Branch: `codex/playable-active-idle`. Supersedes the auto-only gameplay of 44ab5a6. Keep PR #1 and main unmerged. Existing art stays provisional for Antigravity's art pass.

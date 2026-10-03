@@ -47,7 +47,7 @@ export function cookingAction(input, type, payload) {
   return {state: s};
 }
 
-export function advanceShift(input, elapsedMs) {
+export function advanceShift(input, elapsedMs, options = {}) {
   if (input.screen !== 'SHOP' || input.isPaused || input.manualPaused) return input;
   if (!Number.isFinite(elapsedMs) || elapsedMs <= 0 || elapsedMs > 60000) throw new Error('Invalid shift duration');
   let s = structuredClone(input); s.managedShift = true;
@@ -57,7 +57,7 @@ export function advanceShift(input, elapsedMs) {
     // First order is a safe hands-on tutorial. Quiet gaps move faster;
     // customer queues always use the slower, shared gameplay clock.
     const tutorial = s.currentDay === 1 && !s.cookingTutorialDone && s.activeCustomer?.status === 'ARRIVED';
-    if (!tutorial) s = action(s, 'TICK', ms / 1000 * (s.activeCustomer || s.waitingQueue.length ? SHIFT_RULES.minutesPerSecond : SHIFT_RULES.emptyMinutesPerSecond)).state;
+    if (!tutorial) s = action(s, 'TICK', ms / 1000 * (options.minuteRate ?? (s.activeCustomer || s.waitingQueue.length ? SHIFT_RULES.minutesPerSecond : SHIFT_RULES.emptyMinutesPerSecond))).state;
     if (s.screen !== 'SHOP' || s.isPaused) break;
     const boost = s.focusBoost;
     if (boost?.active) { boost.remainingSeconds = Math.max(0, boost.remainingSeconds-ms/1000); if (boost.remainingSeconds <= .000001) {boost.active=false;boost.remainingSeconds=0;} }
@@ -77,7 +77,7 @@ export function advanceShift(input, elapsedMs) {
       if(p.elapsedMs>=400) {p.selected=cookingNeeds(s);p.phase='PREP';p.elapsedMs=0;}
     } else if(p.phase==='PREP') {
       const rain=['rain','morning_drizzle'].includes(s.dayEvent.event)&&!s.upgrades.canopy? .9:1;
-      p.elapsedMs+=ms*(boost?.active?2:1)*(s.staffHiredToday?1.35:1)*rain;
+      p.elapsedMs+=ms*(boost?.active?2:1)*(s.employeeSpeed ?? (s.staffHiredToday?1.35:1))*(c.isOnline?(s.packingSpeed||1):1)*rain;
       if(p.elapsedMs>=p.prepMs) {p.phase='READY';p.elapsedMs=0;}
     } else if(p.phase==='READY' && assist) {p.phase='HANDOFF';p.elapsedMs=0;}
     else if(p.phase==='HANDOFF') {

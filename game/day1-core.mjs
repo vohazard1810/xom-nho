@@ -346,6 +346,7 @@ export function action(state, type, payload) {
     s.basket = suggestBasket(s);
   } else if (type === 'BUY') {
     if (s.screen !== 'MARKET') return fail('Chỉ mua hàng ở chợ.');
+    if (totalBasketUnits(s.basket) > s.upgrades.vehicleCapacity) return fail('Giỏ hàng vượt sức chở hiện tại; giảm lượng hàng trước khi mua.');
     const cost = totalBasketCost(s.basket, s.marketPrices);
     if (cost > s.cash) return fail('Không đủ tiền mặt để mua số hàng này.');
     if (totalBasketUnits(s.basket) === 0 && s.currentDay === 1) return fail('Giỏ hàng đang trống.');
@@ -451,7 +452,7 @@ export function action(state, type, payload) {
       });
       if (s.dayEvent.costDelta) {
         s.cash -= s.dayEvent.costDelta;
-        s.operatingExpenses = s.dayEvent.costDelta;
+        s.operatingExpenses += s.dayEvent.costDelta;
       }
     }
     s.newsTicker = null;
@@ -771,7 +772,7 @@ export function action(state, type, payload) {
     const cogs = consumeBatches(s, needs);
     const sellPrice = menuItem.sellPrice;
     const tip = s.currentDay > 1 && cust.temperament === 'FRIENDLY' ? 1000 + (s.dayEvent.tipBonus || 0) + (s.staffHiredToday ? 500 : 0) : 0;
-    const onlineFee = cust.isOnline ? 2000 : 0;
+    const onlineFee = cust.isOnline ? Math.max(0, 2000 - (s.deliverySaving || 0)) : 0;
     s.cash += sellPrice + tip - onlineFee;
     s.onlineFees = (s.onlineFees || 0) + onlineFee;
     s.tips += tip;
@@ -889,6 +890,7 @@ export function action(state, type, payload) {
     s.onlineFees = 0;
     s.onlineEnabledToday = false;
     s.staffHiredToday = false;
+    s.legacyHelperToday = false;
     s.assistEnabled = false;
     s.sideJobIncome = 0;
     s.tips = 0;
