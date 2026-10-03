@@ -595,9 +595,14 @@ export function action(state, type, payload) {
     // 5. Update patience for waiting customers
     for (let i = s.waitingQueue.length - 1; i >= 0; i--) {
       const waiting = s.waitingQueue[i];
-      const arrMin = Number.isFinite(waiting.arrivalMinute) ? waiting.arrivalMinute : s.clock;
-      const waited = Math.max(0, Math.min(delta, s.clock - arrMin));
-      waiting.ticksWaiting += waited;
+      if (!Number.isFinite(waiting.arrivalMinute)) {
+        waiting.arrivalMinute = Math.max(0, s.clock - (waiting.ticksWaiting || delta));
+      }
+      if (!Number.isFinite(waiting.patience)) {
+        waiting.patience = waiting.maxPatience || 100;
+      }
+      const waited = Math.max(0, Math.min(delta, s.clock - waiting.arrivalMinute));
+      waiting.ticksWaiting = (waiting.ticksWaiting || 0) + waited;
       const drain = waiting.temperament === 'RUSH' ? 1.5 : waiting.temperament === 'FRIENDLY' ? 0.6 : 1.0;
       waiting.patience = Math.max(0, waiting.patience - drain * waited);
 

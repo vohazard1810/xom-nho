@@ -1,0 +1,88 @@
+{
+  "allFixturesValid": true,
+  "fixtureCheck": [
+    {
+      "id": "bac_ba",
+      "name": "Bác Ba",
+      "arrivalMinute": 30,
+      "hasValidArrival": true
+    },
+    {
+      "id": "chi_hai",
+      "name": "Chị Hai",
+      "arrivalMinute": 75,
+      "hasValidArrival": true
+    },
+    {
+      "id": "be_ti",
+      "name": "Bé Tí",
+      "arrivalMinute": 120,
+      "hasValidArrival": true
+    },
+    {
+      "id": "co_chin",
+      "name": "Cô Chín",
+      "arrivalMinute": 123,
+      "hasValidArrival": true
+    },
+    {
+      "id": "anh_tung",
+      "name": "Anh Tùng",
+      "arrivalMinute": 126,
+      "hasValidArrival": true
+    },
+    {
+      "id": "bac_nam",
+      "name": "Bác Năm",
+      "arrivalMinute": 240,
+      "hasValidArrival": true
+    },
+    {
+      "id": "co_bay",
+      "name": "Cô Bảy",
+      "arrivalMinute": 280,
+      "hasValidArrival": true
+    },
+    {
+      "id": "chu_tu",
+      "name": "Chú Tư",
+      "arrivalMinute": 320,
+      "hasValidArrival": true
+    }
+  ],
+  "init": {
+    "p1": 100,
+    "p2": 100
+  },
+  "step1": {
+    "p1": 90,
+    "p2": 90,
+    "p2_arrMin_persisted": 100,
+    "p1_finite": true,
+    "p2_finite": true,
+    "p1_drained": true,
+    "p2_drained": true
+  },
+  "step2": {
+    "p1": 70,
+    "p2": 70,
+    "p1_drained_further": true,
+    "p2_drained_further": true
+  },
+  "step3": {
+    "remainingQueueIds": [],
+    "missedCount": 2,
+    "missedCustomerIds": [
+      "cust_fallback",
+      "cust_normal"
+    ],
+    "custFallbackDeparted": true,
+    "custNormalDeparted": true
+  },
+  "shiftEngineIntegration": {
+    "initialPatience": 80,
+    "afterPatience": 75.99999999999994,
+    "drained": true,
+    "isFinite": true
+  }
+}

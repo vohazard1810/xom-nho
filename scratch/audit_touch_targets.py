@@ -52,8 +52,8 @@ async def run_audit():
                     prepMs: 2000
                 };
                 s.waitingQueue = [
-                    { id: 'co_chin', name: 'Cô Chín', recipe: 'TRA_TAC', temperament: 'NORMAL', patience: 85, maxPatience: 100 },
-                    { id: 'anh_tung', name: 'Anh Tùng', recipe: 'SUA_DAU_DA', temperament: 'RUSH', patience: 50, maxPatience: 60 }
+                    { id: 'co_chin', name: 'Cô Chín', recipe: 'TRA_TAC', temperament: 'NORMAL', patience: 85, maxPatience: 100, arrivalMinute: 60 },
+                    { id: 'anh_tung', name: 'Anh Tùng', recipe: 'SUA_DAU_DA', temperament: 'RUSH', patience: 50, maxPatience: 60, arrivalMinute: 60 }
                 ];
                 window.__xomNho.setFloatingCash(null);
                 window.__xomNho.render();
