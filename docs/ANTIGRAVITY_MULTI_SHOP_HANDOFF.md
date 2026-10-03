@@ -89,3 +89,31 @@ COGS và hàng hỏng không trừ tiền mặt lần nữa. Kết quả sau chi
 6. UI map/staff/result ưu tiên ảnh, biểu tượng rõ nghĩa và số ngắn, hạn chế thẻ chữ dài. Không che mặt khách hoặc nút nấu/giao.
 7. QA theo phạm vi: một món ăn, một thức uống, map/staff đã sửa, console/ảnh vỡ/touch target. Chỉ chạy gate nhiều ngày đầy đủ khi logic liên quán thay đổi hoặc bàn giao mốc lớn. Không quay video trừ khi owner yêu cầu.
 8. Báo cáo Đã sửa / Nguyên nhân / Bằng chứng / Phần chưa xác thực. Gửi link commit và PNG; không tự merge PR. Chi phí/mốc mở và pacing chỉ đề xuất tinh chỉnh sau chơi tay, không tự đổi economy để làm đẹp screenshot.
+
+## 9. Bổ sung review UI mobile — phiếu gọi món và khả năng đọc
+
+Đây là yêu cầu cần triển khai tiếp, chưa phải UI đã hoàn tất trên bản chơi thử. Review từ 5 ảnh điện thoại Owner gửi ngày 03/10/2026: tên món hiện nằm ở dòng nhỏ dưới hàng chờ; thoại như “phần quen thuộc” hoặc “phần ăn sáng” không cho biết chính xác món. Thẻ nhân sự ép tên/lương/điều kiện vào cùng hàng khiến chữ vỡ thành nhiều mảnh. Menu nhiều khoảng trống và thiếu ảnh thành phẩm.
+
+### 9.1 Phiếu gọi món — ưu tiên P0
+
+- Khách chính có phiếu cố định cạnh nhân vật: ảnh món thành phẩm + tên rõ ràng + số lượng thực tế, ví dụ “Sữa đậu đá ×1”. Phiếu giữ đến khi giao/đơn bị hủy; không tự biến mất theo bóng thoại.
+- Yêu cầu đặc biệt chỉ hiển thị khi được engine hỗ trợ và quyết định xác nhận: ví dụ Bé Tí đồng ý thêm chả → “Thêm chả”. Không tự thêm ít đá/không đường vào UI khi engine chưa có các biến thể đó.
+- Khách trong hàng chờ dùng thẻ gọn: tên, thumbnail món, tính cách/kiên nhẫn; chạm mở chi tiết đơn và hành động ưu tiên đang có. Không chỉ hiện tên khách + chữ “Vội”.
+- Bàn chế biến nhắc món đang làm và tiến độ nguyên liệu đã chọn/còn thiếu. Dữ liệu phải lấy từ đơn/recipe thực tế, kể cả thay đổi sau quyết định thêm chả; không suy món từ thoại, archetype hoặc ảnh nhân vật.
+- Phiếu dùng ảnh món cuối (bánh mì chả, trà tắc, sữa đậu đá, ốp la khi mở). Không dùng emoji, ảnh nguyên liệu hoặc cùng một ly cho mọi thức uống. Art thiếu phải ghi rõ placeholder trong báo cáo, không claim đã hoàn thiện.
+- Thoại vẫn đời thường, nhưng không là nguồn duy nhất để biết đơn. Tên món chính tối thiểu 16 CSS px; mục tiêu đọc được ngay trên màn 360px, không cần phóng to.
+- Chỉ khách chính có phiếu đầy đủ; khách chờ dùng thẻ nhỏ để tránh che cảnh. Phiếu không đè mặt, tay nhận món, món trên khay hoặc vùng chọn nguyên liệu/nấu/giao. Nếu cạnh khách không đủ chỗ, phương án thay thế là một dải phiếu đơn cố định ngay dưới cảnh quán; đề xuất pilot trước khi nhân rộng.
+
+### 9.2 Menu, nhân sự và bố cục bán — P1
+
+- Menu thêm thumbnail thành phẩm, thu gọn padding nhưng giữ nút giá/checkbox dễ chạm. Tên món, giá vốn ước tính và lời dự kiến phải đọc rõ, không đổi số liệu/công thức để khớp art. Món khóa có điều kiện mở riêng, không dồn vào cùng dòng với giá vốn.
+- Nhân sự tách từng dòng: tên vai trò → lương/ca → tác dụng ngắn → điều kiện mở. Dùng thẻ dọc trong lưới hoặc một cột trên màn nhỏ; không ép bốn thông tin vào hàng ngang. Mục khóa vẫn đọc được, không giảm opacity cả thẻ đến mức mất tương phản.
+- Màn bán ưu tiên thứ tự nhìn: khách gọi gì → chọn nguyên liệu → làm món → giao. Giảm hướng dẫn lặp; hàng chờ rỗng dùng một dòng gọn, không chiếm khối lớn. Giữ gameplay nấu tay và các nút tiếp cận được trên viewport nhỏ.
+
+### 9.3 Nghiệm thu theo phạm vi
+
+1. Chụp một đơn bánh mì có thêm chả, một đơn trà tắc, một đơn sữa đậu và một cảnh ít nhất 3 khách với món khác nhau. Kiểm tra phiếu đúng khách/đơn và cập nhật sau ưu tiên, thêm chả, giao, bỏ đi.
+2. Kiểm tra tên món đọc rõ, ảnh thành phẩm phân biệt được; mặt khách, khay và nút thao tác không bị che tại 360×640 và 390×844. Vùng tương tác tối thiểu 44×44 CSS px.
+3. Chụp menu và nhân sự trước/sau; kiểm tra text không tràn hoặc bị ép thành từng chữ. Test console/ảnh vỡ tại các màn sửa.
+4. Không quay video hoặc chạy lại gate 7 ngày cho thay đổi art/CSS này. Nếu sửa dữ liệu đơn/logic đặc biệt thì chạy test đơn tương ứng, không gán PASS chỉ từ screenshot.
+5. Báo cáo rõ đây là UI vừa triển khai hay chỉ concept; gửi commit, ảnh gameplay thật và phần chưa verify. Owner duyệt pilot rồi mới làm hàng loạt.
