@@ -2633,7 +2633,7 @@ button:focus-visible, [role=button]:focus-visible { outline: 3px solid #0e7490; 
 
 /* Hands-on mobile kitchen: all cooking controls share the visible viewport. */
 #app[data-screen="SHOP"] { height: 100dvh; min-height: 0; overflow: hidden; }
-.play-screen { height:100%; display:grid; grid-template-rows:48px minmax(180px,1fr) auto 48px 80px 136px 48px auto 44px; gap:0; background:#ead7b8; padding-bottom:env(safe-area-inset-bottom); }
+.play-screen { height:100%; display:grid; grid-template-rows:48px minmax(180px,1fr) auto 52px 80px 136px 48px auto 44px; gap:0; background:#ead7b8; padding-bottom:env(safe-area-inset-bottom); }
 .play-header { display:flex; align-items:center; gap:6px; padding:4px 8px; background:#302419; color:#fff0d6; }
 .play-header>div { min-width:0; flex:1; }
 .play-header b { display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-size:14px; }
@@ -2667,15 +2667,15 @@ button:focus-visible, [role=button]:focus-visible { outline: 3px solid #0e7490; 
 .queue-header-label { width:auto; min-width:38px; flex-shrink:0; font-weight:700; font-size:10.5px; color:#e5cb9f; display:flex; flex-direction:column; align-items:center; line-height:1.1; }
 .queue-scroll-indicator { display:inline-block; font-style:normal; font-size:13px; font-weight:900; color:#f6c445; animation:queueArrowPulse 1.2s ease-in-out infinite; }
 @keyframes queueArrowPulse { 0%, 100% { transform:translateX(0); opacity:0.6; } 50% { transform:translateX(3px); opacity:1; } }
-.queue-ticket { min-width:115px; max-width:145px; min-height:44px; height:44px; position:relative; overflow:hidden; border:1px solid #b78d56; border-radius:8px; background:#fff0d6; padding:2px 6px; display:flex; align-items:center; gap:5px; text-align:left; color:#493019; flex-shrink:0; }
+.queue-ticket { min-width:116px; max-width:150px; min-height:46px; height:48px; position:relative; overflow:hidden; border:1px solid #b78d56; border-radius:8px; background:#fff0d6; padding:3px 7px 5px 6px; display:flex; align-items:center; gap:5px; text-align:left; color:#493019; flex-shrink:0; }
 .queue-dish-thumb { width:28px; height:28px; object-fit:contain; flex-shrink:0; filter:drop-shadow(0 1px 2px rgba(0,0,0,0.15)); }
-.queue-ticket-meta { flex:1; min-width:0; display:flex; flex-direction:column; justify-content:center; gap:1px; }
+.queue-ticket-meta { flex:1; min-width:0; display:flex; flex-direction:column; justify-content:center; gap:1.5px; }
 .queue-cust-line { display:flex; align-items:center; gap:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .queue-cust-line b { font-size:11px; font-weight:700; color:#432b17; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .queue-cust-line small { font-size:9.5px; color:#6b5338; line-height:1.2; white-space:nowrap; }
 .queue-cust-line .rush-label { color:#c2410c; font-weight:800; }
-.queue-dish-line { display:block; line-height:1.15; overflow:visible; }
-.queue-dish-name { font-size:10px; font-weight:800; color:#7c4415; white-space:nowrap; overflow:visible; text-overflow:clip; }
+.queue-dish-line { display:block; line-height:1.25; overflow:visible; }
+.queue-dish-name { font-size:10px; font-weight:800; color:#7c4415; white-space:nowrap; overflow:visible; text-overflow:clip; display:inline-block; line-height:1.25; }
 .queue-patience-bar { position:absolute; left:0; bottom:0; height:3px; }
 .queue-ticket.chosen { background:#ffdf8b; border:2px solid #e2ab24; }
 .queue-empty-note { font-size:11px; color:#d8c29f; font-style:italic; white-space:nowrap; }

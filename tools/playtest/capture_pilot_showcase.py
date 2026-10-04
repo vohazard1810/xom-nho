@@ -99,8 +99,8 @@ async def capture_pilot():
 
         # 2. Capture each of the 4 pilot walk-in characters at the counter (standing BEHIND counter)
         walkin_cases = [
-            ("walkin_variant_0", "Em Nam (Học Sinh)", "pilot_01_walkin_student.png", "Cho em một ổ bánh mì chả ít cay để kịp giờ vào lớp nha anh!"),
-            ("walkin_variant_1", "Chị Mai (Văn Phòng)", "pilot_02_walkin_office.png", "Một ly trà tắc ít đường mang đi giùm em nha!"),
+            ("walkin_variant_0", "Em Nam (Học Sinh)", "pilot_01_walkin_student.png", "Cho em một ổ bánh mì chả ăn sáng để kịp giờ vào lớp nha anh!"),
+            ("walkin_variant_1", "Chị Mai (Văn Phòng)", "pilot_02_walkin_office.png", "Một ly trà tắc mang đi giùm em nha!"),
             ("walkin_variant_2", "Chú Bảy (Tài Xế Xe Ôm)", "pilot_03_walkin_driver.png", "Cho chú ly sữa đậu đá mát lạnh uống cho đã khát con ơi!"),
             ("walkin_variant_3", "Bác Năm (Tập Thể Dục)", "pilot_04_walkin_elder.png", "Sáng nay bánh mì mới ra lò thơm quá, lấy bác một ổ nha.")
         ]
