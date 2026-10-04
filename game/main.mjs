@@ -212,16 +212,16 @@ function getCharacterStageCoords(c, role) {
 
   let gx, gy, hTarget;
   if (role === 'COUNTER') {
-    gx = isChild ? 340 : isTeen ? 380 : 395;
+    gx = isChild ? 340 : isTeen ? 380 : 375;
     gy = isChild ? 840 : isTeen ? 1010 : 1020;
     hTarget = isChild ? 440 : isTeen ? 680 : 740;
   } else if (role === 'WAITING_0') {
-    gx = 550;
-    gy = 665;
+    gx = isChild ? 650 : 570;
+    gy = isChild ? 660 : 665;
     hTarget = isChild ? 220 : isTeen ? 270 : 320;
   } else {
     // WAITING_1
-    gx = 690;
+    gx = 715;
     gy = 610;
     hTarget = isChild ? 160 : isTeen ? 180 : 200;
   }
@@ -578,7 +578,7 @@ function renderShop() {
               ${c.temperament === 'RUSH' ? `<span class="ticket-rush-tag">⚡ Vội</span>` : ''}
             </div>
             <div class="receipt-checklist">
-              ${Object.entries(needs).map(([id,q])=>{const sel=selected[id]||0;const done=sel>=q;return `<span class="receipt-item ${done?'checked':'pending'}"><i class="receipt-mark">${done?'✓':'○'}</i> ${ingredientMeta[id]?.name||id} ${Math.min(sel, q)}/${q}</span>`}).join('')}
+              ${Object.entries(needs).map(([id,q])=>{const sel=selected[id]||0;const done=sel>=q;return `<span class="receipt-item ${done?'checked':'pending'}"><i class="receipt-mark">${done?'✓':'○'}</i> ${ingredientMeta[id]?.name||id} ${sel}/${q}</span>`}).join('')}
             </div>
           </div>
         </div>
@@ -601,34 +601,53 @@ function renderShop() {
         </div>
       ` : Object.values(selected).some(Boolean) ? (() => {
         if (c?.recipe === 'BANH_MI_CHA' || c?.recipe === 'BANH_MI_TRUNG') {
+          const hasBread = Boolean(selected.bread);
+          const hasCha = Boolean(selected.cha);
+          const hasVeg = Boolean(selected.vegetable);
+          let prepImg = '../assets/prep/prep_banhmi_step1_bread.png';
+          let altText = 'Vỏ bánh mì mổ bụng chờ nhân';
+          if (hasVeg && hasCha) {
+            prepImg = '../assets/prep/prep_banhmi_step3_full.png';
+            altText = 'Bánh mì đầy đủ chả lụa và dưa ngò trong ruột bánh';
+          } else if (hasCha) {
+            prepImg = '../assets/prep/prep_banhmi_step2_cha.png';
+            altText = 'Bánh mì xếp chả lụa trong ruột bánh';
+          } else if (hasVeg && !hasCha) {
+            prepImg = '../assets/prep/prep_banhmi_step3_full.png';
+            altText = 'Bánh mì xếp dưa ngò trong ruột bánh';
+          }
           return `
-            <div class="prep-assembly prep-assembly-banhmi">
-              <div class="assembly-bread-base">
-                <img src="../assets/ingredients/bread.png" alt="Vỏ bánh mì">
-              </div>
-              ${selected.cha ? `
-                <div class="assembly-filling assembly-cha" style="--layer-count:${selected.cha}">
-                  ${Array.from({ length: selected.cha }, (_, i) => `<img src="../assets/ingredients/cha.png" alt="Chả lụa" class="cha-slice slice-${i}">`).join('')}
-                </div>
-              ` : ''}
-              ${selected.egg ? `<div class="assembly-filling assembly-egg"><span class="egg-filling">🍳</span></div>` : ''}
-              ${selected.vegetable ? `
-                <div class="assembly-filling assembly-veg">
-                  <img src="../assets/ingredients/vegetable.png" alt="Dưa ngò">
-                </div>
-              ` : ''}
+            <div class="prep-assembly prep-assembly-dish">
+              <img src="${prepImg}" alt="${altText}" class="prep-art-banhmi">
             </div>
           `;
         }
-        if (c?.recipe === 'TRA_TAC' || c?.recipe === 'SUA_DAU_DA') {
+        if (c?.recipe === 'TRA_TAC') {
+          const hasIce = Boolean(selected.ice);
+          const hasSyrup = Boolean(selected.sugar_syrup);
+          const hasKumquat = Boolean(selected.kumquat);
+          let prepImg = '../assets/prep/prep_drink_step1_ice.png';
+          let altText = 'Ly takeaway trong suốt có đá bi';
+          if (hasKumquat) {
+            prepImg = '../assets/prep/prep_drink_step3_full.png';
+            altText = 'Ly trà tắc có đá, nước đường và lát tắc tươi';
+          } else if (hasSyrup) {
+            prepImg = '../assets/prep/prep_drink_step2_syrup.png';
+            altText = 'Ly đá hòa nước đường vàng óng';
+          }
           return `
-            <div class="prep-assembly prep-assembly-drink">
-              <div class="prep-cup-shell">
-                ${selected.ice ? `<div class="cup-layer layer-ice"><img src="../assets/ingredients/ice.png" alt="Đá"></div>` : ''}
-                ${selected.sugar_syrup ? `<div class="cup-layer layer-syrup"><div class="syrup-fill"></div><img src="../assets/ingredients/sugar_syrup.png" alt="Đường"></div>` : ''}
-                ${selected.kumquat ? `<div class="cup-layer layer-fruit"><img src="../assets/ingredients/kumquat.png" alt="Tắc"></div>` : ''}
-                ${selected.soy_milk ? `<div class="cup-layer layer-soymilk"><div class="soymilk-fill"></div><img src="../assets/ingredients/soy_milk.png" alt="Sữa đậu"></div>` : ''}
-              </div>
+            <div class="prep-assembly prep-assembly-dish">
+              <img src="${prepImg}" alt="${altText}" class="prep-art-drink">
+            </div>
+          `;
+        }
+        if (c?.recipe === 'SUA_DAU_DA') {
+          const hasMilk = Boolean(selected.soy_milk);
+          const hasSyrup = Boolean(selected.sugar_syrup);
+          let prepImg = hasMilk ? '../assets/dishes/takeaway_sua_dau.png' : hasSyrup ? '../assets/prep/prep_drink_step2_syrup.png' : '../assets/prep/prep_drink_step1_ice.png';
+          return `
+            <div class="prep-assembly prep-assembly-dish">
+              <img src="${prepImg}" alt="Ly sữa đậu đá đang pha" class="prep-art-drink">
             </div>
           `;
         }
