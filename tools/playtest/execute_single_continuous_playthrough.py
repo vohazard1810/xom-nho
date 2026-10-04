@@ -69,6 +69,8 @@ async def run_playthrough():
                 shop.service = s.service;
                 shop.dayCustomers = s.dayCustomers;
                 shop.servedOrders = s.servedOrders;
+                shop.customerIndex = s.customerIndex;
+                shop.spawnedIndex = s.spawnedIndex;
                 shop.cash = s.cash;
                 shop.revenue = s.revenue;
                 shop.clock = s.clock;
@@ -128,6 +130,8 @@ async def run_playthrough():
             if (s.empire && s.empire.shops && s.empire.shops[s.empire.activeShopId]) {
                 s.empire.shops[s.empire.activeShopId].state.clock = 7;
                 s.empire.shops[s.empire.activeShopId].state.service.phase = 'READY';
+                s.empire.shops[s.empire.activeShopId].state.spawnedIndex = 3;
+                s.empire.shops[s.empire.activeShopId].state.customerIndex = 0;
             }
             window.__xomNho.render();
         }""")

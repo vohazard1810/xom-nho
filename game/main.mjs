@@ -593,11 +593,11 @@ function renderShop() {
     <div class="cooking-board ${cooking?'is-cooking':''}" aria-label="Bàn làm món">
       ${ready ? `
         <div class="finished-dish-wrap">
-          <img class="finished-dish dish-${c.recipe}" src="${DISH_IMAGES[c.recipe]}" alt="${escapeHtml(title)} đã làm xong">
+          <img class="finished-dish dish-${c.recipe}" src="${c?.recipe === 'BANH_MI_CHA' ? '../assets/prep/prep_banhmi_step3_full.png' : c?.recipe === 'TRA_TAC' ? '../assets/prep/prep_drink_step3_full.png' : DISH_IMAGES[c.recipe]}" alt="${escapeHtml(title)} đã làm xong">
         </div>
       ` : handoff ? `
         <div class="prep-handoff-state">
-          <span>${blocked ? 'Khách không mua được món' : '✓ Đã giao lên quầy cho khách'}</span>
+          <span>${blocked ? 'Khách không mua được món' : '✓ Đã giao lên quầy'}</span>
         </div>
       ` : Object.values(selected).some(Boolean) ? (() => {
         if (c?.recipe === 'BANH_MI_CHA' || c?.recipe === 'BANH_MI_TRUNG') {
@@ -658,14 +658,14 @@ function renderShop() {
         `;
       })() : `
         <div class="prep-idle-state">
-          <span class="prep-board-hint">${c ? 'Chọn nguyên liệu bên dưới để làm món' : 'Sẵn sàng đón khách'}</span>
+          <span class="prep-board-hint">BÀN CHẾ BIẾN</span>
         </div>
       `}
       ${cooking ? `<div class="cook-progress"><i style="width:${autoPrepState?.progress||0}%"></i></div>` : ''}
     </div>
     <div class="ingredient-tray">${visibleIngredients.map(id=>{const meta=ingredientMeta[id],q=selected[id]||0,n=state.stock[id]||0,req=needs[id]||0,isDone=req>0&&q>=req;return `<button class="ingredient-button ${q?'picked':''} ${isDone?'quota-met':''}" data-type="ADD_INGREDIENT" data-payload="${id}" ${!canSelect||n===0||isDone?'disabled':''} aria-label="Chọn ${meta.name}, còn ${n}">${meta.img?`<img src="${meta.img}" alt="">`:'<span class="egg-placeholder">Trứng</span>'}<b>${meta.name}</b><small class="ing-stock-line">${q?`<b class="ing-picked">+${q}</b> · `:''}Còn ${n}</small></button>`}).join('')}</div>
     <div class="cook-actions"><button class="undo-button" data-type="UNDO_INGREDIENTS" ${!canSelect||!Object.values(selected).some(Boolean)?'disabled':''} aria-label="Bỏ nguyên liệu đã chọn">Làm lại</button><button class="cook-main ${ready?'ready':''}" data-type="${ready?'SERVE':'COOK'}" ${state.manualPaused||state.isPaused||!(ready||cookingComplete(state))?'disabled':''}>${ready?'Giao khách →':cooking?'Đang làm món…':canSelect?'Làm món':'Đón khách'}</button><button class="boost-button" data-type="FOCUS_BOOST" ${state.isPaused||state.manualPaused||state.focusBoost.active||state.focusBoost.cooldownSeconds>0?'disabled':''} aria-label="Tập trung làm món nhanh gấp đôi">${state.focusBoost.active?'x2':state.focusBoost.cooldownSeconds>0?Math.ceil(state.focusBoost.cooldownSeconds)+'s':'Nhanh x2'}</button></div>
-    <div class="play-status" role="status">${escapeHtml(message || (state.manualPaused?'Bấm ▶ để tiếp tục':state.currentDay===1&&!state.cookingTutorialDone?'Chọn theo công thức → Làm món → Giao khách':state.newsTicker?.text||'Bạn làm món · khách trong hàng vẫn đang chờ'))}</div>
+    <div class="play-status" role="status">${escapeHtml(message || (state.manualPaused?'Bấm ▶ để tiếp tục':''))}</div>
     <details id="play-options" class="play-options" ${playOptionsOpen?'open':''}><summary>Quản lý ca · ${Object.keys(state.empire.shops).length} quán</summary><div><button data-type="OPEN_MAP">Xem map · chuyển quán vào khoảng nghỉ</button><button data-type="SPEED" data-payload="${state.speed===1?2:1}">Nhịp giờ x${state.speed} · đổi</button>${state.staffHiredToday?`<button data-type="TOGGLE_ASSIST">Nhờ nhân viên tự làm: ${state.assistEnabled?'Bật':'Tắt'}</button>`:'<small>Quán có quản lý sẽ tự bán khi bạn vắng.</small>'}<button data-type="CLOSE">Đóng quán này sớm</button></div></details>
     ${state.activeDecision?`<div class="decision-modal-backdrop"><div class="decision-card"><h3>${escapeHtml(state.activeDecision.title)}</h3><p>${escapeHtml(state.activeDecision.message)}</p>${state.activeDecision.options.map(o=>`<button class="btn-decision" data-type="DECIDE" data-payload="${o.key}" ${o.key==='yes'&&((state.activeDecision.id==='EXTRA_CHA'&&state.stock.cha<2)||(state.activeDecision.id==='ROADWORK_SIGN'&&state.cash<3000))?'disabled':''}>${o.label}</button>`).join('')}<small>Đồng hồ dừng trong lúc bạn chọn.</small></div></div>`:''}
   </div>`;
