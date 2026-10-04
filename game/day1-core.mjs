@@ -1,6 +1,7 @@
 // Day 1 Vertical Slice v0.7 — Idle Management State Machine
 // Pure functional state machine. Every action returns a new cloned state or {state, error}.
 import { extraIngredient, extraRecipe, UPGRADE_CATALOG, FRESH_INGREDIENTS, dayConfig, rosterForDay } from './day-content.mjs';
+import {identifyRoster,populationSeed,migratePopulation} from './customer-population.mjs';
 export { UPGRADE_CATALOG, dayConfig } from './day-content.mjs';
 
 export const ingredients = Object.freeze({
@@ -141,8 +142,8 @@ export const fixtureCustomers = Object.freeze([
 export const SAVE_KEY = 'xom_nho_v07_idle_save_v1';
 export const BIKE_CAPACITY = 20;
 
-export function fresh() {
-  return {
+export function fresh(seed = populationSeed()) {
+  const state = {
     revision: 0,
     shopName: '',
     currentDay: 1,
@@ -221,6 +222,9 @@ export function fresh() {
     teasedRecipeIds: ['BANH_MI_TRUNG'],
     facts: {}
   };
+  state.population = {version:1,seed,people:{}};
+  state.dayCustomers = identifyRoster(state,state.dayCustomers);
+  return state;
 }
 
 export const totalBasketUnits = basket => Object.values(basket).reduce((sum, q) => sum + q, 0);
@@ -385,7 +389,7 @@ export function action(state, type, payload) {
     }
     if (payload === 'seating' || payload === 'canopy') {
       const extras = s.dayCustomers.filter(c => c.isOnline || c.id.startsWith('staff_peak_'));
-      s.dayCustomers = [...rosterForDay(s.currentDay, s.rating ?? 3, s.upgrades.seating, s.upgrades.canopy, s.knownRecipeIds), ...extras].sort((a, b) => a.arrivalMinute - b.arrivalMinute);
+      s.dayCustomers = [...identifyRoster(s,rosterForDay(s.currentDay, s.rating ?? 3, s.upgrades.seating, s.upgrades.canopy, s.knownRecipeIds)), ...extras].sort((a, b) => a.arrivalMinute - b.arrivalMinute);
     }
   } else if (type === 'HIRE_STAFF') {
     if (s.screen !== 'XOM_OI' || s.currentDay < 8 || s.staffHiredToday || s.cash < 8000) return fail('Từ ngày 8 có thể thuê người phụ với lương 8.000đ/ca.');
@@ -582,7 +586,7 @@ export function action(state, type, payload) {
             s.isPaused = true;
             s.activeDecision = {
               id: 'EXTRA_CHA',
-              title: 'Bé Tí Xin Thêm Chả',
+              title: `${s.activeCustomer.name} xin thêm chả`,
               message: 'Chú ơi cho con ổ Bánh mì chả, chú cho con xin thêm chả nghen!',
               options: [
                 { key: 'yes', label: '👍 Thêm chả cho con (+1 chả)', extraCost: 5000 },
@@ -652,7 +656,7 @@ export function action(state, type, payload) {
         s.isPaused = true;
         s.activeDecision = {
           id: 'EXTRA_CHA',
-          title: 'Bé Tí Xin Thêm Chả',
+          title: `${s.activeCustomer.name} xin thêm chả`,
           message: 'Chú ơi cho con ổ Bánh mì chả, chú cho con xin thêm chả nghen!',
           options: [
             { key: 'yes', label: '👍 Thêm chả cho con (+1 chả)', extraCost: 5000 },
@@ -687,7 +691,7 @@ export function action(state, type, payload) {
     if (s.screen !== 'SHOP' || !s.activeDecision || !s.isPaused) return fail('Không có quyết định đang chờ.');
     if (!['yes', 'no'].includes(payload?.choice)) return fail('Lựa chọn không hợp lệ.');
     if (s.activeDecision.id === 'EXTRA_CHA') {
-      if (payload.choice === 'yes' && (s.stock.cha || 0) < 2) return fail('Không đủ 2 phần chả để thêm cho Bé Tí. Chọn phần thường hoặc nhập nhiều hơn ngày sau.');
+      if (payload.choice === 'yes' && (s.stock.cha || 0) < 2) return fail('Không đủ 2 phần chả để thêm. Chọn phần thường hoặc nhập nhiều hơn ngày sau.');
       s.extraCha = payload.choice === 'yes';
       s.activeDecision = null;
       s.isPaused = false;
@@ -840,7 +844,7 @@ export function action(state, type, payload) {
         s.isPaused = true;
         s.activeDecision = {
           id: 'EXTRA_CHA',
-          title: 'Bé Tí Xin Thêm Chả',
+          title: `${s.activeCustomer.name} xin thêm chả`,
           message: 'Chú ơi cho con ổ Bánh mì chả, chú cho con xin thêm chả nghen!',
           options: [
             { key: 'yes', label: '👍 Thêm chả cho con (+1 chả)', extraCost: 5000 },
@@ -933,7 +937,7 @@ export function action(state, type, payload) {
     s.basket = Object.fromEntries(Object.keys(ingredients).map(k => [k, 0]));
     s.dayEvent = dayConfig(s.currentDay);
     s.marketPrices = Object.fromEntries(Object.entries(ingredients).map(([id, item]) => [id, s.dayEvent.marketPrices?.[id] ?? item.price]));
-    s.dayCustomers = rosterForDay(s.currentDay, s.rating ?? 3, s.upgrades.seating, s.upgrades.canopy, s.knownRecipeIds);
+    s.dayCustomers = identifyRoster(s,rosterForDay(s.currentDay, s.rating ?? 3, s.upgrades.seating, s.upgrades.canopy, s.knownRecipeIds));
     s.openingTime = 'ontime_8am';
     s.screen = 'XOM_OI';
   } else {
@@ -1084,6 +1088,7 @@ export function decode(raw) {
     s.onlineFees ||= 0;
     s.eventDecisionSeen ||= false;
     s.lastDayReport ||= s.dayHistory.at(-1) || null;
+    migratePopulation(s);
     return s;
   } catch {
     return null;

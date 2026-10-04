@@ -161,13 +161,13 @@ function getCustomerEmotion(cust) {
 
 function getCustomerSprite(c, pose = 'ORDER') {
   if (!c) return '';
-  if (c.id === 'be_ti') {
+  if ((c.visualVariantId || c.id) === 'be_ti') {
     if (pose === 'RECEIVE') return ASSET_BASE + 'order_four_frame_pilot/actor_crop/order_02_raise_approved.png';
     if (pose === 'REACT') return ASSET_BASE + 'order_four_frame_pilot/actor_crop/order_04_expectant.png';
     return BETI_SPRITES.order[betiFrameIdx % 4];
   }
-  if (c.id === 'co_chin') return CO_CHIN_IMG;
-  if (c.id === 'anh_tung') return ANH_TUNG_IMG;
+  if ((c.visualVariantId || c.id) === 'co_chin') return CO_CHIN_IMG;
+  if ((c.visualVariantId || c.id) === 'anh_tung') return ANH_TUNG_IMG;
   return WALKIN_SPRITES[c.visualVariantId] || WALKIN_SPRITES[c.archetype] || WALKIN_SPRITES[c.id] || WALKIN_SPRITES.walkin_variant_0;
 }
 
@@ -201,9 +201,9 @@ function getCharacterStageCoords(c, role) {
   const isTeen = c.archetype === 'teen' || c.id === 'walkin_student' || c.archetype === 'student';
   
   let spec;
-  if (c.id === 'anh_tung') spec = SPRITE_METRICS.anh_tung;
-  else if (c.id === 'co_chin') spec = SPRITE_METRICS.co_chin;
-  else if (c.id === 'be_ti') spec = role === 'COUNTER' ? SPRITE_METRICS.be_ti.order : SPRITE_METRICS.be_ti.queue;
+  if ((c.visualVariantId || c.id) === 'anh_tung') spec = SPRITE_METRICS.anh_tung;
+  else if ((c.visualVariantId || c.id) === 'co_chin') spec = SPRITE_METRICS.co_chin;
+  else if ((c.visualVariantId || c.id) === 'be_ti') spec = role === 'COUNTER' ? SPRITE_METRICS.be_ti.order : SPRITE_METRICS.be_ti.queue;
   else if (c.id === 'walkin_student' || c.archetype === 'teen' || c.archetype === 'student' || c.visualVariantId === 'walkin_student') spec = SPRITE_METRICS.walkin_student;
   else if (c.id === 'walkin_office' || c.archetype === 'office' || c.visualVariantId === 'walkin_office') spec = SPRITE_METRICS.walkin_office;
   else if (c.id === 'walkin_driver' || c.archetype === 'driver' || c.visualVariantId === 'walkin_driver') spec = SPRITE_METRICS.walkin_driver;
@@ -337,7 +337,7 @@ function renderHome() {
 }
 
 function renderXomOi() {
-  const forecast=state.currentDay===1?'Trời nóng · chuẩn bị thêm thức uống. Bé Tí sẽ ghé xin thêm chả.':state.dayEvent.forecast;
+  const forecast=state.currentDay===1?'Trời nóng · chuẩn bị thêm thức uống. Khách nhí sẽ ghé xin thêm chả.':state.dayEvent.forecast;
   return `<header class="top-nav"><b>${shopTitle()}</b><span class="wallet-badge">${money(state.cash)}</span></header><section class="morning-dashboard"><div class="morning-hero"><span>Ngày ${state.currentDay}</span><h2>Mở quán thôi!</h2></div>
     <div class="day-stats"><div><b>${state.dayCustomers.length}</b><small>Khách dự kiến</small></div><div><b>${state.upgrades.vehicleCapacity}</b><small>Sức chở</small></div><div><b>${state.rating?.toFixed(1)||'—'} ★</b><small>Sao quán</small></div></div>
     <div class="forecast-card"><b>Tin xóm hôm nay</b><p>${escapeHtml(forecast)}</p></div>
@@ -574,7 +574,7 @@ function renderShop() {
           <div class="order-strip-content">
             <div class="order-strip-title-row">
               <span class="ticket-dish-name">${escapeHtml(title)}</span>
-              <span class="ticket-qty-pill">×1</span>
+              <span class="ticket-qty-pill">×1</span>${c.isRegular?'<span title="Đã phục vụ ít nhất 3 lần">★ Khách quen</span>':''}
               ${c.id === 'be_ti' && state.extraCha === true ? `<span class="ticket-special-badge">⭐ Thêm chả</span>` : ''}
               ${c.temperament === 'RUSH' ? `<span class="ticket-rush-tag">⚡ Vội</span>` : ''}
             </div>

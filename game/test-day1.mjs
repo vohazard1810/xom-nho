@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { fresh, action, encode, decode, calculateLedger, fixtureCustomers } from './day1-core.mjs';
 
 function run({ price = 25000, disabled = false, late = false, reloadAt = -1 } = {}) {
-  let s = fresh();
+  let s = fresh(12345);
   const apply = (type, payload) => {
     const result = action(s, type, payload);
     assert.equal(result.error, undefined, `${type}: ${result.error}`);
@@ -46,7 +46,7 @@ function run({ price = 25000, disabled = false, late = false, reloadAt = -1 } = 
 }
 
 function prepared() {
-  let s = fresh();
+  let s = fresh(12345);
   for (const [type, payload] of [['SET_SHOP_NAME', 'Quán Xóm Nhỏ'], ['NAVIGATE'], ['NAVIGATE'], ['BUNDLE_DAY1'], ['BUY']]) {
     const r = action(s, type, payload);
     assert.equal(r.error, undefined);
@@ -67,7 +67,7 @@ assert.ok(disabled.s.missedOrders.some(o => o.reason === 'MENU_DISABLED'));
 assert.notEqual(disabled.ledger.finalCashInDrawer, baseline.ledger.finalCashInDrawer);
 const late = run({ late: true });
 assert.equal(late.s.missedOrders.filter(o => o.reason === 'MISSED_LATE_OPENING').length, 2);
-assert.deepEqual(late.s.servedOrders.map(o => o.name), ['Bé Tí', 'Cô Chín', 'Anh Tùng', 'Bác Năm', 'Cô Bảy', 'Chú Tư']);
+assert.deepEqual(late.s.servedOrders.map(o => o.customerId), ['be_ti', 'co_chin', 'anh_tung', 'bac_nam', 'co_bay', 'chu_tu']);
 assert.notDeepEqual(late.s.servedOrders.map(o => o.name), baseline.s.servedOrders.map(o => o.name));
 
 // The setup gates cannot be bypassed through generic navigation.

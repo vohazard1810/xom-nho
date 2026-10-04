@@ -1,3 +1,4 @@
+import {identifyRoster,migratePopulation} from './customer-population.mjs';
 import {fresh, calculateLedger} from './day1-core.mjs';
 import {dayConfig, rosterForDay, WALK_IN_ARCHETYPES} from './day-content.mjs';
 import {advanceShift, cookingAction} from './shift-engine.mjs';
@@ -39,7 +40,10 @@ function keeperTraffic(e,id,s){
  s.dayCustomers.sort((a,b)=>a.arrivalMinute-b.arrivalMinute);
 }
 export function ensureEmpire(input){
- if(input.empire?.version===1)return input;
+ if(input.empire?.version===1){
+  if(input.population&&Object.values(input.empire.shops).every(x=>x.state.population))return input;
+  const upgraded=structuredClone(input);migratePopulation(upgraded);for(const shop of Object.values(upgraded.empire.shops))migratePopulation(shop.state);return upgraded;
+ }
  const s=structuredClone(input);s.legacyHelperToday=Boolean(input.staffHiredToday);s.empire={version:1,revisionCounter:input.revision,activeShopId:'home',shops:{home:{id:'home',state:strip(s),ready:false}},employees:[],nextEmployeeId:1,mapOpen:false,staffOpen:false,shiftRunning:input.screen==='SHOP',worldClock:input.clock,openingCash:input.dayStartingCash,report:null,history:[],notifications:[]};return s;
 }
 function pack(e, s, cash){s.cash=cash;e.revisionCounter=Math.max(e.revisionCounter||0,s.revision)+1;s.revision=e.revisionCounter;e.shops[e.activeShopId].state=strip(s);const out=strip(s);out.cash=cash;out.empire=e;if(e.shiftRunning){out.screen='SHOP';out.clock=e.worldClock;out.speed=e.speed||s.speed||1;}return out}
@@ -55,9 +59,9 @@ function employeeEffects(e,id,s,away=false){
 }
 function roster(id,s){
  const list=rosterForDay(s.currentDay,s.rating??3,s.upgrades.seating,s.upgrades.canopy,s.knownRecipeIds)||s.dayCustomers;
- if(id==='home')return list;
+ if(id==='home')return identifyRoster(s,list,id);
  const arch=WALK_IN_ARCHETYPES[id==='school'?'teen':'office'];
- return list.map((c,i)=>({...c,id:`${id}_${c.id}`,personId:`${id}_${arch.archetype}_${i}`,archetype:arch.archetype,visualVariantId:arch.visualVariantId,name:arch.names[(s.currentDay+i)%arch.names.length],temperament:id==='office'&&i%3===0?'RUSH':c.temperament,recipe:id==='school'?(i%2?'TRA_TAC':'BANH_MI_CHA'):(i%3===0?'SUA_DAU_DA':i%3===1?'BANH_MI_CHA':'TRA_TAC'),dialogue:arch.quotes[id==='office'?'RUSH':'NORMAL']}));
+ return identifyRoster(s,list.map((c,i)=>({...c,id:`${id}_${c.id}`,personId:`${id}_${arch.archetype}_${i}`,archetype:arch.archetype,visualVariantId:arch.visualVariantId,name:arch.names[(s.currentDay+i)%arch.names.length],temperament:id==='office'&&i%3===0?'RUSH':c.temperament,recipe:id==='school'?(i%2?'TRA_TAC':'BANH_MI_CHA'):(i%3===0?'SUA_DAU_DA':i%3===1?'BANH_MI_CHA':'TRA_TAC'),dialogue:arch.quotes[id==='office'?'RUSH':'NORMAL']})),id);
 }
 const payloadThreshold=id=>id==='school'?30:100;
 export function openingEligibility(input,id){const s=ensureEmpire(input),e=s.empire,loc=LOCATIONS[id];if(!loc||e.shops[id])return 'Đã có quán này.';const totalServed=Object.values(e.shops).reduce((n,x)=>n+(x.state.lifetimeServed||0),0);const achievement=payloadThreshold(id);if(s.currentDay<loc.unlockDay && !(s.currentDay>=4&&totalServed>=achievement))return `Mở ngày ${loc.unlockDay} hoặc phục vụ ${achievement} đơn từ ngày 4.`;const owned=Object.values(e.shops);if(owned.some(x=>(x.state.rating??0)<4))return 'Mỗi quán đang có cần đạt 4 sao.';if(owned.some(x=>!liveEmployees(e,x.id).some(p=>p.role==='manager')))return 'Thuê quản lý cho quán hiện tại trước khi mở rộng.';if(s.cash<loc.deposit+loc.reserve)return `Cần ${loc.deposit.toLocaleString('vi-VN')}đ đầu tư và giữ ${loc.reserve.toLocaleString('vi-VN')}đ vốn dự phòng.`;return null}
@@ -84,7 +88,7 @@ export function empireAction(input,type,payload){
  }
  if(type==='OPEN_LOCATION'){
   if(!safe)return fail('Thuê mặt bằng trước ca.');const reason=openingEligibility(root,payload);if(reason)return fail(reason);
-  const loc=LOCATIONS[payload],n=fresh();n.shopName=loc.name;n.currentDay=root.currentDay;n.dayStartingCash=root.cash;n.cash=root.cash-loc.deposit;n.screen='XOM_OI';n.cookingTutorialDone=true;n.rating=3;n.upgrades.vehicleCapacity=30;n.upgrades.bike_basket=1;n.upgrades.seating=1;n.upgrades.seatingLevel=1;n.dayEvent=dayConfig(n.currentDay);n.marketPrices=structuredClone(s.marketPrices);n.dayCustomers=roster(payload,n);n.menu.SUA_DAU_DA.enabled=payload!=='school';
+  const loc=LOCATIONS[payload],n=fresh();n.shopName=loc.name;n.currentDay=root.currentDay;n.dayStartingCash=root.cash;n.cash=root.cash-loc.deposit;n.screen='XOM_OI';n.cookingTutorialDone=true;n.rating=3;n.upgrades.vehicleCapacity=30;n.upgrades.bike_basket=1;n.upgrades.seating=1;n.upgrades.seatingLevel=1;n.dayEvent=dayConfig(n.currentDay);n.marketPrices=structuredClone(s.marketPrices);n.population={version:1,seed:root.population?.seed??0,people:{}};n.dayCustomers=roster(payload,n);n.menu.SUA_DAU_DA.enabled=payload!=='school';
   s.cash=n.cash;s.upgradeSpent+=loc.deposit;e.shops[payload]={id:payload,state:n,ready:false};e.mapOpen=true;e.mapFocusId=payload;return{state:pack(e,s,n.cash)};
  }
  if(type.startsWith('STAFF_')){

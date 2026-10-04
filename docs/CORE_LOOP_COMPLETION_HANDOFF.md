@@ -19,4 +19,12 @@ Keep current art. The only UI additions are a repeat-basket button and updated m
 
 ## Remaining limits
 
-Identity diversity is still the existing deterministic roster, not a fully generated persistent population. No new recipe variants are introduced. Browser-based visual verification was unavailable in this environment because the installed Playwright package has no Chromium executable; Node UI tests use DOM stubs and are not a physical-device test.
+No new recipe variants are introduced. Browser-based visual verification was unavailable in this environment because the installed Playwright package has no Chromium executable; Node UI tests use DOM stubs and are not a physical-device test.
+
+## Persistent customer population update
+
+New games store a population seed. Names, visual archetypes, temperament and favorite recipe belong to persistent person IDs, independently of transaction IDs. Existing saves migrate without replacing the active ticket or queue. Each district has its own population; repeat customers keep their identity. Three successful orders mark a customer as familiar. After the introduction, some orders use the saved favorite recipe when unlocked. Day 1 schedule, recipe quantities and financial baseline remain unchanged.
+
+All seven existing visual templates can represent generated identities, including the child, neighbor and professional templates. Female student and office templates use matching names. No new character art is required from Antigravity. The familiar badge may need a small visual pass; browser screenshots have not been verified here.
+
+Tests: customer-population covers seeded reproducibility, differing runs, persistent favorites, familiar threshold, twenty distinct district identities and legacy save migration. Day 1 ledger and existing manual cooking/portfolio regressions are retained. This update does not change shift duration or declare physical-device acceptance.
