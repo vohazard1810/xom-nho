@@ -77,7 +77,7 @@ export function empireAction(input,type,payload){
  if(type==='SWITCH_SHOP'){
   if(!e.shops[payload])return fail('Quán chưa mở.');
   if(e.shiftRunning&&e.shops[payload].closedToday)return fail('Quán này nghỉ hôm nay; chọn quán đang mở.');
-  if(e.shiftRunning&&(root.activeDecision||root.activeCustomer||root.waitingQueue.length))return fail('Giao xong các đơn đang chờ rồi chuyển quán vào khoảng nghỉ.');
+  if(e.shiftRunning&&root.activeDecision)return fail('Chọn quyết định đang mở trước khi chuyển quán.');
   if(e.shiftRunning&&!employeeEffects(e,e.activeShopId,s,true)&&s.screen==='SHOP')return fail('Quán đang bán cần quản lý trước khi bạn rời đi.');
   e.shops[e.activeShopId].state=s;e.activeShopId=payload;e.mapOpen=false;e.staffOpen=false;
   const dest=strip(e.shops[payload].state);if(e.shiftRunning){dest.assistEnabled=false;dest.manualPaused=false;employeeEffects(e,payload,dest,false)}return{state:pack(e,dest,root.cash)};
@@ -136,7 +136,7 @@ export function empireAction(input,type,payload){
  if(type==='SET_SPEED')e.speed=s.speed;
  if(type==='NEXT_DAY'){e.shops[e.activeShopId].ready=false;e.openingCash=s.cash;e.shiftRunning=false;e.report=null;}
  if(type==='CLOSE'&&e.shiftRunning){e.shops[e.activeShopId].state=s;if(Object.values(e.shops).every(x=>x.state.screen==='DAY_RESULT'))return{state:finishDay(e,s.cash)};}
- if(type==='BASKET'||type==='BUY'||type==='CONFIG_MENU'||type==='SET_OPENING_TIME')e.shops[e.activeShopId].ready=false;
+ if(type==='REPEAT_BASKET'||type==='SUGGEST_BASKET'||type==='BASKET'||type==='BUY'||type==='CONFIG_MENU'||type==='SET_OPENING_TIME')e.shops[e.activeShopId].ready=false;
  return{state:pack(e,s,s.cash)};
 }
 function shopReport(e,x){const s=x.state,l=calculateLedger(s),workers=e.employees.filter(p=>p.shopId===x.id);const reasons=Object.fromEntries(Object.entries(l.missedByReason).filter(([,a])=>a.length).map(([k,a])=>[k,a.length]));const advice=reasons.OUT_OF_STOCK?'Tăng lượng nhập hoặc sức chở; không phải lỗi nhân viên.':reasons.PRICE_TOO_HIGH?'Thử hạ giá món bị từ chối.':reasons.WAIT_TOO_LONG?'Đào tạo phụ bếp, bổ sung người hoặc chủ hỗ trợ giờ đông.':l.resultAfterSpoilageAndExpenses<0?'Chi phí đang cao: kiểm tra lương và lượng hàng hỏng.':'Quán vận hành ổn; giữ đủ hàng và vốn dự phòng.';return{id:x.id,name:LOCATIONS[x.id].name,served:l.servedCount,missed:l.missedCount,revenue:l.totalSalesRevenue,cogs:l.cogsSoldItemsOnly,gross:l.grossOperatingProfit,profit:l.resultAfterSpoilageAndExpenses,spent:l.spentOnMorningStock,ops:l.operatingExpenses,investment:l.upgradeOutlay,spoilage:l.spoilageLoss,fees:l.onlineFees,tips:l.tipsCollected,sideIncome:l.sideJobIncome,rating:s.rating,reasons,advice,feedback:s.lastDayReport?.feedback.slice(0,3)||[],employees:workers.map(p=>({id:p.id,name:p.name,role:p.role,skill:p.skill,fatigue:p.fatigue,mood:p.mood,lastShift:p.lastShift,advice:staffCondition(p).advice}))}}
@@ -162,13 +162,15 @@ export function advanceEmpire(input,elapsedMs){
  while(left>0&&e.shiftRunning){const ms=Math.min(100,left);left-=ms;
   const active=e.shops[e.activeShopId].state;if(active.isPaused||active.manualPaused)break;
   const rate=Object.values(e.shops).some(x=>x.state.activeCustomer||x.state.waitingQueue.length)?2:18;
-  const beforeClock=e.worldClock; e.worldClock=Math.min(360,e.worldClock+ms/1000*rate);
+  const tutorial=active.currentDay===1&&!active.cookingTutorialDone&&active.activeCustomer?.status==='ARRIVED';
+  const effectiveRate=tutorial?0:rate;
+  const beforeClock=e.worldClock; e.worldClock=Math.min(360,e.worldClock+ms/1000*effectiveRate);
   for(const x of Object.values(e.shops)){
    let s=strip(x.state);if(s.screen!=='SHOP'||beforeClock<s.clock-.0001)continue;
    s.cash=cash;s.clock=beforeClock;s.speed=1;
    employeeEffects(e,x.id,s,x.id!==e.activeShopId);
    if(x.id!==e.activeShopId&&s.activeDecision){const r=cookingAction(s,'DECIDE',{choice:'no'});s=r.state;e.notifications.push(`${LOCATIONS[x.id].name}: quản lý giữ phương án thường.`)}
-   s=advanceShift(s,ms,{minuteRate:rate});cash=s.cash;x.state=s;
+   s=advanceShift(s,ms,{minuteRate:effectiveRate});cash=s.cash;x.state=s;
   }
   if(e.worldClock>=360){for(const x of Object.values(e.shops))if(x.state.screen==='SHOP'){x.state=cookingAction({...x.state,cash},'CLOSE').state;cash=x.state.cash}return finishDay(e,cash)}
   if(e.shops[e.activeShopId].state.isPaused)break;

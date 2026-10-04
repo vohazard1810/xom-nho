@@ -344,6 +344,12 @@ export function action(state, type, payload) {
   } else if (type === 'SUGGEST_BASKET') {
     if (s.screen !== 'MARKET') return fail('Chỉ chuẩn bị giỏ hàng ở chợ.');
     s.basket = suggestBasket(s);
+  } else if (type === 'REPEAT_BASKET') {
+    if (s.screen !== 'MARKET' || !s.lastPurchaseBasket) return fail('Chưa có giỏ nhập trước để dùng lại.');
+    const basket = Object.fromEntries(Object.keys(ingredients).map(id => [id, s.lastPurchaseBasket[id] || 0]));
+    if (totalBasketUnits(basket) > s.upgrades.vehicleCapacity) return fail('Giỏ trước vượt sức chở hiện tại; hãy chọn giỏ gợi ý hoặc chỉnh số lượng.');
+    if (totalBasketCost(basket, s.marketPrices) > s.cash) return fail('Giá hôm nay vượt tiền hiện có; hãy chọn giỏ gợi ý hoặc nhập ít hơn.');
+    s.basket = basket;
   } else if (type === 'BUY') {
     if (s.screen !== 'MARKET') return fail('Chỉ mua hàng ở chợ.');
     if (totalBasketUnits(s.basket) > s.upgrades.vehicleCapacity) return fail('Giỏ hàng vượt sức chở hiện tại; giảm lượng hàng trước khi mua.');
@@ -351,6 +357,7 @@ export function action(state, type, payload) {
     if (cost > s.cash) return fail('Không đủ tiền mặt để mua số hàng này.');
     if (totalBasketUnits(s.basket) === 0 && s.currentDay === 1) return fail('Giỏ hàng đang trống.');
     
+    s.lastPurchaseBasket = structuredClone(s.basket);
     // Add to stock
     for (const [k, qty] of Object.entries(s.basket)) {
       s.stock[k] = (s.stock[k] || 0) + qty;

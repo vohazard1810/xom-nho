@@ -259,7 +259,7 @@ function scheduleNextDay() {
   state.resultRemainingMs ??= 12000;
   resultTimer = setInterval(() => {
     if (state.screen !== 'DAY_RESULT') { clearInterval(resultTimer); resultTimer = null; return; }
-    if (resultDetailsOpen || document.hidden) return;
+    if (resultDetailsOpen || state.empire?.mapOpen || state.empire?.staffOpen || document.hidden) return;
     state.resultRemainingMs = Math.max(0, state.resultRemainingMs - 250);
     state.revision += 1;
     persist();
@@ -396,6 +396,7 @@ function renderMarket() {
         </button>
       </div>` : `<div class="bundle-quick-row"><button class="btn-bundle" data-type="SUGGEST_BASKET">Chọn giỏ gợi ý hôm nay<small>Theo khách dự kiến, món đã bật, tiền và sức chở. Bạn có thể chỉnh lại.</small></button></div><p class="market-note">Ngày ${state.currentDay}: chọn số lượng dựa trên lượng khách dự kiến. Hàng khô còn từ hôm qua: ${Object.entries(state.stock).filter(([id, qty]) => qty > 0).map(([id, qty]) => `${ingredientMeta[id]?.name}: ${qty}`).join(', ') || 'không có'}.</p>`}
 
+      ${state.lastPurchaseBasket ? '<button class="btn-secondary" data-type="REPEAT_BASKET">Dùng lại giỏ lần trước · tính theo giá hôm nay</button>' : ''}
       <div class="market-list">
         ${Object.entries(ingredients).filter(([id]) => state.currentDay > 1 || id !== 'egg').map(([id, item]) => {
           const qty = state.basket[id] || 0;
@@ -666,7 +667,7 @@ function renderShop() {
     <div class="ingredient-tray">${visibleIngredients.map(id=>{const meta=ingredientMeta[id],q=selected[id]||0,n=state.stock[id]||0,req=needs[id]||0,isDone=req>0&&q>=req;return `<button class="ingredient-button ${q?'picked':''} ${isDone?'quota-met':''}" data-type="ADD_INGREDIENT" data-payload="${id}" ${!canSelect||n===0||isDone?'disabled':''} aria-label="Chọn ${meta.name}, còn ${n}">${meta.img?`<img src="${meta.img}" alt="">`:'<span class="egg-placeholder">Trứng</span>'}<b>${meta.name}</b><small class="ing-stock-line">${q?`<b class="ing-picked">+${q}</b> · `:''}Còn ${n}</small></button>`}).join('')}</div>
     <div class="cook-actions"><button class="undo-button" data-type="UNDO_INGREDIENTS" ${!canSelect||!Object.values(selected).some(Boolean)?'disabled':''} aria-label="Bỏ nguyên liệu đã chọn">Làm lại</button><button class="cook-main ${ready?'ready':''}" data-type="${ready?'SERVE':'COOK'}" ${state.manualPaused||state.isPaused||!(ready||cookingComplete(state))?'disabled':''}>${ready?'Giao khách →':cooking?'Đang làm món…':canSelect?'Làm món':'Đón khách'}</button><button class="boost-button" data-type="FOCUS_BOOST" ${state.isPaused||state.manualPaused||state.focusBoost.active||state.focusBoost.cooldownSeconds>0?'disabled':''} aria-label="Tập trung làm món nhanh gấp đôi">${state.focusBoost.active?'x2':state.focusBoost.cooldownSeconds>0?Math.ceil(state.focusBoost.cooldownSeconds)+'s':'Nhanh x2'}</button></div>
     <div class="play-status" role="status">${escapeHtml(message || (state.manualPaused?'Bấm ▶ để tiếp tục':''))}</div>
-    <details id="play-options" class="play-options" ${playOptionsOpen?'open':''}><summary>Quản lý ca · ${Object.keys(state.empire.shops).length} quán</summary><div><button data-type="OPEN_MAP">Xem map · chuyển quán vào khoảng nghỉ</button><button data-type="SPEED" data-payload="${state.speed===1?2:1}">Nhịp giờ x${state.speed} · đổi</button>${state.staffHiredToday?`<button data-type="TOGGLE_ASSIST">Nhờ nhân viên tự làm: ${state.assistEnabled?'Bật':'Tắt'}</button>`:'<small>Quán có quản lý sẽ tự bán khi bạn vắng.</small>'}<button data-type="CLOSE">Đóng quán này sớm</button></div></details>
+    <details id="play-options" class="play-options" ${playOptionsOpen?'open':''}><summary>Quản lý ca · ${Object.keys(state.empire.shops).length} quán</summary><div><button data-type="OPEN_MAP">Bản đồ · đổi quán (cần quản lý)</button><button data-type="SPEED" data-payload="${state.speed===1?2:1}">Nhịp giờ x${state.speed} · đổi</button>${state.staffHiredToday?`<button data-type="TOGGLE_ASSIST">Nhờ nhân viên tự làm: ${state.assistEnabled?'Bật':'Tắt'}</button>`:'<small>Quán có quản lý sẽ tự bán khi bạn vắng.</small>'}<button data-type="CLOSE">Đóng quán này sớm</button></div></details>
     ${state.activeDecision?`<div class="decision-modal-backdrop"><div class="decision-card"><h3>${escapeHtml(state.activeDecision.title)}</h3><p>${escapeHtml(state.activeDecision.message)}</p>${state.activeDecision.options.map(o=>`<button class="btn-decision" data-type="DECIDE" data-payload="${o.key}" ${o.key==='yes'&&((state.activeDecision.id==='EXTRA_CHA'&&state.stock.cha<2)||(state.activeDecision.id==='ROADWORK_SIGN'&&state.cash<3000))?'disabled':''}>${o.label}</button>`).join('')}<small>Đồng hồ dừng trong lúc bạn chọn.</small></div></div>`:''}
   </div>`;
 }
