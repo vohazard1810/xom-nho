@@ -330,6 +330,16 @@ function renderXomOi() {
   return `<header class="top-nav"><b>${shopTitle()}</b><span class="wallet-badge">${money(state.cash)}</span></header><section class="morning-dashboard"><div class="morning-hero"><span>Ngày ${state.currentDay}</span><h2>Mở quán thôi!</h2></div>
     <div class="day-stats"><div><b>${state.dayCustomers.length}</b><small>Khách dự kiến</small></div><div><b>${state.upgrades.vehicleCapacity}</b><small>Sức chở</small></div><div><b>${state.rating?.toFixed(1)||'—'} ★</b><small>Sao quán</small></div></div>
     <div class="forecast-card"><b>Tin xóm hôm nay</b><p>${escapeHtml(forecast)}</p></div>
+    ${state.dayEvent?.rival ? `
+      <div class="rival-card">
+        <div class="rival-card-header">
+          <span class="rival-badge">⚔️ Đối thủ: ${escapeHtml(state.dayEvent.rival.name)}</span>
+          <span class="rival-price-tag">${money(state.dayEvent.rival.suggestedPrice)}</span>
+        </div>
+        <p>Hôm nay cô Tư mở bán <strong>${escapeHtml(recipes[state.dayEvent.rival.offer]?.name || 'Bánh mì chả')}</strong> với giá ưu đãi <strong>${money(state.dayEvent.rival.suggestedPrice)}</strong>.</p>
+        <div class="rival-tip">💡 <i>Chiến lược:</i> Khách nhạy giá sẽ so sánh; bạn có thể hạ giá về 22k, giữ giá 25k (chấp nhận bớt khách bánh mì), hoặc tập trung bán thức uống.</div>
+      </div>
+    ` : ''}
     ${message?`<div class="alert-message">${escapeHtml(message)}</div>`:''}
     <button class="btn-primary" data-type="NAVIGATE">Đi chợ nhập hàng →</button>
     <div class="empire-nav"><button data-type="OPEN_MAP">Bản đồ xóm · ${Object.keys(state.empire.shops).length} quán</button><button data-type="OPEN_STAFF">Nhân sự · ${state.empire.employees.filter(x=>x.shopId===state.empire.activeShopId).length} người</button></div>
@@ -361,6 +371,12 @@ function renderMarket() {
           <div class="capacity-bar-fill ${currentBasketUnits > state.upgrades.vehicleCapacity ? 'overflow' : ''}" style="width: ${Math.min(100, (currentBasketUnits / state.upgrades.vehicleCapacity) * 100)}%;"></div>
         </div>
       </div>
+
+      ${state.dayEvent?.rival ? `
+        <div class="market-rival-note">
+          ⚔️ <b>${escapeHtml(state.dayEvent.rival.name)}</b> bán ${escapeHtml(recipes[state.dayEvent.rival.offer]?.name || 'Bánh mì chả')} giá <b>${money(state.dayEvent.rival.suggestedPrice)}</b>. Cân nhắc nhập thêm nguyên liệu nước nếu định chuyển hướng bán nước.
+        </div>
+      ` : ''}
 
       ${state.currentDay === 1 ? `<div class="bundle-quick-row">
         <button class="btn-bundle" data-type="BUNDLE_DAY1">
@@ -459,7 +475,11 @@ function renderMenuSetup() {
               <div class="menu-margin-preview">
                 Lãi gộp dự kiến: <strong>+${money(margin)} / phần</strong>
               </div>
-              ${cfg.sellPrice > recipeData.basePrice ? `<div class="price-demand-hint">⚠️ Giá cao: một số khách nhạy giá có thể bỏ mua.</div>` : ''}
+              ${state.dayEvent?.rival?.offer === recipeId && cfg.sellPrice > state.dayEvent.rival.suggestedPrice ? `
+                <div class="price-demand-hint rival-price-warning">⚠️ Đang cao hơn ${escapeHtml(state.dayEvent.rival.name)} (${money(state.dayEvent.rival.suggestedPrice)}): một số khách nhạy giá sẽ từ chối món này.</div>
+              ` : cfg.sellPrice > recipeData.basePrice ? `
+                <div class="price-demand-hint">⚠️ Giá cao: một số khách nhạy giá có thể bỏ mua.</div>
+              ` : ''}
             </div>
           `;
         }).join('')}
@@ -589,7 +609,34 @@ function renderMapPanel(){
 function renderEmpirePanels(){
  const e=state.empire;if(!e)return '';
  if(e.mapOpen)return renderMapPanel();
-  if(e.staffOpen){const people=e.employees.filter(p=>p.shopId===e.activeShopId);return `<div class="empire-backdrop"><section class="empire-panel"><header><h2>Nhân sự · ${shopTitle()}</h2><button data-type="CLOSE_STAFF" aria-label="Đóng nhân sự">×</button></header><p class="panel-hint">Tuyển: 5k/người. Lương thu một lần lúc mở ca; người nghỉ không nhận lương ca đó.</p><div class="staff-list">${people.map(x=>`<article class="employee-card"><h3>${escapeHtml(x.name)} · ${STAFF_ROLES[x.role].name}</h3><div class="employee-meters"><span>Tay nghề ${x.skill}/3</span><span>Mệt ${x.fatigue}/100</span><span>Tinh thần ${x.mood}/100</span></div><small>${money(STAFF_ROLES[x.role].wage)}/ca · ${x.restingToday?'Nghỉ ca hôm nay':x.daysWorked+' ca đã làm'}</small><p>${escapeHtml(staffCondition(x).advice)}</p>${x.lastShift?`<small>Ca trước: ${x.lastShift.rested?'Nghỉ hồi sức':x.lastShift.served+' khách được quán phục vụ'} · mệt ${x.lastShift.fatigueChange>0?'+':''}${x.lastShift.fatigueChange}</small>`:''}<div class="employee-actions"><button data-type="STAFF_BONUS" data-payload="${x.id}" ${x.lastBonusDay===state.currentDay||state.cash<5000?'disabled':''}>Thưởng động viên · 5k</button><button data-type="STAFF_TRAIN" data-payload="${x.id}" ${x.skill>=3||x.lastTrainedDay===state.currentDay?'disabled':''}>Đào tạo · 8k</button><button data-type="STAFF_REST" data-payload="${x.id}">${x.restingToday?'Đi làm lại':'Cho nghỉ ca'}</button>${Object.keys(e.shops).filter(id=>id!==x.shopId).map(id=>`<button data-type="STAFF_MOVE" data-payload="${x.id}:${id}">Chuyển → ${LOCATIONS[id].name}</button>`).join('')}<button class="release-staff" data-type="STAFF_RELEASE" data-payload="${x.id}">Kết thúc hợp đồng</button></div></article>`).join('')||'<p>Quán chưa có nhân viên. Bạn đang tự đứng bán.</p>'}</div><h3>Tuyển thêm</h3><div class="hire-grid">${Object.entries(STAFF_ROLES).map(([id,def])=>{const exists=people.some(x=>x.role===id);const locked=!staffRoleAvailable(state,id)||(def.seating&&!state.upgrades.seating)||(def.online&&!state.onlineEnabledToday);const lockReason=!staffRoleAvailable(state,id)?`Ngày ${def.unlockDay} hoặc ${STAFF_MILESTONES[id]} đơn từ ngày 4`:def.seating&&!state.upgrades.seating?'Cần chỗ ngồi':def.online&&!state.onlineEnabledToday?'Cần bật online':'';return `<article class="staff-role-card ${locked?'role-locked':''} ${exists?'role-hired':''}"><div class="role-card-header"><h4>${escapeHtml(def.name)}</h4><span class="role-wage">${money(def.wage)}/ca</span></div><p class="role-perk">${escapeHtml(def.description)}</p><div class="role-status-row">${exists?'<span class="role-tag hired">✓ Đã tuyển cho quán</span>':locked?`<span class="role-tag locked">🔒 ${escapeHtml(lockReason)}</span>`:'<span class="role-tag available">Phí tuyển: 5.000đ</span>'}</div><button class="btn-hire" data-type="STAFF_HIRE" data-payload="${id}" ${exists||locked||state.cash<5000?'disabled':''}>${exists?'Đã tuyển':locked?'Chưa mở':'Tuyển nhân sự (5k)'}</button></article>`}).join('')}</div>${message?`<div class="alert-message">${escapeHtml(message)}</div>`:''}</section></div>`;}
+  if(e.staffOpen){const people=e.employees.filter(p=>p.shopId===e.activeShopId);return `<div class="empire-backdrop"><section class="empire-panel"><header><h2>Nhân sự · ${shopTitle()}</h2><button data-type="CLOSE_STAFF" aria-label="Đóng nhân sự">×</button></header><p class="panel-hint">Tuyển: 5k/người. Lương thu một lần lúc mở ca; người nghỉ không nhận lương ca đó.</p><div class="staff-list">${people.map(x=>{
+    const cond = staffCondition(x);
+    return `<article class="employee-card ${x.restingToday ? 'is-resting' : 'is-working'}">
+      <div class="employee-card-header">
+        <h3>${escapeHtml(x.name)} · ${STAFF_ROLES[x.role].name}</h3>
+        <span class="staff-duty-pill ${x.restingToday ? 'pill-rest' : 'pill-work'}">
+          ${x.restingToday ? '💤 Đang nghỉ ca' : '💼 Làm ca hôm nay'}
+        </span>
+      </div>
+      <div class="employee-meters">
+        <span>Tay nghề: <b>${x.skill}/3</b></span>
+        <span>Mệt mỏi: <b class="${x.fatigue >= 70 ? 'meter-warn' : ''}">${x.fatigue}/100</b></span>
+        <span>Tinh thần: <b class="${x.mood < 50 ? 'meter-warn' : ''}">${x.mood}/100</b></span>
+      </div>
+      <div class="staff-wage-row">
+        <small>Lương ca: ${money(STAFF_ROLES[x.role].wage)} ${x.restingToday ? '(miễn lương khi nghỉ)' : ''} · ${x.daysWorked} ca đã làm</small>
+      </div>
+      <div class="staff-advice">💡 <b>Tư vấn:</b> ${escapeHtml(cond.advice)}</div>
+      ${x.lastShift ? `<div class="staff-prior-shift">📋 <b>Ca trước:</b> ${x.lastShift.rested ? 'Nghỉ ngơi hồi phục (+8 tinh thần, -30 mệt)' : `${x.lastShift.served} đơn phục vụ · mệt ${x.lastShift.fatigueChange > 0 ? '+' : ''}${x.lastShift.fatigueChange} · tinh thần ${x.lastShift.moodChange > 0 ? '+' : ''}${x.lastShift.moodChange}`}</div>` : ''}
+      <div class="employee-actions">
+        <button class="btn-staff-bonus" data-type="STAFF_BONUS" data-payload="${x.id}" ${x.lastBonusDay===state.currentDay||state.cash<5000?'disabled':''}>🎁 Thưởng 5k (+20 tinh thần)</button>
+        <button class="btn-staff-train" data-type="STAFF_TRAIN" data-payload="${x.id}" ${x.skill>=3||x.lastTrainedDay===state.currentDay?'disabled':''}>📚 Đào tạo · 8k</button>
+        <button class="btn-staff-rest ${x.restingToday ? 'resting' : ''}" data-type="STAFF_REST" data-payload="${x.id}">${x.restingToday ? '↩️ Đi làm lại' : '💤 Cho nghỉ ca (-30 mệt)'}</button>
+        ${Object.keys(e.shops).filter(id=>id!==x.shopId).map(id=>`<button data-type="STAFF_MOVE" data-payload="${x.id}:${id}">Chuyển → ${LOCATIONS[id].name}</button>`).join('')}
+        <button class="release-staff" data-type="STAFF_RELEASE" data-payload="${x.id}">Kết thúc hợp đồng</button>
+      </div>
+    </article>`;
+  }).join('')||'<p>Quán chưa có nhân viên. Bạn đang tự đứng bán.</p>'}</div><h3>Tuyển thêm</h3><div class="hire-grid">${Object.entries(STAFF_ROLES).map(([id,def])=>{const exists=people.some(x=>x.role===id);const locked=!staffRoleAvailable(state,id)||(def.seating&&!state.upgrades.seating)||(def.online&&!state.onlineEnabledToday);const lockReason=!staffRoleAvailable(state,id)?`Ngày ${def.unlockDay} hoặc ${STAFF_MILESTONES[id]} đơn từ ngày 4`:def.seating&&!state.upgrades.seating?'Cần chỗ ngồi':def.online&&!state.onlineEnabledToday?'Cần bật online':'';return `<article class="staff-role-card ${locked?'role-locked':''} ${exists?'role-hired':''}"><div class="role-card-header"><h4>${escapeHtml(def.name)}</h4><span class="role-wage">${money(def.wage)}/ca</span></div><p class="role-perk">${escapeHtml(def.description)}</p><div class="role-status-row">${exists?'<span class="role-tag hired">✓ Đã tuyển cho quán</span>':locked?`<span class="role-tag locked">🔒 ${escapeHtml(lockReason)}</span>`:'<span class="role-tag available">Phí tuyển: 5.000đ</span>'}</div><button class="btn-hire" data-type="STAFF_HIRE" data-payload="${id}" ${exists||locked||state.cash<5000?'disabled':''}>${exists?'Đã tuyển':locked?'Chưa mở':'Tuyển nhân sự (5k)'}</button></article>`}).join('')}</div>${message?`<div class="alert-message">${escapeHtml(message)}</div>`:''}</section></div>`;}
  return '';
 }
 function renderEmpireResult(){
