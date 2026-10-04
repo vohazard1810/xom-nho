@@ -897,6 +897,7 @@ window.__xomNho = {
   send,
   getState: () => state,
   render,
+  setMessage: (val) => { message = val; },
   setAutoPrepState: (val) => { autoPrepState = val; },
   setFloatingCash: (val) => { floatingCash = val; },
   advanceShift: (ms) => { state = advanceEmpire(state, ms); updateServiceView(); render(); },
