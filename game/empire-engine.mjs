@@ -1,7 +1,7 @@
 import {identifyRoster,migratePopulation} from './customer-population.mjs';
 import {fresh, calculateLedger} from './day1-core.mjs';
 import {dayConfig, rosterForDay, WALK_IN_ARCHETYPES} from './day-content.mjs';
-import {advanceShift, cookingAction} from './shift-engine.mjs';
+import {advanceShift, cookingAction, SHIFT_RULES} from './shift-engine.mjs';
 
 export const LOCATIONS=Object.freeze({
  home:{name:'Quán đầu hẻm',district:'Hẻm nhà',unlockDay:1,deposit:0,reserve:0,description:'Bánh mì và nước · khách quen trong xóm'},
@@ -143,7 +143,21 @@ export function empireAction(input,type,payload){
  if(type==='REPEAT_BASKET'||type==='SUGGEST_BASKET'||type==='BASKET'||type==='BUY'||type==='CONFIG_MENU'||type==='SET_OPENING_TIME')e.shops[e.activeShopId].ready=false;
  return{state:pack(e,s,s.cash)};
 }
-function shopReport(e,x){const s=x.state,l=calculateLedger(s),workers=e.employees.filter(p=>p.shopId===x.id);const reasons=Object.fromEntries(Object.entries(l.missedByReason).filter(([,a])=>a.length).map(([k,a])=>[k,a.length]));const advice=reasons.OUT_OF_STOCK?'Tăng lượng nhập hoặc sức chở; không phải lỗi nhân viên.':reasons.PRICE_TOO_HIGH?'Thử hạ giá món bị từ chối.':reasons.WAIT_TOO_LONG?'Đào tạo phụ bếp, bổ sung người hoặc chủ hỗ trợ giờ đông.':l.resultAfterSpoilageAndExpenses<0?'Chi phí đang cao: kiểm tra lương và lượng hàng hỏng.':'Quán vận hành ổn; giữ đủ hàng và vốn dự phòng.';return{id:x.id,name:LOCATIONS[x.id].name,served:l.servedCount,missed:l.missedCount,revenue:l.totalSalesRevenue,cogs:l.cogsSoldItemsOnly,gross:l.grossOperatingProfit,profit:l.resultAfterSpoilageAndExpenses,spent:l.spentOnMorningStock,ops:l.operatingExpenses,investment:l.upgradeOutlay,spoilage:l.spoilageLoss,fees:l.onlineFees,tips:l.tipsCollected,sideIncome:l.sideJobIncome,rating:s.rating,reasons,advice,feedback:s.lastDayReport?.feedback.slice(0,3)||[],employees:workers.map(p=>({id:p.id,name:p.name,role:p.role,skill:p.skill,fatigue:p.fatigue,mood:p.mood,lastShift:p.lastShift,advice:staffCondition(p).advice}))}}
+export function operationalAdvice(reasons,profit,workers=[]){
+ const guidance={
+  OUT_OF_STOCK:{area:'stock',text:'Tăng lượng nhập hoặc sức chở; không phải lỗi nhân viên.'},
+  WAIT_TOO_LONG:{area:'service',text:'Chủ hỗ trợ giờ đông, ưu tiên khách vội hoặc đào tạo phụ bếp.'},
+  PRICE_TOO_HIGH:{area:'pricing',text:'Xem giá đối thủ và hạ giá món bị từ chối.'},
+  MENU_DISABLED:{area:'menu',text:'Bật món khách hỏi và chuẩn bị đủ nguyên liệu.'},
+  MISSED_LATE_OPENING:{area:'hours',text:'Mở sớm hơn để đón nhóm khách đầu ca.'},
+  MISSED_EARLY_CLOSING:{area:'hours',text:'Giữ quán mở tới hết giờ khách dự kiến.'}
+ };
+ const advice=Object.entries(reasons).filter(([key,count])=>guidance[key]&&count>0).sort((a,b)=>b[1]-a[1]).map(([reason,count])=>({reason,count,...guidance[reason]}));
+ if(profit<0)advice.push({area:'cost',text:'Kiểm tra chi phí lương và hàng hỏng trước khi mở rộng.'});
+ for(const p of workers){if((p.fatigue??0)>=70)advice.push({area:'staff',employeeId:p.id,text:`${p.name}: cho nghỉ một ca để hồi sức.`});else if((p.mood??80)<50)advice.push({area:'staff',employeeId:p.id,text:`${p.name}: cân nhắc thưởng động viên.`});}
+ return advice.length?advice:[{area:'stable',text:'Quán vận hành ổn; giữ đủ hàng và vốn dự phòng.'}];
+}
+function shopReport(e,x){const s=x.state,l=calculateLedger(s),workers=e.employees.filter(p=>p.shopId===x.id);const reasons=Object.fromEntries(Object.entries(l.missedByReason).filter(([,a])=>a.length).map(([k,a])=>[k,a.length]));const recommendations=operationalAdvice(reasons,l.resultAfterSpoilageAndExpenses,workers);const advice=recommendations[0].text;return{id:x.id,name:LOCATIONS[x.id].name,served:l.servedCount,missed:l.missedCount,revenue:l.totalSalesRevenue,cogs:l.cogsSoldItemsOnly,gross:l.grossOperatingProfit,profit:l.resultAfterSpoilageAndExpenses,spent:l.spentOnMorningStock,ops:l.operatingExpenses,investment:l.upgradeOutlay,spoilage:l.spoilageLoss,fees:l.onlineFees,tips:l.tipsCollected,sideIncome:l.sideJobIncome,rating:s.rating,reasons,advice,recommendations,feedback:s.lastDayReport?.feedback.slice(0,3)||[],employees:workers.map(p=>({id:p.id,name:p.name,role:p.role,skill:p.skill,fatigue:p.fatigue,mood:p.mood,lastShift:p.lastShift,advice:staffCondition(p).advice}))}}
 function finishDay(e,cash){
  for(const p of e.employees){
   const branch=e.shops[p.shopId],rested=p.restingToday||branch.closedToday;
@@ -165,7 +179,7 @@ export function advanceEmpire(input,elapsedMs){
  let left=elapsedMs*(root.speed||1);
  while(left>0&&e.shiftRunning){const ms=Math.min(100,left);left-=ms;
   const active=e.shops[e.activeShopId].state;if(active.isPaused||active.manualPaused)break;
-  const rate=Object.values(e.shops).some(x=>x.state.activeCustomer||x.state.waitingQueue.length)?2:18;
+  const rate=Object.values(e.shops).some(x=>x.state.activeCustomer||x.state.waitingQueue.length)?SHIFT_RULES.minutesPerSecond:SHIFT_RULES.emptyMinutesPerSecond;
   const tutorial=active.currentDay===1&&!active.cookingTutorialDone&&active.activeCustomer?.status==='ARRIVED';
   const effectiveRate=tutorial?0:rate;
   const beforeClock=e.worldClock; e.worldClock=Math.min(360,e.worldClock+ms/1000*effectiveRate);

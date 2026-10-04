@@ -1,0 +1,75 @@
+{
+  "status": "PASS",
+  "scope": "production-engine end-to-end; NOT browser/UI E2E",
+  "seed": 20261004,
+  "day1": {
+    "cash": 127000,
+    "gross": 67000,
+    "served": 6,
+    "simulatedSeconds": 27.6
+  },
+  "portfolio": {
+    "controlledStartingDay": 8,
+    "shops": [
+      {
+        "id": "home",
+        "served": 10,
+        "missed": 6,
+        "profit": 42500,
+        "recommendations": [
+          {
+            "reason": "PRICE_TOO_HIGH",
+            "count": 6,
+            "area": "pricing",
+            "text": "Xem giá đối thủ và hạ giá món bị từ chối."
+          }
+        ]
+      },
+      {
+        "id": "school",
+        "served": 10,
+        "missed": 3,
+        "profit": 103000,
+        "recommendations": [
+          {
+            "reason": "MENU_DISABLED",
+            "count": 2,
+            "area": "menu",
+            "text": "Bật món khách hỏi và chuẩn bị đủ nguyên liệu."
+          },
+          {
+            "reason": "PRICE_TOO_HIGH",
+            "count": 1,
+            "area": "pricing",
+            "text": "Xem giá đối thủ và hạ giá món bị từ chối."
+          }
+        ]
+      }
+    ],
+    "reconciled": true,
+    "simulatedSeconds": 58.8,
+    "ownerSpeed": 1.322,
+    "managerSpeed": 0.7817779200000001,
+    "transferredTicketExactlyOnce": true,
+    "nextDay": 9
+  },
+  "checks": {
+    "saveInPrep": true,
+    "pauseAllShops": true,
+    "doubleServeBlocked": true,
+    "wagesNotRepeated": true,
+    "bonusOnce": true,
+    "restAssigned": true,
+    "allCustomersAccounted": true,
+    "noNegativeStock": true
+  },
+  "pacing": {
+    "emptyMinutesPerSecond": 30,
+    "busyMinutesPerSecond": 2,
+    "quietGapReductionPercent": 40
+  },
+  "browser": {
+    "status": "BLOCKED",
+    "reason": "Cloud browser rejected localhost with ERR_BLOCKED_BY_CLIENT"
+  }
+}

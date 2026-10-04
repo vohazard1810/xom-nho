@@ -1,6 +1,6 @@
 import { action, recipes, recipeNeeds, hasEnoughStock } from './day1-core.mjs';
 
-export const SHIFT_RULES = Object.freeze({ minutesPerSecond: 2, emptyMinutesPerSecond: 18, prepMs: 1400, handoffMs: 350, reactionMs: 900, stepMs: 100 });
+export const SHIFT_RULES = Object.freeze({ minutesPerSecond: 2, emptyMinutesPerSecond: 30, prepMs: 1400, handoffMs: 350, reactionMs: 900, stepMs: 100 });
 const terminal = new Set(['SERVED', 'OUT_OF_STOCK', 'MENU_DISABLED', 'PRICE_REJECTED', 'WAIT_TOO_LONG']);
 export function orderBlocker(s, c) {
   const menu = s.menu[c.recipe], recipe = recipes[c.recipe];
