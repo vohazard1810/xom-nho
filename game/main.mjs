@@ -179,7 +179,7 @@ const SPRITE_METRICS = {
     queue: { fileW: 137, fileH: 283, footX: 67.4, footY: 280.0, visH: 278, visW: 131, headY: 3 }
   },
   walkin_student: { fileW: 336, fileH: 870, footX: 173.5, footY: 869.0, visH: 870, visW: 336, headY: 0 },
-  walkin_office: { fileW: 291, fileH: 879, footX: 158.8, footY: 878.0, visH: 879, visW: 291, headY: 0 },
+  walkin_office: { fileW: 395, fileH: 1228, footX: 197.0, footY: 1227.0, visH: 1228, visW: 395, headY: 0 },
   walkin_driver: { fileW: 468, fileH: 867, footX: 250.6, footY: 866.0, visH: 867, visW: 468, headY: 0 },
   walkin_elder: { fileW: 447, fileH: 884, footX: 173.6, footY: 883.0, visH: 884, visW: 447, headY: 0 }
 };
