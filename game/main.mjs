@@ -32,7 +32,7 @@ const CO_CHIN_IMG = '../assets/characters/named/co_chin/co_chin_standing.png';
 const ANH_TUNG_IMG = '../assets/characters/named/anh_tung/anh_tung_standing.png';
 
 const WALKIN_SPRITES = {
-  walkin_variant_0: '../assets/pilot/walkin_student.png',
+  walkin_variant_0: '../assets/pilot/walkin_office.png',
   walkin_variant_1: '../assets/pilot/walkin_office.png',
   walkin_variant_2: '../assets/pilot/walkin_driver.png',
   walkin_variant_3: '../assets/pilot/walkin_elder.png',
@@ -216,14 +216,14 @@ function getCharacterStageCoords(c, role) {
     gy = isChild ? 840 : isTeen ? 1010 : 1020;
     hTarget = isChild ? 440 : isTeen ? 680 : 740;
   } else if (role === 'WAITING_0') {
-    gx = 625;
-    gy = 670;
-    hTarget = isChild ? 220 : isTeen ? 270 : 330;
+    gx = 550;
+    gy = 665;
+    hTarget = isChild ? 220 : isTeen ? 270 : 320;
   } else {
     // WAITING_1
-    gx = 685;
-    gy = 590;
-    hTarget = isChild ? 120 : isTeen ? 145 : 165;
+    gx = 690;
+    gy = 610;
+    hTarget = isChild ? 160 : isTeen ? 180 : 200;
   }
 
   const s = hTarget / spec.visH;
@@ -541,6 +541,11 @@ function renderShop() {
     <header class="play-header"><div><b>${shopTitle()}</b><small>Ngày ${state.currentDay} · ${String(Math.floor(time/60)).padStart(2,'0')}:${String(Math.floor(time%60)).padStart(2,'0')} · ${state.servedOrders.length}/${state.dayCustomers.length} khách</small></div><div class="play-cash-group">${floatingCash?`<span class="cash-floating-gain">${floatingCash}</span>`:''}<span class="play-cash">${money(state.cash)}</span></div><button class="play-pause" data-type="TOGGLE_PAUSE" aria-label="${state.manualPaused?'Tiếp tục':'Tạm dừng'}">${state.manualPaused?'▶':'Ⅱ'}</button></header>
     <div class="play-scene">
       <svg class="play-stage" viewBox="0 0 1200 896" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
+        <defs>
+          <filter id="dishContactShadowBlur" x="-30%" y="-30%" width="160%" height="160%">
+            <feGaussianBlur stdDeviation="3.5" />
+          </filter>
+        </defs>
         <image href="../assets/environment/alley_counter_clean.jpg" x="0" y="0" width="1200" height="896" preserveAspectRatio="none" />
         ${state.upgrades?.canopy?`<image class="play-canopy" href="${CANOPY_AWNING_IMG}" x="0" y="0" width="1200" height="240" preserveAspectRatio="none" />`:''}
         ${q1&&waiting1Coords?`<image class="play-waiting waiting-1 stage-waiting" href="${getCustomerSprite(q1)}" x="${waiting1Coords.x}" y="${waiting1Coords.y}" width="${waiting1Coords.w}" height="${waiting1Coords.h}" preserveAspectRatio="xMidYMax meet" />`:''}
@@ -549,7 +554,10 @@ function renderShop() {
         <image class="play-foreground stage-foreground" href="${COUNTER_SHELF_FOREGROUND_IMG}" x="0" y="0" width="1200" height="896" preserveAspectRatio="none" />
         ${handoff&&c?.status==='SERVED'?(() => {
           const d = getServedDishStageCoords(c.recipe);
-          return `<image class="play-tray-dish stage-tray-dish dish-${c.recipe}" href="${DISH_IMAGES[c.recipe]}" x="${d.x}" y="${d.y}" width="${d.w}" height="${d.h}" preserveAspectRatio="xMidYMid meet" />`;
+          return `
+            <ellipse class="stage-dish-shadow" cx="${d.x + d.w/2}" cy="${d.y + d.h - 4}" rx="${d.w * 0.40}" ry="10" fill="rgba(45, 20, 6, 0.45)" filter="url(#dishContactShadowBlur)" />
+            <image class="play-tray-dish stage-tray-dish dish-${c.recipe}" href="${DISH_IMAGES[c.recipe]}" x="${d.x}" y="${d.y}" width="${d.w}" height="${d.h}" preserveAspectRatio="xMidYMid meet" />
+          `;
         })():''}
       </svg>
       ${(() => {
@@ -570,7 +578,7 @@ function renderShop() {
               ${c.temperament === 'RUSH' ? `<span class="ticket-rush-tag">⚡ Vội</span>` : ''}
             </div>
             <div class="receipt-checklist">
-              ${Object.entries(needs).map(([id,q])=>{const sel=selected[id]||0;const done=sel>=q;return `<span class="receipt-item ${done?'checked':'pending'}"><i class="receipt-mark">${done?'✓':'○'}</i> ${ingredientMeta[id]?.name||id} ${sel}/${q}</span>`}).join('')}
+              ${Object.entries(needs).map(([id,q])=>{const sel=selected[id]||0;const done=sel>=q;return `<span class="receipt-item ${done?'checked':'pending'}"><i class="receipt-mark">${done?'✓':'○'}</i> ${ingredientMeta[id]?.name||id} ${Math.min(sel, q)}/${q}</span>`}).join('')}
             </div>
           </div>
         </div>
@@ -591,18 +599,52 @@ function renderShop() {
         <div class="prep-handoff-state">
           <span>${blocked ? 'Khách không mua được món' : '✓ Đã giao lên quầy cho khách'}</span>
         </div>
-      ` : Object.values(selected).some(Boolean) ? `
-        <div class="selected-art">
-          ${Object.entries(selected).flatMap(([id, q]) => Array.from({ length: q }, () => ingredientMeta[id]?.img ? `<img src="${ingredientMeta[id].img}" alt="${ingredientMeta[id].name}">` : `<span>${ingredientMeta[id].name}</span>`)).join('')}
-        </div>
-      ` : `
+      ` : Object.values(selected).some(Boolean) ? (() => {
+        if (c?.recipe === 'BANH_MI_CHA' || c?.recipe === 'BANH_MI_TRUNG') {
+          return `
+            <div class="prep-assembly prep-assembly-banhmi">
+              <div class="assembly-bread-base">
+                <img src="../assets/ingredients/bread.png" alt="Vỏ bánh mì">
+              </div>
+              ${selected.cha ? `
+                <div class="assembly-filling assembly-cha" style="--layer-count:${selected.cha}">
+                  ${Array.from({ length: selected.cha }, (_, i) => `<img src="../assets/ingredients/cha.png" alt="Chả lụa" class="cha-slice slice-${i}">`).join('')}
+                </div>
+              ` : ''}
+              ${selected.egg ? `<div class="assembly-filling assembly-egg"><span class="egg-filling">🍳</span></div>` : ''}
+              ${selected.vegetable ? `
+                <div class="assembly-filling assembly-veg">
+                  <img src="../assets/ingredients/vegetable.png" alt="Dưa ngò">
+                </div>
+              ` : ''}
+            </div>
+          `;
+        }
+        if (c?.recipe === 'TRA_TAC' || c?.recipe === 'SUA_DAU_DA') {
+          return `
+            <div class="prep-assembly prep-assembly-drink">
+              <div class="prep-cup-shell">
+                ${selected.ice ? `<div class="cup-layer layer-ice"><img src="../assets/ingredients/ice.png" alt="Đá"></div>` : ''}
+                ${selected.sugar_syrup ? `<div class="cup-layer layer-syrup"><div class="syrup-fill"></div><img src="../assets/ingredients/sugar_syrup.png" alt="Đường"></div>` : ''}
+                ${selected.kumquat ? `<div class="cup-layer layer-fruit"><img src="../assets/ingredients/kumquat.png" alt="Tắc"></div>` : ''}
+                ${selected.soy_milk ? `<div class="cup-layer layer-soymilk"><div class="soymilk-fill"></div><img src="../assets/ingredients/soy_milk.png" alt="Sữa đậu"></div>` : ''}
+              </div>
+            </div>
+          `;
+        }
+        return `
+          <div class="selected-art">
+            ${Object.entries(selected).flatMap(([id, q]) => Array.from({ length: q }, () => ingredientMeta[id]?.img ? `<img src="${ingredientMeta[id].img}" alt="${ingredientMeta[id].name}">` : `<span>${ingredientMeta[id].name}</span>`)).join('')}
+          </div>
+        `;
+      })() : `
         <div class="prep-idle-state">
           <span class="prep-board-hint">${c ? 'Chọn nguyên liệu bên dưới để làm món' : 'Sẵn sàng đón khách'}</span>
         </div>
       `}
       ${cooking ? `<div class="cook-progress"><i style="width:${autoPrepState?.progress||0}%"></i></div>` : ''}
     </div>
-    <div class="ingredient-tray">${visibleIngredients.map(id=>{const meta=ingredientMeta[id],q=selected[id]||0,n=state.stock[id]||0;return `<button class="ingredient-button ${q?'picked':''}" data-type="ADD_INGREDIENT" data-payload="${id}" ${!canSelect||n===0?'disabled':''} aria-label="Chọn ${meta.name}, còn ${n}">${meta.img?`<img src="${meta.img}" alt="">`:'<span class="egg-placeholder">Trứng</span>'}<b>${meta.name}</b><small class="ing-stock-line">${q?`<b class="ing-picked">+${q}</b> · `:''}Còn ${n}</small></button>`}).join('')}</div>
+    <div class="ingredient-tray">${visibleIngredients.map(id=>{const meta=ingredientMeta[id],q=selected[id]||0,n=state.stock[id]||0,req=needs[id]||0,isDone=req>0&&q>=req;return `<button class="ingredient-button ${q?'picked':''} ${isDone?'quota-met':''}" data-type="ADD_INGREDIENT" data-payload="${id}" ${!canSelect||n===0||isDone?'disabled':''} aria-label="Chọn ${meta.name}, còn ${n}">${meta.img?`<img src="${meta.img}" alt="">`:'<span class="egg-placeholder">Trứng</span>'}<b>${meta.name}</b><small class="ing-stock-line">${q?`<b class="ing-picked">+${q}</b> · `:''}Còn ${n}</small></button>`}).join('')}</div>
     <div class="cook-actions"><button class="undo-button" data-type="UNDO_INGREDIENTS" ${!canSelect||!Object.values(selected).some(Boolean)?'disabled':''} aria-label="Bỏ nguyên liệu đã chọn">Làm lại</button><button class="cook-main ${ready?'ready':''}" data-type="${ready?'SERVE':'COOK'}" ${state.manualPaused||state.isPaused||!(ready||cookingComplete(state))?'disabled':''}>${ready?'Giao khách →':cooking?'Đang làm món…':canSelect?'Làm món':'Đón khách'}</button><button class="boost-button" data-type="FOCUS_BOOST" ${state.isPaused||state.manualPaused||state.focusBoost.active||state.focusBoost.cooldownSeconds>0?'disabled':''} aria-label="Tập trung làm món nhanh gấp đôi">${state.focusBoost.active?'x2':state.focusBoost.cooldownSeconds>0?Math.ceil(state.focusBoost.cooldownSeconds)+'s':'Nhanh x2'}</button></div>
     <div class="play-status" role="status">${escapeHtml(message || (state.manualPaused?'Bấm ▶ để tiếp tục':state.currentDay===1&&!state.cookingTutorialDone?'Chọn theo công thức → Làm món → Giao khách':state.newsTicker?.text||'Bạn làm món · khách trong hàng vẫn đang chờ'))}</div>
     <details id="play-options" class="play-options" ${playOptionsOpen?'open':''}><summary>Quản lý ca · ${Object.keys(state.empire.shops).length} quán</summary><div><button data-type="OPEN_MAP">Xem map · chuyển quán vào khoảng nghỉ</button><button data-type="SPEED" data-payload="${state.speed===1?2:1}">Nhịp giờ x${state.speed} · đổi</button>${state.staffHiredToday?`<button data-type="TOGGLE_ASSIST">Nhờ nhân viên tự làm: ${state.assistEnabled?'Bật':'Tắt'}</button>`:'<small>Quán có quản lý sẽ tự bán khi bạn vắng.</small>'}<button data-type="CLOSE">Đóng quán này sớm</button></div></details>
