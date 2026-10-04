@@ -168,7 +168,7 @@ function getCustomerSprite(c, pose = 'ORDER') {
   }
   if (c.id === 'co_chin') return CO_CHIN_IMG;
   if (c.id === 'anh_tung') return ANH_TUNG_IMG;
-  return WALKIN_SPRITES[c.visualVariantId] || WALKIN_SPRITES[c.archetype] || WALKIN_SPRITES.walkin_variant_0;
+  return WALKIN_SPRITES[c.visualVariantId] || WALKIN_SPRITES[c.archetype] || WALKIN_SPRITES[c.id] || WALKIN_SPRITES.walkin_variant_0;
 }
 
 const SPRITE_METRICS = {
@@ -178,25 +178,36 @@ const SPRITE_METRICS = {
     order: { fileW: 130, fileH: 276, footX: 62.4, footY: 273.0, visH: 272, visW: 123, headY: 2 },
     queue: { fileW: 137, fileH: 283, footX: 67.4, footY: 280.0, visH: 278, visW: 131, headY: 3 }
   },
-  walkin_student: { fileW: 336, fileH: 870, footX: 172.0, footY: 869.0, visH: 870, visW: 336, headY: 0 },
-  walkin_office: { fileW: 291, fileH: 879, footX: 142.4, footY: 878.0, visH: 879, visW: 291, headY: 0 },
-  walkin_driver: { fileW: 468, fileH: 867, footX: 252.1, footY: 866.0, visH: 867, visW: 468, headY: 0 },
-  walkin_elder: { fileW: 447, fileH: 884, footX: 137.5, footY: 883.0, visH: 884, visW: 447, headY: 0 }
+  walkin_student: { fileW: 336, fileH: 870, footX: 173.5, footY: 869.0, visH: 870, visW: 336, headY: 0 },
+  walkin_office: { fileW: 291, fileH: 879, footX: 158.8, footY: 878.0, visH: 879, visW: 291, headY: 0 },
+  walkin_driver: { fileW: 468, fileH: 867, footX: 250.6, footY: 866.0, visH: 867, visW: 468, headY: 0 },
+  walkin_elder: { fileW: 447, fileH: 884, footX: 173.6, footY: 883.0, visH: 884, visW: 447, headY: 0 }
 };
+
+function getServedDishStageCoords(recipe) {
+  if (recipe === 'TRA_TAC') {
+    return { x: 445, y: 570, w: 115, h: 220 };
+  }
+  if (recipe === 'SUA_DAU_DA') {
+    return { x: 445, y: 565, w: 110, h: 225 };
+  }
+  // Bánh mì chả / Bánh mì ốp la
+  return { x: 390, y: 654, w: 220, h: 136 };
+}
 
 function getCharacterStageCoords(c, role) {
   if (!c) return null;
   const isChild = c.id === 'be_ti' || c.archetype === 'child';
-  const isTeen = c.archetype === 'teen' || c.id === 'walkin_student';
+  const isTeen = c.archetype === 'teen' || c.id === 'walkin_student' || c.archetype === 'student';
   
   let spec;
   if (c.id === 'anh_tung') spec = SPRITE_METRICS.anh_tung;
   else if (c.id === 'co_chin') spec = SPRITE_METRICS.co_chin;
   else if (c.id === 'be_ti') spec = role === 'COUNTER' ? SPRITE_METRICS.be_ti.order : SPRITE_METRICS.be_ti.queue;
-  else if (c.id === 'walkin_student' || c.archetype === 'teen') spec = SPRITE_METRICS.walkin_student;
-  else if (c.archetype === 'office') spec = SPRITE_METRICS.walkin_office;
-  else if (c.archetype === 'driver') spec = SPRITE_METRICS.walkin_driver;
-  else if (c.archetype === 'elder') spec = SPRITE_METRICS.walkin_elder;
+  else if (c.id === 'walkin_student' || c.archetype === 'teen' || c.archetype === 'student' || c.visualVariantId === 'walkin_student') spec = SPRITE_METRICS.walkin_student;
+  else if (c.id === 'walkin_office' || c.archetype === 'office' || c.visualVariantId === 'walkin_office') spec = SPRITE_METRICS.walkin_office;
+  else if (c.id === 'walkin_driver' || c.archetype === 'driver' || c.visualVariantId === 'walkin_driver') spec = SPRITE_METRICS.walkin_driver;
+  else if (c.id === 'walkin_elder' || c.archetype === 'elder' || c.visualVariantId === 'walkin_elder') spec = SPRITE_METRICS.walkin_elder;
   else spec = { fileW: 400, fileH: 880, footX: 200, footY: 875, visH: 875, visW: 400, headY: 0 };
 
   let gx, gy, hTarget;
@@ -343,7 +354,7 @@ function renderXomOi() {
     ${message?`<div class="alert-message">${escapeHtml(message)}</div>`:''}
     <button class="btn-primary" data-type="NAVIGATE">Đi chợ nhập hàng →</button>
     <div class="empire-nav"><button data-type="OPEN_MAP">Bản đồ xóm · ${Object.keys(state.empire.shops).length} quán</button><button data-type="OPEN_STAFF">Nhân sự · ${state.empire.employees.filter(x=>x.shopId===state.empire.activeShopId).length} người</button></div>
-    ${state.currentDay>1?`<h3>Nâng cấp quán</h3><div class="upgrade-grid">${Object.entries(UPGRADE_CATALOG).filter(([id,u])=>state.currentDay>=(u.unlockDay||2)).map(([id,u])=>{const level=state.upgrades[id]||0,cost=level===1?(u.nextCost||u.cost):u.cost;return `<button data-type="UPGRADE" data-payload="${id}" ${level>=u.maxLevel||state.cash<cost||(id==='cargo'&&state.upgrades.bike_basket<2)?'disabled':''}><b>${u.name}</b><span>${level>=u.maxLevel?'Đã nâng tối đa':money(cost)}</span><small>${escapeHtml(u.description)}</small></button>`}).join('')}</div>
+    ${state.currentDay>1?`<h3>Nâng cấp quán</h3><div class="upgrade-grid">${Object.entries(UPGRADE_CATALOG).filter(([id,u])=>state.currentDay>=(u.unlockDay||2)).map(([id,u])=>{const level=state.upgrades[id]||0,cost=level===1?(u.nextCost||u.cost):u.cost;const icon={bike_basket:'🚲',counter:'🪵',seating:'🪑',canopy:'🎪',cargo:'🛵'}[id]||'✨';return `<button data-type="UPGRADE" data-payload="${id}" ${level>=u.maxLevel||state.cash<cost||(id==='cargo'&&state.upgrades.bike_basket<2)?'disabled':''}><div class="upgrade-header-row"><span class="upgrade-icon">${icon}</span><b>${u.name}</b></div><span>${level>=u.maxLevel?'Đã nâng tối đa':money(cost)}</span><small>${escapeHtml(u.description)}</small></button>`}).join('')}</div>
       ${state.currentDay>=3?`<button class="btn-secondary" data-type="LEARN_RECIPE" data-payload="BANH_MI_TRUNG" ${!state.upgrades.counter||state.knownRecipeIds.includes('BANH_MI_TRUNG')||state.cash<12000?'disabled':''}>Học bánh mì ốp la · 12k ${state.knownRecipeIds.includes('BANH_MI_TRUNG')?'· Đã học':''}</button>`:''}
       ${state.currentDay>=15?`<button class="btn-secondary" data-type="ENABLE_ONLINE" ${state.onlineEnabledToday?'disabled':''}>Nhận thêm đơn online · phí 2k/đơn</button>`:''}
       ${state.cash<11000&&!state.sideJobIncome?'<button class="btn-secondary" data-type="SIDE_JOB">Phụ dọn sân · nhận 15k vốn</button>':''}
@@ -536,7 +547,10 @@ function renderShop() {
         ${q0&&waiting0Coords?`<image class="play-waiting waiting-0 stage-waiting" href="${getCustomerSprite(q0)}" x="${waiting0Coords.x}" y="${waiting0Coords.y}" width="${waiting0Coords.w}" height="${waiting0Coords.h}" preserveAspectRatio="xMidYMax meet" />`:''}
         ${c&&counterCoords?`<image class="play-customer stage-customer ${c.id==='be_ti'?'small-child':c.archetype==='teen'?'teen':''} ${phase==='REACTION'?'react':''}" href="${getCustomerSprite(c,autoPrepState?.customerPose)}" x="${counterCoords.x}" y="${counterCoords.y}" width="${counterCoords.w}" height="${counterCoords.h}" preserveAspectRatio="xMidYMax meet" />`:''}
         <image class="play-foreground stage-foreground" href="${COUNTER_SHELF_FOREGROUND_IMG}" x="0" y="0" width="1200" height="896" preserveAspectRatio="none" />
-        ${handoff&&c?.status==='SERVED'?`<image class="play-tray-dish stage-tray-dish" href="${DISH_IMAGES[c.recipe]}" x="390" y="655" width="105" height="68" preserveAspectRatio="xMidYMid meet" />`:''}
+        ${handoff&&c?.status==='SERVED'?(() => {
+          const d = getServedDishStageCoords(c.recipe);
+          return `<image class="play-tray-dish stage-tray-dish dish-${c.recipe}" href="${DISH_IMAGES[c.recipe]}" x="${d.x}" y="${d.y}" width="${d.w}" height="${d.h}" preserveAspectRatio="xMidYMid meet" />`;
+        })():''}
       </svg>
       ${(() => {
         const speech = (customerReaction?.quote || (c?.id === 'be_ti' && state.extraCha ? 'Cho con bánh mì thêm chả nha chú!' : c?.dialogue))?.trim();
@@ -569,8 +583,24 @@ function renderShop() {
     </div>
     <div class="play-queue"><span class="queue-header-label">Hàng chờ <i class="queue-scroll-indicator">›</i></span>${state.waitingQueue.length?state.waitingQueue.slice(0,3).map(q=>{const e=getCustomerEmotion(q);const dishName=recipes[q.recipe]?.name||'Món';const isChosen=state.prioritizedCustomerId===q.id;return `<button class="queue-ticket ${isChosen?'chosen':''}" data-type="PRIORITIZE" data-payload="${q.id}" aria-label="Ưu tiên ${escapeHtml(q.name)} (${escapeHtml(dishName)})"><img src="${DISH_IMAGES[q.recipe]}" class="queue-dish-thumb" alt="${escapeHtml(dishName)}"><div class="queue-ticket-meta"><div class="queue-cust-line"><b>${isChosen?'⭐ ':''}${escapeHtml(q.name)}</b><small class="${q.temperament==='RUSH'?'rush-label':''}">${q.temperament==='RUSH'?'⚡ Vội':e.label}</small></div><div class="queue-dish-line"><span class="queue-dish-name">${escapeHtml(dishName)}</span></div></div><i class="queue-patience-bar" style="width:${e.pct}%;background:${e.color}"></i></button>`}).join(''):'<small class="queue-empty-note">Hàng chờ rỗng · Chạm khách để ưu tiên làm trước</small>'}</div>
     <div class="cooking-board ${cooking?'is-cooking':''}" aria-label="Bàn làm món">
-      ${ready?`<img class="finished-dish" src="${DISH_IMAGES[c.recipe]}" alt="${escapeHtml(title)} đã làm xong"><b>Xong rồi! Giao khách nào</b>`:handoff?`<span>${blocked?'Khách không mua được món':'Khách nhận món · Chuẩn bị đơn tiếp theo'}</span>`:Object.values(selected).some(Boolean)?`<div class="selected-art">${Object.entries(selected).flatMap(([id,q])=>Array.from({length:q},()=>ingredientMeta[id].img?`<img src="${ingredientMeta[id].img}" alt="${ingredientMeta[id].name}">`:`<span>${ingredientMeta[id].name}</span>`)).join('')}</div><b>${cooking?'Đang làm món…':'Nguyên liệu bạn đã chọn'}</b>`:`<span>${c?'Chạm nguyên liệu bên dưới để làm món':'Sẵn sàng đón khách'}</span>`}
-      ${cooking?`<div class="cook-progress"><i style="width:${autoPrepState?.progress||0}%"></i></div>`:''}
+      ${ready ? `
+        <div class="finished-dish-wrap">
+          <img class="finished-dish dish-${c.recipe}" src="${DISH_IMAGES[c.recipe]}" alt="${escapeHtml(title)} đã làm xong">
+        </div>
+      ` : handoff ? `
+        <div class="prep-handoff-state">
+          <span>${blocked ? 'Khách không mua được món' : '✓ Đã giao lên quầy cho khách'}</span>
+        </div>
+      ` : Object.values(selected).some(Boolean) ? `
+        <div class="selected-art">
+          ${Object.entries(selected).flatMap(([id, q]) => Array.from({ length: q }, () => ingredientMeta[id]?.img ? `<img src="${ingredientMeta[id].img}" alt="${ingredientMeta[id].name}">` : `<span>${ingredientMeta[id].name}</span>`)).join('')}
+        </div>
+      ` : `
+        <div class="prep-idle-state">
+          <span class="prep-board-hint">${c ? 'Chọn nguyên liệu bên dưới để làm món' : 'Sẵn sàng đón khách'}</span>
+        </div>
+      `}
+      ${cooking ? `<div class="cook-progress"><i style="width:${autoPrepState?.progress||0}%"></i></div>` : ''}
     </div>
     <div class="ingredient-tray">${visibleIngredients.map(id=>{const meta=ingredientMeta[id],q=selected[id]||0,n=state.stock[id]||0;return `<button class="ingredient-button ${q?'picked':''}" data-type="ADD_INGREDIENT" data-payload="${id}" ${!canSelect||n===0?'disabled':''} aria-label="Chọn ${meta.name}, còn ${n}">${meta.img?`<img src="${meta.img}" alt="">`:'<span class="egg-placeholder">Trứng</span>'}<b>${meta.name}</b><small class="ing-stock-line">${q?`<b class="ing-picked">+${q}</b> · `:''}Còn ${n}</small></button>`}).join('')}</div>
     <div class="cook-actions"><button class="undo-button" data-type="UNDO_INGREDIENTS" ${!canSelect||!Object.values(selected).some(Boolean)?'disabled':''} aria-label="Bỏ nguyên liệu đã chọn">Làm lại</button><button class="cook-main ${ready?'ready':''}" data-type="${ready?'SERVE':'COOK'}" ${state.manualPaused||state.isPaused||!(ready||cookingComplete(state))?'disabled':''}>${ready?'Giao khách →':cooking?'Đang làm món…':canSelect?'Làm món':'Đón khách'}</button><button class="boost-button" data-type="FOCUS_BOOST" ${state.isPaused||state.manualPaused||state.focusBoost.active||state.focusBoost.cooldownSeconds>0?'disabled':''} aria-label="Tập trung làm món nhanh gấp đôi">${state.focusBoost.active?'x2':state.focusBoost.cooldownSeconds>0?Math.ceil(state.focusBoost.cooldownSeconds)+'s':'Nhanh x2'}</button></div>
