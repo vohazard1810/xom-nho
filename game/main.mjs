@@ -28,18 +28,18 @@ const BETI_SPRITES = {
   ]
 };
 
-const CO_CHIN_IMG = '../assets/characters/named/co_chin/co_chin_standing.png';
-const ANH_TUNG_IMG = '../assets/characters/named/anh_tung/anh_tung_standing.png';
+const CO_CHIN_IMG = '../assets/characters/named/co_chin/co_chin_standing.png?v=20261004_v3';
+const ANH_TUNG_IMG = '../assets/characters/named/anh_tung/anh_tung_standing.png?v=20261004_v3';
 
 const WALKIN_SPRITES = {
-  walkin_variant_0: '../assets/pilot/walkin_office.png',
-  walkin_variant_1: '../assets/pilot/walkin_office.png',
-  walkin_variant_2: '../assets/pilot/walkin_driver.png?v=20261004_v2',
-  walkin_variant_3: '../assets/pilot/walkin_elder.png',
-  walkin_student: '../assets/pilot/walkin_student.png',
-  walkin_office: '../assets/pilot/walkin_office.png',
-  walkin_driver: '../assets/pilot/walkin_driver.png?v=20261004_v2',
-  walkin_elder: '../assets/pilot/walkin_elder.png'
+  walkin_variant_0: '../assets/pilot/walkin_office.png?v=20261004_v3',
+  walkin_variant_1: '../assets/pilot/walkin_office.png?v=20261004_v3',
+  walkin_variant_2: '../assets/pilot/walkin_driver.png?v=20261004_v3',
+  walkin_variant_3: '../assets/pilot/walkin_elder.png?v=20261004_v3',
+  walkin_student: '../assets/pilot/walkin_student.png?v=20261004_v3',
+  walkin_office: '../assets/pilot/walkin_office.png?v=20261004_v3',
+  walkin_driver: '../assets/pilot/walkin_driver.png?v=20261004_v3',
+  walkin_elder: '../assets/pilot/walkin_elder.png?v=20261004_v3'
 };
 
 const CANOPY_AWNING_IMG = '../assets/pilot/awning_canopy.png';
@@ -172,16 +172,16 @@ function getCustomerSprite(c, pose = 'ORDER') {
 }
 
 const SPRITE_METRICS = {
-  anh_tung: { fileW: 688, fileH: 1109, footX: 408.1, footY: 1098.0, visH: 1069, visW: 507, headY: 30 },
-  co_chin: { fileW: 726, fileH: 1114, footX: 395.6, footY: 1049.0, visH: 1039, visW: 457, headY: 11 },
+  anh_tung: { fileW: 399, fileH: 1222, footX: 197.2, footY: 1221.0, visH: 1222, visW: 399, headY: 0 },
+  co_chin: { fileW: 507, fileH: 1264, footX: 266.8, footY: 1263.0, visH: 1264, visW: 507, headY: 0 },
   be_ti: {
     order: { fileW: 130, fileH: 276, footX: 62.4, footY: 273.0, visH: 272, visW: 123, headY: 2 },
     queue: { fileW: 137, fileH: 283, footX: 67.4, footY: 280.0, visH: 278, visW: 131, headY: 3 }
   },
-  walkin_student: { fileW: 336, fileH: 870, footX: 173.5, footY: 869.0, visH: 870, visW: 336, headY: 0 },
+  walkin_student: { fileW: 405, fileH: 1264, footX: 197.8, footY: 1263.0, visH: 1264, visW: 405, headY: 0 },
   walkin_office: { fileW: 395, fileH: 1228, footX: 197.0, footY: 1227.0, visH: 1228, visW: 395, headY: 0 },
   walkin_driver: { fileW: 461, fileH: 1213, footX: 196.0, footY: 1212.0, visH: 1213, visW: 461, headY: 0 },
-  walkin_elder: { fileW: 447, fileH: 884, footX: 173.6, footY: 883.0, visH: 884, visW: 447, headY: 0 }
+  walkin_elder: { fileW: 439, fileH: 1264, footX: 219.6, footY: 1263.0, visH: 1264, visW: 439, headY: 0 }
 };
 
 function getServedDishStageCoords(recipe) {
