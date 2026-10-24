@@ -1,0 +1,92 @@
+{
+  "commit": "3a86fba44f6511a44526bce79783dcb6db11d3a6",
+  "date": "2026-10-24",
+  "runtime": "Node v24.22.1",
+  "scope": "Node engine and mock DOM/timer tests; no browser run",
+  "tests": [
+    {
+      "file": "test-balance.mjs",
+      "exit": 0,
+      "seconds": 2.58,
+      "output": "21-day economy probes: conservative, expansion, persistent high price, and recovery PASS"
+    },
+    {
+      "file": "test-core-loop.mjs",
+      "exit": 0,
+      "seconds": 0.2,
+      "output": "Core loop PASS: repeat purchase at current prices, rejection without mutation, mid-prep shop transfer, reload and exactly-once background sale"
+    },
+    {
+      "file": "test-customer-population.mjs",
+      "exit": 0,
+      "seconds": 0.14,
+      "output": "Customer population: seeded identities, returning visits, save migration and district uniqueness PASS"
+    },
+    {
+      "file": "test-day1.mjs",
+      "exit": 0,
+      "seconds": 0.21,
+      "output": "v0.7 Day 1: baseline ledger, serialized resume, pricing/menu, clock/news, opening/closing, extra chả and duplicate-service guards PASS"
+    },
+    {
+      "file": "test-empire.mjs",
+      "exit": 0,
+      "seconds": 21.57,
+      "output": "{\n  \"status\": \"PASS\",\n  \"twoShopDay\": {\n    \"day\": 8,\n    \"openingCash\": 900000,\n    \"closingCash\": 884000,\n    \"cashMovement\": -16000,\n    \"reconciled\": true,\n    \"profit\": 104000,\n    \"shops\": [\n      {\n        \"id\": \"home\",\n        \"name\": \"Quán đầu hẻm\",\n        \"served\": 11,\n        \"missed\": 7,\n        \"revenue\": 201000,\n        \"cogs\": 96500,\n        \"gross\": 104500,\n        \"profit\": 41500,\n        \"spent\": 142500,\n        \"ops\": 23000,\n        \"investment\": 120000,\n        \"spoilage\": 46000,\n        \"fees\": 0,\n        \"tips\": 6000,\n        \"sideIncome\": 0,\n        \"rating\": 4,\n        \"reasons\": {\n          \"OUT_OF_STOCK\": 1,\n          \"PRICE_TOO_HIGH\": 6\n        },\n        \"advice\": \"Xem giá đối thủ và hạ giá món bị từ chối.\",\n        \"recommendations\": [\n          {\n            \"reason\": \"PRICE_TOO_HIGH\",\n            \"count\": 6,\n            \"area\": \"pricing\",\n            \"text\": \"Xem giá đối thủ và hạ giá món bị từ chối.\"\n          },\n          {\n            \"reason\": \"OUT_OF_STOCK\",\n            \"count\": 1,\n            \"area\": \"stock\",\n            \"text\": \"Tăng lượng nhập hoặc sức chở; không phải lỗi nhân viên.\"\n          }\n        ],\n        \"feedback\": [\n          {\n            \"personId\": \"driver_2\",\n            \"name\": \"Chú Bình\",\n            \"reason\": \"PRICE_TOO_HIGH\",\n            \"text\": \"Giá hôm nay cao quá, để bữa khác ghé.\"\n          },\n          {\n            \"personId\": \"teen_4\",\n            \"name\": \"Bé Vy\",\n            \"reason\": \"PRICE_TOO_HIGH\",\n            \"text\": \"Giá hôm nay cao quá, để bữa khác ghé.\"\n          },\n          {\n            \"personId\": \"teen_3\",\n            \"name\": \"Em Tuấn\",\n            \"reason\": \"PRICE_TOO_HIGH\",\n            \"text\": \"Giá hôm nay cao quá, để bữa khác ghé.\"\n          }\n        ],\n        \"employees\": [\n          {\n            \"id\": \"employee_1\",\n            \"name\": \"Dì Hạnh\",\n            \"role\": \"manager\",\n            \"skill\": 2,\n            \"fatigue\": 16,\n            \"mood\": 85,\n            \"lastShift\": {\n              \"day\": 8,\n              \"served\": 11,\n              \"fatigueChange\": 16,\n              \"moodChange\": 0,\n              \"advice\": \"Có thể đào tạo để cải thiện tay nghề.\"\n            },\n            \"advice\": \"Có thể đào tạo để cải thiện tay nghề.\"\n          }\n        ]\n      },\n      {\n        \"id\": \"school\",\n        \"name\": \"Quán cổng trường\",\n        \"served\": 9,\n        \"missed\": 4,\n        \"revenue\": 135000,\n        \"cogs\": 63000,\n        \"gross\": 72000,\n        \"profit\": 62500,\n        \"spent\": 74500,\n        \"ops\": 0,\n        \"investment\": 0,\n        \"spoilage\": 11500,\n        \"fees\": 0,\n        \"tips\": 2000,\n        \"sideIncome\": 0,\n        \"rating\": 3,\n        \"reasons\": {\n          \"MENU_DISABLED\": 3,\n          \"PRICE_TOO_HIGH\": 1\n        },\n        \"advice\": \"Bật món khách hỏi và chuẩn bị đủ nguyên liệu.\",\n        \"recommendations\": [\n          {\n            \"reason\": \"MENU_DISABLED\",\n            \"count\": 3,\n            \"area\": \"menu\",\n            \"text\": \"Bật món khách hỏi và chuẩn bị đủ nguyên liệu.\"\n          },\n          {\n            \"reason\": \"PRICE_TOO_HIGH\",\n            \"count\": 1,\n            \"area\": \"pricing\",\n            \"text\": \"Xem giá đối thủ và hạ giá món bị từ chối.\"\n          }\n        ],\n        \"feedback\": [\n          {\n            \"personId\": \"school:school_teen_2\",\n            \"name\": \"Em Linh\",\n            \"reason\": \"MENU_DISABLED\",\n            \"text\": \"Hôm nay không có món mình thích rồi.\"\n          },\n          {\n            \"personId\": \"school:school_teen_4\",\n            \"name\": \"Em Thảo\",\n            \"reason\": \"MENU_DISABLED\",\n            \"text\": \"Hôm nay không có món mình thích rồi.\"\n          },\n          {\n            \"personId\": \"school:school_teen_6\",\n            \"name\": \"Em Trâm\",\n            \"reason\": \"PRICE_TOO_HIGH\",\n            \"text\": \"Giá hôm nay cao quá, để bữa khác ghé.\"\n          }\n        ],\n        \"employees\": []\n      }\n    ]\n  },\n  \"roles\": [\n    \"helper\",\n    \"manager\",\n    \"cleaner\",\n    \"keeper\",\n    \"buyer\",\n    \"packer\",\n    \"driver\"\n  ],\n  \"singleCash\": 127000,\n  \"sharedClock\": true,\n  \"backgroundRealSales\": true,\n  \"reload\": true,\n  \"thirdLocation\": true,\n  \"plannedClosure\": true,\n  \"campaignDays\": 15,\n  \"portfolioDays\": 8,\n  \"allDailyCashReconciled\": true\n}"
+    },
+    {
+      "file": "test-endless.mjs",
+      "exit": 0,
+      "seconds": 63.29,
+      "output": "PASS: seeded endless calendar, rival price response, achievement unlock and 100-day saved campaign ledger"
+    },
+    {
+      "file": "test-multiday.mjs",
+      "exit": 0,
+      "seconds": 1.08,
+      "output": "7 playable days + 21-day deterministic stress: name, upgrades, prices, roster, clock, emotions, ledger, spoilage, save/reload PASS"
+    },
+    {
+      "file": "test-office-hub.mjs",
+      "exit": 0,
+      "seconds": 0.23,
+      "output": "Office selectors, manager guards, advice cap and deterministic shared fixture PASS"
+    },
+    {
+      "file": "test-operational-e2e.mjs",
+      "exit": 0,
+      "seconds": 0.66,
+      "output": "{\n  \"status\": \"PASS\",\n  \"scope\": \"production-engine end-to-end; NOT browser/UI E2E\",\n  \"seed\": 20261004,\n  \"day1\": {\n    \"cash\": 127000,\n    \"gross\": 67000,\n    \"served\": 6,\n    \"simulatedSeconds\": 27.6\n  },\n  \"portfolio\": {\n    \"controlledStartingDay\": 8,\n    \"shops\": [\n      {\n        \"id\": \"home\",\n        \"served\": 10,\n        \"missed\": 6,\n        \"profit\": 42500,\n        \"recommendations\": [\n          {\n            \"reason\": \"PRICE_TOO_HIGH\",\n            \"count\": 6,\n            \"area\": \"pricing\",\n            \"text\": \"Xem giá đối thủ và hạ giá món bị từ chối.\"\n          }\n        ]\n      },\n      {\n        \"id\": \"school\",\n        \"served\": 10,\n        \"missed\": 3,\n        \"profit\": 103000,\n        \"recommendations\": [\n          {\n            \"reason\": \"MENU_DISABLED\",\n            \"count\": 2,\n            \"area\": \"menu\",\n            \"text\": \"Bật món khách hỏi và chuẩn bị đủ nguyên liệu.\"\n          },\n          {\n            \"reason\": \"PRICE_TOO_HIGH\",\n            \"count\": 1,\n            \"area\": \"pricing\",\n            \"text\": \"Xem giá đối thủ và hạ giá món bị từ chối.\"\n          }\n        ]\n      }\n    ],\n    \"reconciled\": true,\n    \"simulatedSeconds\": 58.8,\n    \"ownerSpeed\": 1.322,\n    \"managerSpeed\": 0.7817779200000001,\n    \"transferredTicketExactlyOnce\": true,\n    \"nextDay\": 9\n  },\n  \"checks\": {\n    \"saveInPrep\": true,\n    \"pauseAllShops\": true,\n    \"doubleServeBlocked\": true,\n    \"wagesNotRepeated\": true,\n    \"bonusOnce\": true,\n    \"restAssigned\": true,\n    \"allCustomersAccounted\": true,\n    \"noNegativeStock\": true\n  },\n  \"pacing\": {\n    \"emptyMinutesPerSecond\": 30,\n    \"busyMinutesPerSecond\": 2,\n    \"quietGapReductionPercent\": 40\n  },\n  \"browser\": {\n    \"status\": \"BLOCKED\",\n    \"reason\": \"Cloud browser rejected localhost with ERR_BLOCKED_BY_CLIENT\"\n  }\n}"
+    },
+    {
+      "file": "test-progression.mjs",
+      "exit": 0,
+      "seconds": 0.13,
+      "output": "Progression: calendar, auto close, recipe, canopy, staff, online inventory/fees, feedback and ledger PASS"
+    },
+    {
+      "file": "test-shift.mjs",
+      "exit": 0,
+      "seconds": 5.9,
+      "output": "{\n  \"status\": \"PASS\",\n  \"mode\": \"manual-ingredients-cook-serve\",\n  \"day1\": {\n    \"cash\": 127000,\n    \"gross\": 67000,\n    \"served\": 6\n  },\n  \"campaignDays\": 21,\n  \"wrongTapSafe\": true,\n  \"duplicateServeGuard\": true,\n  \"savePhases\": [\n    \"SELECT\",\n    \"PREP\",\n    \"READY\",\n    \"REACTION\"\n  ],\n  \"staffAutomationOptional\": true\n}"
+    },
+    {
+      "file": "test-staff-performance.mjs",
+      "exit": 0,
+      "seconds": 0.11,
+      "output": "PASS: bonus cash/expenses, duplicate guard, save, morale, workload fatigue, rest and staff report"
+    },
+    {
+      "file": "test-ui-timers.mjs",
+      "exit": 0,
+      "seconds": 0.17,
+      "output": "UI timers: remaining result countdown, detail pause, auto next-day and Replay cancellation PASS"
+    },
+    {
+      "file": "test-ui.mjs",
+      "exit": 0,
+      "seconds": 0.15,
+      "output": "UI smoke: onboarding name, day transition, market inflation, unaffordable upgrade and locked menu PASS\nUI fixture hook: shared deterministic PREP state and unknown-name atomicity PASS"
+    }
+  ]
+}

@@ -3,21 +3,26 @@
   "project": "Xóm Nhỏ — Office Control Center",
   "branch": "codex/core-loop-completion",
   "repository": "https://github.com/vohazard1810/xom-nho",
-  "updatedAt": "2026-10-24T10:20:00+07:00",
-  "updatedBy": "Antigravity",
-  "statuses": ["Todo", "In Progress", "Review", "Done"],
+  "updatedAt": "2026-10-24T10:41:00+07:00",
+  "updatedBy": "Codex",
+  "statuses": [
+    "Todo",
+    "In Progress",
+    "Review",
+    "Done"
+  ],
   "owners": {
     "Antigravity": "UI / Art / Browser verification",
     "Codex": "Engine / Logic / Transactions / Automated tests"
   },
   "currentHandoff": {
-    "id": "HO-2026-10-04-operational",
-    "title": "Operational UI pass (chủ/quản lý, tổng kết quán, khách quen)",
+    "id": "HO-2026-10-24-backend",
+    "title": "C1–C6: selectors, manager guards, advice cap, deterministic fixture",
     "from": "Codex",
     "to": "Antigravity",
-    "baseCommit": "c035ccf",
-    "resultCommit": "7e024a6",
-    "source": "docs/ANTIGRAVITY_OPERATIONAL_HANDOFF.md"
+    "baseCommit": "4f2731d",
+    "resultCommit": "3a86fba44f6511a44526bce79783dcb6db11d3a6",
+    "source": "docs/office_hub/reports/CODEX_BACKEND_REPORT.md"
   },
   "tasks": [
     {
@@ -54,50 +59,75 @@
       "title": "Chạy lại game/test-*.mjs trên 7e024a6",
       "owner": "Codex",
       "area": "Logic",
-      "status": "Todo",
+      "status": "Review",
       "priority": "High",
-      "report": "docs/office_hub/reports/CODEX_BACKEND_REPORT.md"
+      "report": "docs/office_hub/reports/CODEX_BACKEND_REPORT.md",
+      "commit": "3a86fba44f6511a44526bce79783dcb6db11d3a6",
+      "updatedAt": "2026-10-24T10:41:00+07:00",
+      "updatedBy": "Codex"
     },
     {
       "id": "C2",
       "title": "Chốt luật quán vắng chủ khi không có quản lý (dừng đón khách hay lỡ khách)",
       "owner": "Codex",
       "area": "Logic",
-      "status": "Todo",
+      "status": "Review",
       "priority": "High",
-      "blocks": ["A3"]
+      "blocks": [
+        "A3"
+      ],
+      "commit": "3a86fba44f6511a44526bce79783dcb6db11d3a6",
+      "report": "docs/office_hub/reports/CODEX_BACKEND_REPORT.md",
+      "updatedAt": "2026-10-24T10:41:00+07:00",
+      "updatedBy": "Codex"
     },
     {
       "id": "C3",
       "title": "Export selector isQuietInterval / currentMinuteRate cho UI",
       "owner": "Codex",
       "area": "Logic",
-      "status": "Todo",
-      "priority": "Medium"
+      "status": "Review",
+      "priority": "Medium",
+      "commit": "3a86fba44f6511a44526bce79783dcb6db11d3a6",
+      "report": "docs/office_hub/reports/CODEX_BACKEND_REPORT.md",
+      "updatedAt": "2026-10-24T10:41:00+07:00",
+      "updatedBy": "Codex"
     },
     {
       "id": "C4",
       "title": "Export selector shopOperationalStatus(empire, shopId)",
       "owner": "Codex",
       "area": "Logic",
-      "status": "Todo",
-      "priority": "Medium"
+      "status": "Review",
+      "priority": "Medium",
+      "commit": "3a86fba44f6511a44526bce79783dcb6db11d3a6",
+      "report": "docs/office_hub/reports/CODEX_BACKEND_REPORT.md",
+      "updatedAt": "2026-10-24T10:41:00+07:00",
+      "updatedBy": "Codex"
     },
     {
       "id": "C5",
       "title": "Ổn định enum area của operationalAdvice + test tối đa 3 gợi ý",
       "owner": "Codex",
       "area": "Logic",
-      "status": "Todo",
-      "priority": "Low"
+      "status": "Review",
+      "priority": "Low",
+      "commit": "3a86fba44f6511a44526bce79783dcb6db11d3a6",
+      "report": "docs/office_hub/reports/CODEX_BACKEND_REPORT.md",
+      "updatedAt": "2026-10-24T10:41:00+07:00",
+      "updatedBy": "Codex"
     },
     {
       "id": "C6",
       "title": "Hook loadFixture(name) có seed cố định cho test trình duyệt đa quán",
       "owner": "Codex",
       "area": "Logic",
-      "status": "Todo",
-      "priority": "Low"
+      "status": "Review",
+      "priority": "Low",
+      "commit": "3a86fba44f6511a44526bce79783dcb6db11d3a6",
+      "report": "docs/office_hub/reports/CODEX_BACKEND_REPORT.md",
+      "updatedAt": "2026-10-24T10:41:00+07:00",
+      "updatedBy": "Codex"
     },
     {
       "id": "A1",
@@ -122,7 +152,43 @@
       "area": "UI",
       "status": "Todo",
       "priority": "Medium",
-      "blockedBy": ["C2"]
+      "blockedBy": [
+        "C2"
+      ],
+      "notes": "C2: chặn mở ca nếu quán vắng chủ thiếu quản lý; chặn rời quán đang bán khi chưa có quản lý đang trực (người nghỉ không tính). Không mô tả là tạm dừng đón khách.",
+      "updatedAt": "2026-10-24T10:41:00+07:00",
+      "updatedBy": "Codex"
+    },
+    {
+      "id": "A4",
+      "title": "Dùng selector engine cho cue giờ nhanh và trạng thái quán",
+      "owner": "Antigravity",
+      "area": "UI",
+      "status": "Todo",
+      "priority": "Medium",
+      "blockedBy": [
+        "C3",
+        "C4"
+      ],
+      "report": "docs/office_hub/reports/CODEX_BACKEND_REPORT.md",
+      "notes": "Cue: currentMinuteRate(state) === 30 && isQuietInterval(state). Map/panel: shopOperationalStatus(state.empire,id); managerId là nhân viên đang trực. Giữ A1/A2 cho done.",
+      "updatedAt": "2026-10-24T10:41:00+07:00",
+      "updatedBy": "Codex"
+    },
+    {
+      "id": "A5",
+      "title": "Kiểm tra trình duyệt đa quán bằng fixture seed cố định",
+      "owner": "Antigravity",
+      "area": "UI",
+      "status": "Todo",
+      "priority": "Low",
+      "blockedBy": [
+        "C6"
+      ],
+      "report": "docs/office_hub/reports/CODEX_BACKEND_REPORT.md",
+      "notes": "window.__xomNho.loadFixture('two_shops_mid_prep'); seed 20261024. Ghi rõ fixture có kiểm soát, hook thay thế và lưu phiên hiện tại.",
+      "updatedAt": "2026-10-24T10:41:00+07:00",
+      "updatedBy": "Codex"
     }
   ]
 }
