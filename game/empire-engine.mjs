@@ -143,6 +143,7 @@ export function empireAction(input,type,payload){
  if(type==='REPEAT_BASKET'||type==='SUGGEST_BASKET'||type==='BASKET'||type==='BUY'||type==='CONFIG_MENU'||type==='SET_OPENING_TIME')e.shops[e.activeShopId].ready=false;
  return{state:pack(e,s,s.cash)};
 }
+export const OPERATIONAL_ADVICE_AREAS=Object.freeze(['stock','service','pricing','menu','hours','cost','staff','stable']);
 export function operationalAdvice(reasons,profit,workers=[]){
  const guidance={
   OUT_OF_STOCK:{area:'stock',text:'Tăng lượng nhập hoặc sức chở; không phải lỗi nhân viên.'},
@@ -155,7 +156,7 @@ export function operationalAdvice(reasons,profit,workers=[]){
  const advice=Object.entries(reasons).filter(([key,count])=>guidance[key]&&count>0).sort((a,b)=>b[1]-a[1]).map(([reason,count])=>({reason,count,...guidance[reason]}));
  if(profit<0)advice.push({area:'cost',text:'Kiểm tra chi phí lương và hàng hỏng trước khi mở rộng.'});
  for(const p of workers){if((p.fatigue??0)>=70)advice.push({area:'staff',employeeId:p.id,text:`${p.name}: cho nghỉ một ca để hồi sức.`});else if((p.mood??80)<50)advice.push({area:'staff',employeeId:p.id,text:`${p.name}: cân nhắc thưởng động viên.`});}
- return advice.length?advice:[{area:'stable',text:'Quán vận hành ổn; giữ đủ hàng và vốn dự phòng.'}];
+ return advice.length?advice.slice(0,3):[{area:'stable',text:'Quán vận hành ổn; giữ đủ hàng và vốn dự phòng.'}];
 }
 function shopReport(e,x){const s=x.state,l=calculateLedger(s),workers=e.employees.filter(p=>p.shopId===x.id);const reasons=Object.fromEntries(Object.entries(l.missedByReason).filter(([,a])=>a.length).map(([k,a])=>[k,a.length]));const recommendations=operationalAdvice(reasons,l.resultAfterSpoilageAndExpenses,workers);const advice=recommendations[0].text;return{id:x.id,name:LOCATIONS[x.id].name,served:l.servedCount,missed:l.missedCount,revenue:l.totalSalesRevenue,cogs:l.cogsSoldItemsOnly,gross:l.grossOperatingProfit,profit:l.resultAfterSpoilageAndExpenses,spent:l.spentOnMorningStock,ops:l.operatingExpenses,investment:l.upgradeOutlay,spoilage:l.spoilageLoss,fees:l.onlineFees,tips:l.tipsCollected,sideIncome:l.sideJobIncome,rating:s.rating,reasons,advice,recommendations,feedback:s.lastDayReport?.feedback.slice(0,3)||[],employees:workers.map(p=>({id:p.id,name:p.name,role:p.role,skill:p.skill,fatigue:p.fatigue,mood:p.mood,lastShift:p.lastShift,advice:staffCondition(p).advice}))}}
 function finishDay(e,cash){
@@ -172,6 +173,29 @@ function finishDay(e,cash){
  e.report={day:e.shops[e.activeShopId].state.currentDay,openingCash:e.openingCash,closingCash:cash,cashMovement:movement,reconciled:e.openingCash+movement===cash,profit:shops.reduce((n,x)=>n+x.profit,0),shops};e.history.push(e.report);e.history=e.history.slice(-21);e.shiftRunning=false;e.mapOpen=false;e.staffOpen=false;
  const s=strip(e.shops[e.activeShopId].state);s.screen='DAY_RESULT';s.resultRemainingMs=12000;return pack(e,s,cash);
 }
+// Selectors are pure. Rate is game minutes per real second at speed 1.
+export function shopOperationalStatus(empire,shopId){
+ const e=empire?.empire||empire,x=e?.shops?.[shopId];
+ if(!x)return {status:'unavailable',managerId:null};
+ const manager=liveEmployees(e,shopId).find(p=>p.role==='manager');
+ const managerId=manager?.id??null;
+ if(x.closedToday)return {status:'closed',managerId};
+ if(x.state.screen==='DAY_RESULT')return {status:'done',managerId};
+ if(!e.shiftRunning)return {status:'waiting',managerId};
+ return {status:shopId===e.activeShopId?'owner':manager?'managed':'waiting',managerId};
+}
+export function isQuietInterval(state){
+ const e=state.empire;
+ const shops=e?Object.values(e.shops).filter(x=>!x.closedToday&&x.state.screen==='SHOP').map(x=>x.state):(state.screen==='SHOP'?[state]:[]);
+ return shops.length>0&&!shops.some(s=>s.activeCustomer||s.waitingQueue?.length);
+}
+export function currentMinuteRate(state){
+ const e=state.empire,active=e?.shops[e.activeShopId]?.state||state;
+ if(state.screen!=='SHOP'||state.isPaused||state.manualPaused||e?.mapOpen||e?.staffOpen||active.isPaused||active.manualPaused)return 0;
+ if(active.currentDay===1&&!active.cookingTutorialDone&&active.activeCustomer?.status==='ARRIVED')return 0;
+ return isQuietInterval(state)?SHIFT_RULES.emptyMinutesPerSecond:SHIFT_RULES.minutesPerSecond;
+}
+
 export function advanceEmpire(input,elapsedMs){
  const root=ensureEmpire(input);if(root.screen!=='SHOP'||root.isPaused||root.manualPaused||root.empire.mapOpen||root.empire.staffOpen)return root;
  const e=structuredClone(root.empire);e.revisionCounter=Math.max(root.revision,e.revisionCounter||0);let cash=root.cash;
@@ -179,9 +203,7 @@ export function advanceEmpire(input,elapsedMs){
  let left=elapsedMs*(root.speed||1);
  while(left>0&&e.shiftRunning){const ms=Math.min(100,left);left-=ms;
   const active=e.shops[e.activeShopId].state;if(active.isPaused||active.manualPaused)break;
-  const rate=Object.values(e.shops).some(x=>x.state.activeCustomer||x.state.waitingQueue.length)?SHIFT_RULES.minutesPerSecond:SHIFT_RULES.emptyMinutesPerSecond;
-  const tutorial=active.currentDay===1&&!active.cookingTutorialDone&&active.activeCustomer?.status==='ARRIVED';
-  const effectiveRate=tutorial?0:rate;
+  const effectiveRate=currentMinuteRate({...root,empire:e});
   const beforeClock=e.worldClock; e.worldClock=Math.min(360,e.worldClock+ms/1000*effectiveRate);
   for(const x of Object.values(e.shops)){
    let s=strip(x.state);if(s.screen!=='SHOP'||beforeClock<s.clock-.0001)continue;

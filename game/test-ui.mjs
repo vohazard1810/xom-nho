@@ -32,3 +32,11 @@ assert.ok(!getState().knownRecipeIds.includes('BANH_MI_TRUNG'));
 assert.match(app.innerHTML, /data-recipe="BANH_MI_TRUNG"[^>]*disabled/);
 console.log('UI smoke: onboarding name, day transition, market inflation, unaffordable upgrade and locked menu PASS');
 window.__xomNho.clearAllTimers();
+
+const fixture = window.__xomNho.loadFixture('two_shops_mid_prep');
+window.__xomNho.clearAllTimers();
+assert.equal(fixture.empire.shops.home.state.service.phase, 'PREP');
+assert.deepEqual(getState(), fixture);
+assert.throws(() => window.__xomNho.loadFixture('unknown'));
+assert.deepEqual(getState(), fixture);
+console.log('UI fixture hook: shared deterministic PREP state and unknown-name atomicity PASS');

@@ -1,3 +1,4 @@
+import {loadFixture as createFixture} from './fixtures.mjs';
 import { serviceVisual, cookingNeeds, cookingComplete } from './shift-engine.mjs';
 import { ensureEmpire, empireAction, advanceEmpire, LOCATIONS, STAFF_ROLES, openingEligibility, staffCondition, staffRoleAvailable, STAFF_MILESTONES } from './empire-engine.mjs';
 import {
@@ -930,6 +931,12 @@ if (state.screen === 'DAY_RESULT') scheduleNextDay();
 
 window.__xomNho = {
   send,
+  loadFixture: (name) => {
+    const fixture = createFixture(name);
+    clearAllTimers(); state = fixture; resultDetailsOpen = false; message = '';
+    updateServiceView(); persist(); render(); startSimulationLoop();
+    return structuredClone(state);
+  },
   getState: () => state,
   render,
   setMessage: (val) => { message = val; },
