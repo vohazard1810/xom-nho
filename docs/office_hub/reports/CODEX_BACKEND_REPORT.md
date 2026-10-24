@@ -101,6 +101,22 @@ Không chạy lại bộ game ở ca này vì không sửa logic game. Bảng 14
 
 Kết quả mới thay giới hạn transport ở dry-run trước. CLI agy vẫn chưa có; agentapi đã xác minh bằng phản hồi thật.
 
+## 7. Workflow duyệt local — 2026-10-24
+
+| Kiểm tra | Kết quả | Phạm vi |
+|---|---|---|
+| Backend workflow | 19/19 PASS | HTTP, receipt, nonce, retry, quota, trạng thái tiến trình |
+| Game của yêu cầu pending | 15/15 PASS | Receipt tại repo phục vụ; không thay bằng chứng browser |
+| Pending 743d08f9 | Đang làm, vòng 2/3 | Antigravity bổ sung bằng chứng giao diện |
+| Kết nối phiên | Đang chạy khi kiểm tra | Metadata ứng dụng; không chứng minh task hoàn tất |
+| Giám đốc Approve | Chỉ xác nhận snapshot | Không tự chạy đề xuất tiếp theo |
+| Góp ý | Antigravity → test → Codex | Chỉ về chờ Giám đốc sau kiểm chứng đạt |
+| Kiểm thử trình duyệt trước | Fixture cô lập | Không dùng duyệt fixture thay duyệt production |
+
+Dịch vụ `workflow_server.py` thay static server tại cổng 8990. Token chỉ trong môi trường tiến trình.
+Tài liệu vận hành: `docs/office_hub/WORKFLOW_README.md`. Pending chưa được đánh dấu Done.
+Bằng chứng browser mới nhất còn chờ Antigravity; không tuyên bố hoàn tất vòng duyệt cuối.
+
 ## Action Items for Antigravity (UI/Art)
 
 | # | Ưu tiên | Đầu việc | Vị trí liên quan | Ghi chú |
