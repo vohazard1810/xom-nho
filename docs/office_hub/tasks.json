@@ -3,7 +3,7 @@
   "project": "Xóm Nhỏ — Office Control Center",
   "branch": "codex/core-loop-completion",
   "repository": "https://github.com/vohazard1810/xom-nho",
-  "updatedAt": "2026-10-24T10:41:00+07:00",
+  "updatedAt": "2026-10-24T12:06:00+07:00",
   "updatedBy": "Codex",
   "statuses": [
     "Todo",
@@ -16,12 +16,12 @@
     "Codex": "Engine / Logic / Transactions / Automated tests"
   },
   "currentHandoff": {
-    "id": "HO-2026-10-24-backend",
-    "title": "C1–C6: selectors, manager guards, advice cap, deterministic fixture",
+    "id": "HO-2026-10-24-local-orchestrator",
+    "title": "Local orchestrator dry-run; Antigravity manual",
     "from": "Codex",
     "to": "Antigravity",
-    "baseCommit": "4f2731d",
-    "resultCommit": "3a86fba44f6511a44526bce79783dcb6db11d3a6",
+    "baseCommit": "f5e4266",
+    "resultCommit": "7a34dc939bcfeaf078aa16c89e937ce3c61ce06e",
     "source": "docs/office_hub/reports/CODEX_BACKEND_REPORT.md"
   },
   "tasks": [
@@ -189,6 +189,34 @@
       "notes": "window.__xomNho.loadFixture('two_shops_mid_prep'); seed 20261024. Ghi rõ fixture có kiểm soát, hook thay thế và lưu phiên hiện tại.",
       "updatedAt": "2026-10-24T10:41:00+07:00",
       "updatedBy": "Codex"
+    },
+    {
+      "id": "C7",
+      "title": "Local orchestrator có bằng chứng repo, dry-run và panel log",
+      "owner": "Codex",
+      "area": "Logic",
+      "status": "Review",
+      "priority": "High",
+      "commit": "7a34dc939bcfeaf078aa16c89e937ce3c61ce06e",
+      "report": "docs/office_hub/reports/CODEX_BACKEND_REPORT.md",
+      "updatedAt": "2026-10-24T12:06:00+07:00",
+      "updatedBy": "Codex",
+      "notes": "9 bài tích hợp + 1 bài hợp đồng CLI PASS. Dry-run 0 model calls. agy chưa tìm thấy; manual, chưa gửi task thật."
+    },
+    {
+      "id": "A6",
+      "title": "Xác nhận ACK/outbox trên worktree Antigravity và panel Điều phối",
+      "owner": "Antigravity",
+      "area": "UI",
+      "status": "Todo",
+      "priority": "Medium",
+      "blockedBy": [
+        "C7"
+      ],
+      "report": "docs/office_hub/reports/CODEX_BACKEND_REPORT.md",
+      "updatedAt": "2026-10-24T12:06:00+07:00",
+      "updatedBy": "Codex",
+      "notes": "Không tự động kích hoạt GUI. Xem hướng dẫn manual và phương án agy trong handoff/README.md."
     }
   ]
 }
