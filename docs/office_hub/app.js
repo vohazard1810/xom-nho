@@ -383,6 +383,28 @@ Sau khi hoàn tất, vui lòng điền báo cáo vào docs/office_hub/reports/CO
     });
   }
 
+  function playBellChime() {
+    try {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (!AudioCtx) return;
+      const ctx = new AudioCtx();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(880, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(1760, ctx.currentTime + 0.08);
+      osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.3);
+      gain.gain.setValueAtTime(0.3, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1.2);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + 1.2);
+    } catch (err) {
+      // Audio not permitted or not supported, ignore silently
+    }
+  }
+
   // ───────────────────────── 8. EVENT BINDINGS ─────────────────────────
   function bindEvents() {
     // Room Navigation clicks
@@ -393,13 +415,76 @@ Sau khi hoàn tất, vui lòng điền báo cáo vào docs/office_hub/reports/CO
         return;
       }
 
-      // Sidebar desk clicks jump to lobby or focus
+      // Sidebar desk clicks jump to lobby or focus character
       const deskCard = e.target.closest('[data-target-desk]');
       if (deskCard) {
         switchRoom('lobby');
-        const deskId = `desk-${deskCard.dataset.targetDesk}`;
+        const deskId = `ws-${deskCard.dataset.targetDesk}`;
         const el = document.getElementById(deskId);
-        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          el.focus();
+        }
+        return;
+      }
+
+      // Character Workstations & Desk Bell Interactions
+      if (e.target.closest('#desk-bell')) {
+        e.stopPropagation();
+        playBellChime();
+        showToast('🔔 Đinggg! Giám Đốc đã duyệt kết quả Sprint!');
+        const d = $('#drawer-director');
+        if (d && !d.open) d.showModal();
+        return;
+      }
+
+      if (e.target.closest('#ws-antigravity')) {
+        const d = $('#drawer-antigravity');
+        if (d) d.showModal();
+        return;
+      }
+
+      if (e.target.closest('#ws-director')) {
+        playBellChime();
+        const d = $('#drawer-director');
+        if (d) d.showModal();
+        return;
+      }
+
+      if (e.target.closest('#ws-codex')) {
+        const d = $('#drawer-codex');
+        if (d) d.showModal();
+        return;
+      }
+
+      // Drawer Action Buttons
+      if (e.target.closest('#btn-drawer-goto-kanban')) {
+        const d = $('#drawer-antigravity');
+        if (d && d.open) d.close();
+        switchRoom('kanban');
+        return;
+      }
+
+      if (e.target.closest('#btn-drawer-copy-prompt')) {
+        const d = $('#drawer-director');
+        if (d && d.open) d.close();
+        copyHandoffPrompt();
+        return;
+      }
+
+      if (e.target.closest('#btn-drawer-open-reports')) {
+        const d = $('#drawer-director');
+        if (d && d.open) d.close();
+        switchRoom('reports');
+        return;
+      }
+
+      if (e.target.closest('#btn-drawer-goto-codex-report')) {
+        const d = $('#drawer-codex');
+        if (d && d.open) d.close();
+        switchRoom('reports');
+        const codexTab = document.querySelector('[data-report-target="codex"]');
+        if (codexTab) codexTab.click();
         return;
       }
 
@@ -541,6 +626,14 @@ Sau khi hoàn tất, vui lòng điền báo cáo vào docs/office_hub/reports/CO
     // Lightbox backdrop click to close
     const dlg = $('#qa-lightbox');
     dlg.addEventListener('click', (ev) => { if (ev.target === dlg) dlg.close(); });
+
+    // Drawer backdrop clicks to close
+    ['#drawer-antigravity', '#drawer-director', '#drawer-codex'].forEach((sel) => {
+      const d = $(sel);
+      if (d) {
+        d.addEventListener('click', (ev) => { if (ev.target === d) d.close(); });
+      }
+    });
   }
 
   // ───────────────────────── 9. BOOTSTRAP ─────────────────────────
@@ -558,6 +651,19 @@ Sau khi hoàn tất, vui lòng điền báo cáo vào docs/office_hub/reports/CO
       const pct = Math.round((doneCount / allTasks.length) * 100);
       $('#sprint-progress-text').textContent = `${doneCount}/${allTasks.length} (${pct}%)`;
       $('#sprint-progress-bar').style.width = `${pct}%`;
+
+      const agTodo = allTasks.filter((t) => t.owner === 'Antigravity' && t.status === 'Todo').length;
+      const agEl = $('#kpi-open-ag');
+      if (agEl) agEl.textContent = `UI: ${agTodo} Tasks Sẵn Sàng (A1-A5)`;
+    }
+
+    // Sync Current Handoff Info
+    if (state.tasks?.currentHandoff) {
+      const h = state.tasks.currentHandoff;
+      const titleEl = $('#kpi-handoff-title');
+      const descEl = $('#kpi-handoff-desc');
+      if (titleEl) titleEl.textContent = `${h.title}`;
+      if (descEl) descEl.textContent = `${h.from} → ${h.to} · base ${h.baseCommit.slice(0, 7)} → result ${h.resultCommit.slice(0, 7)}`;
     }
 
     // Git Branch & Status

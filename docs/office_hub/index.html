@@ -80,24 +80,24 @@
         <div class="staff-card staff-ag" data-target-desk="antigravity">
           <div class="staff-avatar">
             <span class="avatar-icon">🎨</span>
-            <span class="live-dot pulse-ag" title="Đang trực tuyến"></span>
+            <span class="live-dot pulse-ag" title="Đang trực ca"></span>
           </div>
           <div class="staff-info">
             <div class="staff-name">Antigravity</div>
             <div class="staff-role">UI · Art · Browser QA</div>
-            <div class="staff-status-sub">Đã nộp bài · Chờ C2</div>
+            <div class="staff-status-sub">5 Tasks UI Sẵn Sàng</div>
           </div>
         </div>
 
         <div class="staff-card staff-cx" data-target-desk="codex">
           <div class="staff-avatar">
             <span class="avatar-icon">⚙️</span>
-            <span class="live-dot pulse-cx" title="Đang chờ ca"></span>
+            <span class="live-dot pulse-cx" title="Đã hoàn tất ca"></span>
           </div>
           <div class="staff-info">
             <div class="staff-name">Codex</div>
             <div class="staff-role">Engine · Logic · Tests</div>
-            <div class="staff-status-sub">6 Tasks chờ xử lý</div>
+            <div class="staff-status-sub">14/14 PASS · Commit 3a86fba</div>
           </div>
         </div>
       </div>
@@ -120,11 +120,11 @@
                 <span class="kpi-icon">⇄</span>
                 <span class="kpi-tag">ĐỢT BÀN GIAO HIỆN TẠI</span>
               </div>
-              <div class="kpi-title" id="kpi-handoff-title">Operational UI Pass</div>
-              <div class="kpi-sub" id="kpi-handoff-desc">Antigravity → Codex · base c035ccf → result 7e024a6</div>
+              <div class="kpi-title" id="kpi-handoff-title">C1–C6: Backend Logic & Fixtures</div>
+              <div class="kpi-sub" id="kpi-handoff-desc">Codex → Antigravity · base 4f2731d → result 3a86fba</div>
               <div class="kpi-badge-row">
-                <span class="status-chip chip-review">Trạng thái: Đang Review</span>
-                <span class="status-chip chip-neutral" id="kpi-open-ag">Antigravity: 1 review / 3 todo</span>
+                <span class="status-chip chip-success">Backend: 14/14 PASS</span>
+                <span class="status-chip chip-neutral" id="kpi-open-ag">UI: 5 Tasks Sẵn Sàng (A1-A5)</span>
               </div>
             </div>
 
@@ -143,113 +143,312 @@
 
             <div class="kpi-card kpi-blocker">
               <div class="kpi-header">
-                <span class="kpi-icon">⚠️</span>
-                <span class="kpi-tag">ĐIỂM NGHẼN CẦN THÁO GỠ</span>
+                <span class="kpi-icon">✅</span>
+                <span class="kpi-tag">ĐIỂM NGHẼN ĐÃ THÁO GỠ</span>
               </div>
-              <div class="kpi-title text-warn">1 Blocker phụ thuộc</div>
-              <div class="kpi-sub">C2 (Chốt luật quán vắng chủ) đang chặn A3 (Sửa UI).</div>
+              <div class="kpi-title text-green">0 Blocker (Toàn bộ thông luồng)</div>
+              <div class="kpi-sub">Codex đã chốt luật C2 tại commit 3a86fba, mở khóa toàn bộ A1-A5 cho UI.</div>
               <div class="kpi-badge-row">
-                <button type="button" class="btn-chip" id="btn-goto-blockers">Xem Blocker trên Kanban →</button>
+                <button type="button" class="btn-chip" id="btn-goto-blockers">Xem 5 Task Mới trên Kanban →</button>
               </div>
             </div>
           </div>
 
           <!-- 2.5D Isometric Virtual Office Floorplan -->
-          <div class="floorplan-card">
-            <div class="floorplan-header">
-              <div class="floorplan-title-block">
-                <h3>Sơ đồ Mặt Bằng Văn Phòng Ảo 2.5D</h3>
-                <p>Mặt bằng làm việc tương tác thời gian thực giữa <b>Antigravity</b>, <b>Giám Đốc Studio</b> và <b>Codex</b>.</p>
+          <div class="studio-room-card">
+            <div class="studio-room-header">
+              <div class="studio-title-block">
+                <h3>🏢 Mô Hình Văn Phòng Studio Trực Quan (Interactive Character Scene)</h3>
+                <p>Không gian làm việc thời gian thực của <b>Xóm Nhỏ Game Studio</b>. <i>Chạm vào từng nhân vật để kiểm tra chi tiết công việc hoặc gõ chuông duyệt bài!</i></p>
               </div>
               <div class="floorplan-legend">
-                <span class="leg-item"><span class="leg-dot ag"></span> Art & UI Lab</span>
-                <span class="leg-item"><span class="leg-dot stream"></span> Handoff Stream</span>
-                <span class="leg-item"><span class="leg-dot cx"></span> Engine & Logic Core</span>
+                <span class="leg-item"><span class="leg-dot ag"></span> 👩🎨 Antigravity (UI/Art)</span>
+                <span class="leg-item"><span class="leg-dot gold"></span> 👑 Giám Đốc (Dispatch)</span>
+                <span class="leg-item"><span class="leg-dot cx"></span> 👨💻 Codex (Engine Core)</span>
               </div>
             </div>
 
-            <div class="isometric-stage">
-              <div class="iso-grid-bg" aria-hidden="true"></div>
-
-              <!-- Handoff Data Stream Line -->
-              <div class="handoff-stream" aria-hidden="true">
-                <div class="stream-line"></div>
-                <div class="stream-pulse"></div>
-                <div class="stream-label">Dữ liệu Bàn giao: 7e024a6</div>
-              </div>
-
-              <!-- Desk 1: Antigravity (Art & UI Lab) -->
-              <div class="iso-desk desk-ag" id="desk-antigravity">
-                <div class="speech-bubble bubble-ag">
-                  <div class="bubble-tag">🎨 ANTIGRAVITY</div>
-                  <div class="bubble-msg">"Đã bàn giao UI 4 trạng thái, cue vắng khách & 15 ảnh mobile. Đang chờ Codex gỡ C2!"</div>
-                </div>
-                <div class="podium podium-ag">
-                  <div class="desk-surface">
-                    <div class="desk-terminal">
-                      <div class="screen-glow ag"></div>
-                      <span class="terminal-text">CSS / 15 SHOTS</span>
+            <div class="studio-stage" id="studio-stage">
+              <!-- Back Wall Scenery -->
+              <div class="room-wall" aria-hidden="true">
+                <!-- Whiteboard Sprint -->
+                <div class="wall-whiteboard">
+                  <div class="wb-header">
+                    <span>SPRINT v0.8 · CORE LOOP</span>
+                    <span class="wb-badge">14/14 PASS</span>
+                  </div>
+                  <div class="wb-columns">
+                    <div class="wb-col">
+                      <small>TODO (5)</small>
+                      <span class="wb-note note-yellow">A1</span>
+                      <span class="wb-note note-yellow">A2</span>
+                      <span class="wb-note note-yellow">A3</span>
+                      <span class="wb-note note-yellow">A4</span>
+                      <span class="wb-note note-yellow">A5</span>
                     </div>
-                    <div class="avatar-badge avatar-ag">
-                      <span>🎨</span>
-                      <span class="badge-pulse pulse-ag"></span>
+                    <div class="wb-col">
+                      <small>REVIEW (7)</small>
+                      <span class="wb-note note-blue">C1-C6</span>
+                      <span class="wb-note note-purple">HO-02</span>
+                    </div>
+                    <div class="wb-col">
+                      <small>DONE (2)</small>
+                      <span class="wb-note note-green">HO-01</span>
+                      <span class="wb-note note-green">HO-03</span>
                     </div>
                   </div>
-                  <div class="podium-pedestal"></div>
                 </div>
-                <div class="desk-caption">
-                  <b>Bàn Antigravity</b>
-                  <small>Art & UI Lab · 15 Screenshots</small>
+
+                <!-- Studio Wall Decor -->
+                <div class="wall-decor">
+                  <div class="wall-clock">
+                    <span class="clock-face">09:41</span>
+                  </div>
+                  <div class="wall-shelf">
+                    <div class="shelf-books">
+                      <span class="book b1"></span>
+                      <span class="book b2"></span>
+                      <span class="book b3"></span>
+                      <span class="book b4"></span>
+                    </div>
+                  </div>
+                  <div class="potted-plant">
+                    <div class="plant-pot"></div>
+                    <div class="plant-leaves">🌿</div>
+                  </div>
+                  <div class="coffee-station">
+                    <div class="coffee-machine">
+                      <span class="machine-gauge"></span>
+                      <span class="coffee-spout"></span>
+                    </div>
+                    <div class="steam-vapors">
+                      <span class="steam s1"></span>
+                      <span class="steam s2"></span>
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              <!-- Desk 2: Director Desk (Giám Đốc / Handoff Coordinator) -->
-              <div class="iso-desk desk-director" id="desk-director">
-                <div class="speech-bubble bubble-director">
-                  <div class="bubble-tag">👑 ĐIỀU PHỐI VIÊN</div>
-                  <div class="bubble-msg">"Đợt HO-2026-10-04: Antigravity đã hoàn tất UI. Đang chuyển bóng sang Codex chạy test C1 & chốt luật C2."</div>
-                </div>
-                <div class="podium podium-director">
-                  <div class="desk-surface">
-                    <div class="desk-terminal">
-                      <div class="screen-glow gold"></div>
-                      <span class="terminal-text">DISPATCH</span>
-                    </div>
-                    <div class="avatar-badge avatar-director">
-                      <span>👑</span>
-                      <span class="badge-pulse pulse-gold"></span>
-                    </div>
-                  </div>
-                  <div class="podium-pedestal"></div>
-                </div>
-                <div class="desk-caption">
-                  <b>Bàn Giám Đốc</b>
-                  <small>Điều Phối Handoff</small>
+              <!-- Floor with 3 Zoned Rugs -->
+              <div class="room-floor" aria-hidden="true">
+                <div class="floor-zone zone-art"><div class="zone-label">🎨 ART & UI LAB</div></div>
+                <div class="floor-zone zone-ceo"><div class="zone-label">👑 EXECUTIVE SUITE</div></div>
+                <div class="floor-zone zone-engine"><div class="zone-label">⚙️ ENGINE & SERVER CORE</div></div>
+              </div>
+
+              <!-- Paper Plane / Handoff Flight Animation -->
+              <div class="handoff-flight-path" aria-hidden="true">
+                <div class="paper-plane" id="paper-plane">
+                  <span class="plane-body">✈️</span>
+                  <span class="plane-trail"></span>
+                  <span class="plane-payload-tag">Commit 3a86fba</span>
                 </div>
               </div>
 
-              <!-- Desk 3: Codex (Engine & Logic Core) -->
-              <div class="iso-desk desk-cx" id="desk-codex">
-                <div class="speech-bubble bubble-cx">
-                  <div class="bubble-tag">⚙️ CODEX</div>
-                  <div class="bubble-msg">"Có 6 tasks trong hàng đợi (C1-C6). Day 1 Baseline: 127k két / 67k lãi. Cần chạy bộ test!"</div>
+              <!-- Character Desk 1: Antigravity (Art Director) -->
+              <div class="character-workstation ws-antigravity" id="ws-antigravity" role="button" tabindex="0" aria-label="Bấm để kiểm tra Nhân vật Antigravity">
+                <div class="station-speech-bubble bubble-ag">
+                  <div class="bubble-speaker">🎨 ANTIGRAVITY (ART DIRECTOR)</div>
+                  <div class="bubble-text">"Codex vừa chốt luật C2! 5 task UI (A1-A5) đã mở khóa, sẵn sàng triển khai!"</div>
+                  <div class="bubble-hint">👉 Bấm vào mình để xem 5 task A1-A5</div>
                 </div>
-                <div class="podium podium-cx">
-                  <div class="desk-surface">
-                    <div class="desk-terminal">
-                      <div class="screen-glow cx"></div>
-                      <span class="terminal-text">ENGINE / TESTS</span>
+
+                <div class="desk-hardware">
+                  <div class="desk-monitor monitor-palette">
+                    <div class="screen-content palette-grid">
+                      <span style="background:#f59e0b"></span><span style="background:#38bdf8"></span>
+                      <span style="background:#10b981"></span><span style="background:#ec4899"></span>
                     </div>
-                    <div class="avatar-badge avatar-cx">
-                      <span>⚙️</span>
-                      <span class="badge-pulse pulse-cx"></span>
+                    <div class="monitor-stand"></div>
+                  </div>
+                  <div class="desk-monitor monitor-device">
+                    <div class="screen-content phone-preview">
+                      <div class="mini-phone"></div>
+                    </div>
+                    <div class="monitor-stand"></div>
+                  </div>
+                  <div class="drawing-tablet">
+                    <span class="tablet-glow"></span>
+                  </div>
+                </div>
+
+                <div class="character-figure char-antigravity">
+                  <div class="floating-sparks">
+                    <span class="spark sp-art">🎨</span>
+                    <span class="spark sp-star">✨</span>
+                  </div>
+                  <!-- SVG Illustrated Rigged Character -->
+                  <div class="char-svg-wrap">
+                    <svg class="char-svg" viewBox="0 0 100 120" width="100" height="120">
+                      <!-- Ergonomic Chair -->
+                      <rect x="25" y="45" width="50" height="55" rx="10" fill="#1e2433" stroke="#2d3748" stroke-width="2"/>
+                      <rect x="46" y="95" width="8" height="20" fill="#111827"/>
+                      <!-- Body / Sweater -->
+                      <path d="M 32 65 C 32 50, 68 50, 68 65 L 72 100 C 72 105, 28 105, 28 100 Z" fill="#b45309"/>
+                      <!-- Scarf / Collar -->
+                      <path d="M 40 52 Q 50 60 60 52 Q 50 66 40 52" fill="#fde68a"/>
+                      <!-- Head -->
+                      <circle cx="50" cy="38" r="18" fill="#fed7aa"/>
+                      <!-- Hair -->
+                      <path d="M 32 36 C 32 20, 68 20, 68 36 C 68 45, 66 48, 64 42 C 60 28, 40 28, 36 42 Z" fill="#451a03"/>
+                      <!-- French Beret Hat -->
+                      <ellipse cx="50" cy="22" rx="20" ry="10" fill="#d97706"/>
+                      <circle cx="50" cy="12" r="3" fill="#b45309"/>
+                      <!-- Glasses -->
+                      <circle cx="44" cy="38" r="5" fill="none" stroke="#1e293b" stroke-width="2"/>
+                      <circle cx="56" cy="38" r="5" fill="none" stroke="#1e293b" stroke-width="2"/>
+                      <line x1="49" y1="38" x2="51" y2="38" stroke="#1e293b" stroke-width="2"/>
+                      <!-- Smile -->
+                      <path d="M 46 47 Q 50 51 54 47" fill="none" stroke="#9a3412" stroke-width="2" stroke-linecap="round"/>
+                      <!-- Arms & Stylus -->
+                      <path class="arm-drawing" d="M 32 68 Q 42 78 54 82" fill="none" stroke="#d97706" stroke-width="7" stroke-linecap="round"/>
+                      <line class="stylus-pen" x1="53" y1="80" x2="62" y2="88" stroke="#38bdf8" stroke-width="3" stroke-linecap="round"/>
+                    </svg>
+                  </div>
+                </div>
+
+                <div class="station-plate plate-ag">
+                  <div class="station-name">👩🎨 Antigravity</div>
+                  <div class="station-meta">Art Director · 15 Screenshots · 5 Tasks Sẵn sàng</div>
+                </div>
+              </div>
+
+              <!-- Character Desk 2: Director Desk (CEO / Lead - Giữa phòng) -->
+              <div class="character-workstation ws-director" id="ws-director" role="button" tabindex="0" aria-label="Bấm để kiểm tra Bàn Giám Đốc">
+                <div class="station-speech-bubble bubble-director">
+                  <div class="bubble-speaker">👑 GIÁM ĐỐC STUDIO (LEAD)</div>
+                  <div class="bubble-text">"Backend 3a86fba đã PASS 14/14 tests! Antigravity hãy triển khai tiếp 5 task UI A1-A5!"</div>
+                  <div class="bubble-hint">🔔 Bấm để gõ chuông duyệt bài</div>
+                </div>
+
+                <div class="desk-hardware hardware-ceo">
+                  <div class="executive-desk-mat">
+                    <div class="desk-bell" id="desk-bell" title="Bấm chuông duyệt bài!">
+                      <span class="bell-button"></span>
+                      <span class="bell-dome"></span>
+                      <span class="bell-ring-wave"></span>
+                    </div>
+                    <div class="ceo-mug">
+                      <span class="mug-body">☕</span>
+                      <span class="mug-steam"></span>
+                    </div>
+                    <div class="approval-stamp">
+                      <span>APPROVED</span>
                     </div>
                   </div>
-                  <div class="podium-pedestal"></div>
                 </div>
-                <div class="desk-caption">
-                  <b>Bàn Codex</b>
-                  <small>Engine Core · 6 Tasks Todo</small>
+
+                <div class="character-figure char-director">
+                  <!-- SVG Director -->
+                  <div class="char-svg-wrap">
+                    <svg class="char-svg" viewBox="0 0 100 120" width="100" height="120">
+                      <!-- High-back Leather Chair -->
+                      <rect x="22" y="30" width="56" height="75" rx="14" fill="#311e10" stroke="#78350f" stroke-width="2.5"/>
+                      <rect x="46" y="100" width="8" height="18" fill="#1c1917"/>
+                      <!-- Blazer Suit -->
+                      <path d="M 30 62 C 30 48, 70 48, 70 62 L 74 102 C 74 106, 26 106, 26 102 Z" fill="#1e1b4b"/>
+                      <!-- Shirt & Gold Tie -->
+                      <polygon points="50,56 44,66 50,90 56,66" fill="#fbbf24"/>
+                      <polygon points="46,54 54,54 50,62" fill="#fff"/>
+                      <!-- Head -->
+                      <circle cx="50" cy="38" r="18" fill="#ffedd5"/>
+                      <!-- Hair -->
+                      <path d="M 32 34 C 32 20, 68 20, 68 34 C 68 30, 62 24, 50 24 C 38 24, 32 30, 32 34" fill="#18181b"/>
+                      <!-- Gold Crown Badge on Head -->
+                      <path class="crown-icon" d="M 42 20 L 46 25 L 50 18 L 54 25 L 58 20 L 58 24 L 42 24 Z" fill="#facc15" stroke="#ca8a04" stroke-width="1"/>
+                      <!-- Confident Eyes & Smile -->
+                      <circle cx="44" cy="38" r="2.5" fill="#1e293b"/>
+                      <circle cx="56" cy="38" r="2.5" fill="#1e293b"/>
+                      <path d="M 46 48 Q 50 52 54 48" fill="none" stroke="#c2410c" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                  </div>
+                </div>
+
+                <div class="station-plate plate-director">
+                  <div class="station-name">👑 Giám Đốc Studio</div>
+                  <div class="station-meta">Điều phối Handoff · Chuông Duyệt Bài</div>
+                </div>
+              </div>
+
+              <!-- Character Desk 3: Codex (Lead Engine Coder - Bên phải) -->
+              <div class="character-workstation ws-codex" id="ws-codex" role="button" tabindex="0" aria-label="Bấm để kiểm tra Nhân vật Codex">
+                <div class="station-speech-bubble bubble-cx">
+                  <div class="bubble-speaker">⚙️ CODEX (ENGINE LEAD)</div>
+                  <div class="bubble-text">"Đã chạy 14/14 test PASS! Export đầy đủ selector và fixture, sẵn sàng cho UI!"</div>
+                  <div class="bubble-hint">👉 Bấm để xem kết quả commit 3a86fba</div>
+                </div>
+
+                <div class="desk-hardware hardware-codex">
+                  <!-- Triple Monitor Battlestation -->
+                  <div class="desk-monitor monitor-left">
+                    <div class="screen-content screen-term">
+                      <div class="code-line green">PASS 14/14</div>
+                      <div class="code-line">C1-C6 OK</div>
+                    </div>
+                    <div class="monitor-stand"></div>
+                  </div>
+                  <div class="desk-monitor monitor-center">
+                    <div class="screen-content matrix-code">
+                      <div class="scrolling-code">
+                        <span>function shopStatus()</span>
+                        <span>export isQuiet()</span>
+                        <span>currentMinuteRate()</span>
+                      </div>
+                    </div>
+                    <div class="monitor-stand"></div>
+                  </div>
+                  <div class="desk-monitor monitor-right">
+                    <div class="screen-content telemetry-screen">
+                      <div class="telemetry-stat">Day 1: 127k</div>
+                      <div class="telemetry-bar"></div>
+                    </div>
+                    <div class="monitor-stand"></div>
+                  </div>
+                  <!-- Server Rack Towers beside desk -->
+                  <div class="server-tower">
+                    <div class="rack-unit"><span class="rack-led l1"></span><span class="rack-led l2"></span></div>
+                    <div class="rack-unit"><span class="rack-led l3"></span><span class="rack-led l4"></span></div>
+                    <div class="rack-unit"><span class="rack-led l5"></span><span class="rack-led l6"></span></div>
+                  </div>
+                </div>
+
+                <div class="character-figure char-codex">
+                  <div class="floating-sparks">
+                    <span class="spark sp-code">&lt; / &gt;</span>
+                    <span class="spark sp-brace">{ }</span>
+                  </div>
+                  <!-- SVG Illustrated Rigged Character -->
+                  <div class="char-svg-wrap">
+                    <svg class="char-svg" viewBox="0 0 100 120" width="100" height="120">
+                      <!-- Ergonomic Mesh Chair -->
+                      <rect x="25" y="40" width="50" height="60" rx="8" fill="#0f172a" stroke="#1e293b" stroke-width="2"/>
+                      <rect x="46" y="98" width="8" height="18" fill="#020617"/>
+                      <!-- Cyan Hoodie Body -->
+                      <path d="M 30 65 C 30 50, 70 50, 70 65 L 74 100 C 74 105, 26 105, 26 100 Z" fill="#0369a1"/>
+                      <!-- Head -->
+                      <circle cx="50" cy="38" r="18" fill="#ffedd5"/>
+                      <!-- Spiky Coder Hair -->
+                      <path d="M 32 36 C 32 20, 68 20, 68 36 C 66 22, 60 16, 50 18 C 40 16, 34 22, 32 36" fill="#1e293b"/>
+                      <!-- Over-ear Headphones -->
+                      <path d="M 28 36 C 28 16, 72 16, 72 36" fill="none" stroke="#06b6d4" stroke-width="4"/>
+                      <rect x="26" y="30" width="6" height="15" rx="3" fill="#0891b2"/>
+                      <rect x="68" y="30" width="6" height="15" rx="3" fill="#0891b2"/>
+                      <!-- Glowing Glasses / Eyes -->
+                      <rect x="40" y="34" width="9" height="7" rx="2" fill="#38bdf8"/>
+                      <rect x="51" y="34" width="9" height="7" rx="2" fill="#38bdf8"/>
+                      <line x1="49" y1="37" x2="51" y2="37" stroke="#38bdf8" stroke-width="1.5"/>
+                      <!-- Smile -->
+                      <path d="M 46 48 Q 50 51 54 48" fill="none" stroke="#075985" stroke-width="2" stroke-linecap="round"/>
+                      <!-- Rapid Typing Arms -->
+                      <path class="arm-typing-left" d="M 32 68 Q 42 74 48 82" fill="none" stroke="#0284c7" stroke-width="7" stroke-linecap="round"/>
+                      <path class="arm-typing-right" d="M 68 68 Q 58 74 52 82" fill="none" stroke="#0284c7" stroke-width="7" stroke-linecap="round"/>
+                    </svg>
+                  </div>
+                </div>
+
+                <div class="station-plate plate-cx">
+                  <div class="station-name">👨💻 Codex</div>
+                  <div class="station-meta">Engine Lead · 14/14 Tests PASS · Commit 3a86fba</div>
                 </div>
               </div>
             </div>
@@ -417,6 +616,112 @@
         </div>
         <button type="button" class="lightbox-nav-btn next" id="btn-lightbox-next" aria-label="Ảnh sau">›</button>
       </div>
+    </div>
+  </dialog>
+
+  <!-- Character Inspection Drawers / Modals -->
+  <dialog id="drawer-antigravity" class="studio-drawer" aria-label="Chi tiết nhân vật Antigravity">
+    <div class="drawer-shell">
+      <header class="drawer-header ag-header">
+        <div class="drawer-title-group">
+          <span class="drawer-avatar">🎨</span>
+          <div>
+            <h3>Antigravity · Art & UI Director</h3>
+            <span class="drawer-status-chip chip-ag">5 Tasks UI Đã Mở Khóa</span>
+          </div>
+        </div>
+        <form method="dialog"><button type="submit" class="drawer-close" aria-label="Đóng">✕</button></form>
+      </header>
+      <div class="drawer-body">
+        <p class="drawer-intro">Codex đã hoàn tất C1-C6 và chốt luật C2 tại commit <code>3a86fba</code>. Toàn bộ 5 task UI dưới đây đang chờ bạn triển khai:</p>
+        <div class="drawer-task-list">
+          <div class="drawer-task-item">
+            <span class="task-badge prio-low">A1 · Thấp</span>
+            <b>Hiển thị trạng thái "Đã đóng ca" cho node bản đồ</b>
+            <p>Node bản đồ dùng status <code>done</code> từ selector <code>shopOperationalStatus</code> khi quán đã kết ca.</p>
+          </div>
+          <div class="drawer-task-item">
+            <span class="task-badge prio-low">A2 · Thấp</span>
+            <b>Bổ sung CSS cho .shop-status-badge.status-done</b>
+            <p>Tạo màu sắc và phong cách hoàn thiện ca cho badge trạng thái quán.</p>
+          </div>
+          <div class="drawer-task-item">
+            <span class="task-badge prio-med">A3 · Trung bình</span>
+            <b>Sửa lời mô tả "Chờ chủ" theo luật C2</b>
+            <p>Yêu cầu quản lý đang trực trước khi chủ rời quán; không ghi sai là "engine tạm dừng đón khách".</p>
+          </div>
+          <div class="drawer-task-item">
+            <span class="task-badge prio-med">A4 · Trung bình</span>
+            <b>Dùng selector engine cho cue vắng khách & bản đồ</b>
+            <p>Áp dụng <code>isQuietInterval</code>, <code>currentMinuteRate</code> và <code>shopOperationalStatus</code> từ engine.</p>
+          </div>
+          <div class="drawer-task-item">
+            <span class="task-badge prio-low">A5 · Thấp</span>
+            <b>Chạy fixture đa quán trên 360×640 & 390×844</b>
+            <p>Dùng hook <code>window.__xomNho.loadFixture('two_shops_mid_prep')</code> để chụp ảnh bằng chứng có kiểm soát.</p>
+          </div>
+        </div>
+      </div>
+      <footer class="drawer-footer">
+        <button type="button" class="btn-drawer-primary" id="btn-drawer-goto-kanban">Chuyển sang Bảng Kanban →</button>
+      </footer>
+    </div>
+  </dialog>
+
+  <dialog id="drawer-director" class="studio-drawer" aria-label="Trung tâm điều phối Giám Đốc">
+    <div class="drawer-shell">
+      <header class="drawer-header ceo-header">
+        <div class="drawer-title-group">
+          <span class="drawer-avatar">👑</span>
+          <div>
+            <h3>Giám Đốc Studio · Dispatch Center</h3>
+            <span class="drawer-status-chip chip-gold">Handoff HO-2026-10-24 Backend Hoàn Tất</span>
+          </div>
+        </div>
+        <form method="dialog"><button type="submit" class="drawer-close" aria-label="Đóng">✕</button></form>
+      </header>
+      <div class="drawer-body">
+        <div class="ceo-summary-stats">
+          <div class="stat-box"><b>3a86fba</b><small>Backend Commit</small></div>
+          <div class="stat-box"><b>14/14 PASS</b><small>Test tự động</small></div>
+          <div class="stat-box"><b>0</b><small>Blocker còn lại</small></div>
+          <div class="stat-box"><b>127k / 67k</b><small>Baseline Day 1</small></div>
+        </div>
+        <p class="drawer-intro">Codex đã xác thực toàn bộ C1-C6, giải quyết dứt điểm điểm nghẽn C2 và cung cấp bộ selector chuẩn cho UI. Nhiệm vụ tiếp theo là giao cho Antigravity triển khai A1-A5.</p>
+      </div>
+      <footer class="drawer-footer">
+        <button type="button" class="btn-drawer-primary" id="btn-drawer-copy-prompt">📋 Copy Prompt Giao Việc</button>
+        <button type="button" class="btn-drawer-secondary" id="btn-drawer-open-reports">Xem Báo Cáo Hai Bên ↗</button>
+      </footer>
+    </div>
+  </dialog>
+
+  <dialog id="drawer-codex" class="studio-drawer" aria-label="Chi tiết nhân vật Codex">
+    <div class="drawer-shell">
+      <header class="drawer-header cx-header">
+        <div class="drawer-title-group">
+          <span class="drawer-avatar">⚙️</span>
+          <div>
+            <h3>Codex · Lead Engine Coder</h3>
+            <span class="drawer-status-chip chip-cx">14/14 Tests PASS · Commit 3a86fba</span>
+          </div>
+        </div>
+        <form method="dialog"><button type="submit" class="drawer-close" aria-label="Đóng">✕</button></form>
+      </header>
+      <div class="drawer-body">
+        <p class="drawer-intro">Báo cáo kiểm thử tự động tại <code>CODEX_BACKEND_REPORT.md</code> ghi nhận toàn bộ 14 file test đều PASS (Node v24.22.1). Day 1 đạt 127k két / 67k lãi gộp chuẩn baseline.</p>
+        <div class="codex-achievements-list">
+          <div class="achieve-item"><b>C1 · PASS:</b> Chạy lại toàn bộ test tự động và đối soát dòng tiền Day 1.</div>
+          <div class="achieve-item"><b>C2 · RESOLVED:</b> Giữ guard quản lý trước mở ca và trước rời quán. Đã gỡ nghẽn cho A3.</div>
+          <div class="achieve-item"><b>C3 · EXPORTED:</b> Export selector <code>isQuietInterval</code> & <code>currentMinuteRate</code>.</div>
+          <div class="achieve-item"><b>C4 · EXPORTED:</b> Export selector <code>shopOperationalStatus(empire, shopId)</code>.</div>
+          <div class="achieve-item"><b>C5 · STABILIZED:</b> Ổn định enum <code>OPERATIONAL_ADVICE_AREAS</code> và giới hạn 3 gợi ý.</div>
+          <div class="achieve-item"><b>C6 · HOOKED:</b> Hook <code>window.__xomNho.loadFixture('two_shops_mid_prep')</code> seed 20261024.</div>
+        </div>
+      </div>
+      <footer class="drawer-footer">
+        <button type="button" class="btn-drawer-primary" id="btn-drawer-goto-codex-report">Xem Báo Cáo Codex Chi Tiết →</button>
+      </footer>
     </div>
   </dialog>
 
