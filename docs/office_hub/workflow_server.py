@@ -201,6 +201,18 @@ class Office:
 
     def decision(self, body):
         with self.lock:
+            actor = 'Director'
+            authority = None
+            if body.get('actingAs') == 'CodexDelegated':
+                charter = self.hub / 'reports/DELEGATED_DIRECTOR.md'
+                if not charter.is_file():
+                    raise WorkflowError('Chưa có biên bản ủy quyền trong repo.', 403)
+                actor = 'Codex'
+                authority = {'role': 'Assistant Director', 'delegatedBy': 'Project Owner',
+                             'receipt': 'docs/office_hub/reports/DELEGATED_DIRECTOR.md',
+                             'sha256': digest(charter.read_bytes())}
+            elif body.get('actingAs') not in [None, 'Director']:
+                raise WorkflowError('Vai trò quyết định không hợp lệ')
             if body.get('expectedRevision') != self.state['revision']:
                 raise WorkflowError('Dữ liệu đã đổi. Tải lại trước khi duyệt.', 409)
             action = body.get('action')
@@ -223,7 +235,7 @@ class Office:
                     raise WorkflowError('Đã chạm giới hạn review; cần quyết định mới của Giám đốc.', 409)
                 current = self.snapshot()
                 previous = req.get('resultSnapshot')
-                receipt = {'time': utc(), 'actor': 'Director', 'action': action, 'requestId': req['id'],
+                receipt = {'time': utc(), 'actor': actor, 'authority': authority, 'action': action, 'requestId': req['id'],
                            'previousSnapshot': previous, 'snapshot': current,
                            'reason': 'Explicit retry; retest current files, never reuse PASS from another snapshot'}
                 atomic(self.receipt_path(req['id']) / ('RETRY-' + str(uuid.uuid4()) + '.json'), receipt)
@@ -261,17 +273,19 @@ class Office:
             if action == 'approve':
                 current = self.snapshot()
                 if current != self.state['submission']['snapshot']:
-                    self.state['submission'].update(status='awaiting_director', snapshot=current)
-                    self.event('stale_submission', 'Mã đã thay đổi sau bản bàn giao. Vui lòng xem lại rồi duyệt.')
-                    raise WorkflowError('Mã đã đổi; cần xem bản mới trước khi duyệt.', 409)
+                    self.state['submission'].update(status='blocked', changedSnapshot=current)
+                    self.event('stale_submission', 'Mã đã thay đổi sau bản bàn giao; cần kiểm chứng lại trước khi duyệt.')
+                    raise WorkflowError('Mã đã đổi; cần kiểm chứng bản mới trước khi duyệt.', 409)
             rid = str(uuid.uuid4())
-            evidence = {'id': rid, 'time': utc(), 'actor': 'Director', 'action': action,
+            evidence = {'id': rid, 'time': utc(), 'actor': actor, 'authority': authority, 'action': action,
                         'submission': self.state['submission']['id'], 'snapshot': self.snapshot(),
                         'feedback': feedback, 'proposalId': body.get('proposalId')}
             atomic(self.receipt_path(rid) / 'DIRECTOR_DECISION.json', evidence)
             if action == 'approve':
                 self.state['submission'].update(status='approved', approvedAt=evidence['time'], approvalReceipt=rid)
-                self.event('approved', 'Giám đốc đã duyệt bản hiện tại. Chưa tự mở Sprint mới.', requestId=rid)
+                label = 'Codex duyệt theo ủy quyền' if authority else 'Giám đốc đã duyệt'
+                self.event('approved', label + ' bản hiện tại. Chưa tự mở Sprint mới.', requestId=rid,
+                           actor=actor, authority=authority)
             else:
                 if proposal:
                     proposal['status'] = 'approved'

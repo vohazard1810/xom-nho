@@ -59,3 +59,11 @@ Test Approve bằng trình duyệt phải dùng fixture `--no-workers` ở cổn
 Sau khi xử lý nguyên nhân, POST `retry_review` với `requestId` và `expectedRevision` mới nhất.
 Không sửa tay JSON thành PASS/Done, không xóa receipt lỗi trước và không tự chạy đề xuất chưa duyệt.
 Nếu mã khác snapshot đã test, cần kiểm chứng bản hiện tại. Hệ thống lưu cả snapshot trước và sau retry.
+
+## Duyệt theo ủy quyền
+
+POST decision với actingAs=CodexDelegated ghi actor=Codex và hash biên bản DELEGATED_DIRECTOR.md.
+Đây là attribution của quyết định trong phiên local đã xác thực, không phải tài khoản hay quyền truy cập mới.
+Không tự phê duyệt khi chưa có verdict đạt. Mã đổi sau bàn giao sẽ Blocked, kể cả bấm lại.
+Sau gói bốn việc, ghi báo cáo rồi bật STOP; không tự chạy đề xuất mới hoặc hẹn giờ ngày mai.
+

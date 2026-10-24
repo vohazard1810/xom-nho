@@ -47,6 +47,31 @@ class WorkflowTests(unittest.TestCase):
         with self.assertRaises(m.WorkflowError):
             self.action('approve')
 
+    def test_delegated_decision_requires_charter_and_records_real_actor(self):
+        with self.assertRaises(m.WorkflowError):
+            self.action('approve', actingAs='CodexDelegated')
+        charter = self.office.hub / 'reports/DELEGATED_DIRECTOR.md'
+        charter.parent.mkdir(parents=True, exist_ok=True)
+        charter.write_text('Owner delegates Office Hub acceptance to Codex', encoding='utf-8')
+        self.action('approve', actingAs='CodexDelegated')
+        receipt = json.loads(next(self.office.receipts.glob('*/DIRECTOR_DECISION.json')).read_text(encoding='utf-8'))
+        self.assertEqual(receipt['actor'], 'Codex')
+        self.assertEqual(receipt['authority']['sha256'], m.digest(charter.read_bytes()))
+        self.assertEqual(self.office.state['requests'], [])
+        self.assertIn('Codex duyệt theo ủy quyền', self.office.state['events'][-1]['message'])
+
+    def test_delegation_does_not_override_blocked_or_stale_submission(self):
+        charter = self.office.hub / 'reports/DELEGATED_DIRECTOR.md'
+        charter.parent.mkdir(parents=True, exist_ok=True)
+        charter.write_text('Owner authorization', encoding='utf-8')
+        self.office.state['submission']['status'] = 'blocked'
+        with self.assertRaises(m.WorkflowError):
+            self.action('approve', actingAs='CodexDelegated')
+        self.office.state['submission']['status'] = 'awaiting_director'
+        (self.root / 'docs/office_hub/app.js').write_text('new snapshot', encoding='utf-8')
+        with self.assertRaises(m.WorkflowError):
+            self.action('approve', actingAs='CodexDelegated')
+
     def test_feedback_required_stale_revision_rejected_and_no_fake_agent_work(self):
         with self.assertRaises(m.WorkflowError):
             self.action('request_changes', feedback='')
@@ -62,6 +87,9 @@ class WorkflowTests(unittest.TestCase):
             self.action('approve')
         self.assertEqual(err.exception.status, 409)
         self.assertNotEqual(self.office.state['submission']['status'], 'approved')
+        with self.assertRaises(m.WorkflowError):
+            self.action('approve')
+        self.assertEqual(self.office.state['submission']['status'], 'blocked')
 
     def test_proposal_not_executed_before_director_approval(self):
         self.assertEqual(self.office.state['requests'], [])

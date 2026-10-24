@@ -1,0 +1,6 @@
+SHIFT CLOSE PLAN — user explicitly requested about FOUR feasible tasks together, then stop until tomorrow. Nonce FOUR-TASKS-20261024. Current request 5ae9ba69-6bcd-42f1-9b15-011332460a79 contains these; do not create duplicate work or touch blocked request 743d08f9.
+T1: desks + all four character faces clear, assistant beside Director on common floor, responsive.
+T2: QA Lab image/card/caption layout fixed desktop+narrow; compare/filter usable, no overflow.
+T3: Kanban counters accurately distinguish total, filtered, unfinished; historical notes versus current state clear; do not fabricate Done.
+T4: controlled-fixture browser acceptance on final snapshot: approve successful POST/state, request_changes successful POST/state, nested X/Esc, busy/empty feedback; artifacts/screenshots. Codex handles backend decision attribution/tests/review, not you.
+Finish only these four, no gameplay/proposals/new features. Record compact four-row scope ACK in reports/SHIFT_FOUR_TASKS.md with this nonce and request ID. Submit RESULT with final frozen snapshot/evidence. After submission, WAIT for review; at most three review verdicts this request. After accepted or final Blocked, stop working for today; no autonomous next task. Codex records final summary and STOP after settling active request, not while you are editing. No automatic tomorrow scheduling requested.
