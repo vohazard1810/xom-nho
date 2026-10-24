@@ -3,8 +3,8 @@
   "project": "Xóm Nhỏ — Office Control Center",
   "branch": "codex/core-loop-completion",
   "repository": "https://github.com/vohazard1810/xom-nho",
-  "updatedAt": "2026-10-24T11:26:00+07:00",
-  "updatedBy": "Antigravity & Codex",
+  "updatedAt": "2026-10-24T04:44:54.167779+00:00",
+  "updatedBy": "Auto-Dispatcher",
   "statuses": [
     "Todo",
     "In Progress",
@@ -16,13 +16,13 @@
     "Codex": "Engine / Logic / Transactions / Automated tests"
   },
   "currentHandoff": {
-    "id": "HO-2026-10-24-v3.0-audit",
-    "title": "System Diagnostic Audit V3 & Next Sprint Proposals (N1–N3)",
+    "id": "HO-2026-10-24-v3.1-n1n2n3",
+    "title": "Triển khai hoàn tất 3 nâng cấp N1 (Thời tiết & Sự kiện), N2 (Nâng cấp quán & Ghế), N3 (Kỹ năng nhân sự & Vận hành chuỗi)",
     "from": "Antigravity & Codex",
     "to": "Director",
-    "baseCommit": "7e31305",
+    "baseCommit": "204ca93",
     "resultCommit": "HEAD",
-    "source": "docs/office_hub/reports/AUDIT_REPORT_V3.md"
+    "source": "docs/office_hub/reports/SPRINT_N1_N2_N3_COMPLETION_REPORT.md"
   },
   "tasks": [
     {
@@ -204,30 +204,39 @@
       "title": "Hệ thống Thời tiết & Sự kiện Hẻm Phố (Nắng gắt, Mưa rào, Bão)",
       "owner": "Codex",
       "area": "Logic",
-      "status": "Todo",
+      "status": "Done",
       "priority": "High",
       "report": "docs/office_hub/reports/AUDIT_REPORT_V3.md",
-      "notes": "4 kiểu thời tiết: Nắng gắt (+50% Trà Tắc), Mưa rào (+đơn mang đi), Bão, Dịu mát. Sự kiện hẻm phố ngẫu nhiên."
+      "notes": "4 kiểu thời tiết: Nắng gắt (+50% Trà Tắc), Mưa rào (+đơn mang đi), Bão, Dịu mát. Sự kiện hẻm phố ngẫu nhiên.",
+      "commit": "HEAD",
+      "updatedAt": "2026-10-24T11:42:00+07:00",
+      "updatedBy": "Codex"
     },
     {
       "id": "N2",
       "title": "Hệ thống Mở rộng Quán & Bàn ghế Khách Ngồi (Multi-slot prep)",
       "owner": "Antigravity",
       "area": "UI",
-      "status": "Todo",
+      "status": "Done",
       "priority": "Medium",
       "report": "docs/office_hub/reports/AUDIT_REPORT_V3.md",
-      "notes": "Bàn ghế ngồi lại (+15% tip), quầy chảo đôi chế biến 2 món cùng lúc, bảng hiệu đèn Led tăng sao."
+      "notes": "Bàn ghế ngồi lại (+15% tip), quầy chảo đôi chế biến 2 món cùng lúc, bảng hiệu đèn Led tăng sao.",
+      "commit": "HEAD",
+      "updatedAt": "2026-10-24T11:42:00+07:00",
+      "updatedBy": "Antigravity"
     },
     {
       "id": "N3",
       "title": "Cân bằng Kinh tế Chuỗi & Kỹ năng Nhân sự Nâng cao",
       "owner": "Codex",
       "area": "Logic",
-      "status": "Todo",
+      "status": "Done",
       "priority": "Medium",
       "report": "docs/office_hub/reports/AUDIT_REPORT_V3.md",
-      "notes": "Cây kỹ năng nhân viên (Khéo léo, Tốc độ, Thân thiện), quản lý tự động nhập kho an toàn, phí chuỗi."
+      "notes": "Cây kỹ năng nhân viên (Khéo léo, Tốc độ, Thân thiện), quản lý tự động nhập kho an toàn, phí chuỗi.",
+      "commit": "HEAD",
+      "updatedAt": "2026-10-24T11:42:00+07:00",
+      "updatedBy": "Codex"
     }
   ],
   "handoffRound": 2,

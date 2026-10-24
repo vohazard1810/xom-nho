@@ -2724,6 +2724,33 @@ button:focus-visible, [role=button]:focus-visible { outline: 3px solid #0e7490; 
 .btn-staff-train:disabled{background:#e9dfcf!important;border-color:#cbbeab!important;color:#8c7b66!important;cursor:not-allowed}
 .btn-staff-rest.resting{background:#ded1bd!important;color:#523f29!important}
 
+/* Weather & Progression UI (N1, N2, N3) */
+.weather-pill { display:inline-flex; align-items:center; gap:2px; background:rgba(30,41,59,0.7); color:#f8fafc; border:1px solid #475569; border-radius:5px; padding:1px 5px; font-size:9.5px; font-weight:700; white-space:nowrap; }
+.weather-pill.weather-hot_weather { background:#7c2d12; color:#ffedd5; border-color:#ea580c; }
+.weather-pill.weather-rain, .weather-pill.weather-storm { background:#1e3a8a; color:#dbeafe; border-color:#3b82f6; }
+.weather-pill.weather-cool_breeze, .weather-pill.weather-morning_drizzle { background:#064e3b; color:#d1fae5; border-color:#10b981; }
+
+.perk-pill { display:inline-flex; align-items:center; gap:2px; border-radius:5px; padding:1px 5px; font-size:9.5px; font-weight:800; white-space:nowrap; }
+.perk-pill.seating-pill { background:#fef3c7; color:#92400e; border:1px solid #f59e0b; }
+.perk-pill.pan-pill { background:#ffedd5; color:#9a3412; border:1px solid #f97316; }
+.perk-pill.led-pill { background:#0f172a; color:#38bdf8; border:1px solid #0284c7; box-shadow:0 0 6px rgba(56,189,248,0.4); }
+
+.morning-weather-card { margin:8px 0; padding:10px 12px; border-radius:10px; background:#f8fafc; border:1px solid #e2e8f0; border-left:4px solid #3b82f6; }
+.morning-weather-card.weather-hot_weather { background:#fff7ed; border-left-color:#ea580c; }
+.morning-weather-card.weather-rain { background:#eff6ff; border-left-color:#2563eb; }
+.morning-weather-card.weather-cool_breeze { background:#ecfdf5; border-left-color:#059669; }
+.weather-card-top { display:flex; align-items:center; gap:10px; }
+.weather-card-icon { font-size:24px; line-height:1; }
+.weather-card-title { font-size:13px; color:#1e293b; font-weight:800; }
+.weather-card-desc { font-size:11.5px; color:#475569; margin:2px 0 0; line-height:1.35; }
+
+.staff-spec-pill { font-size:10px; font-weight:800; background:#fef3c7; color:#b45309; border:1px solid #f59e0b; border-radius:5px; padding:1px 6px; margin-left:6px; }
+.staff-spec-select-row { margin:6px 0 4px; padding:6px 8px; background:#f1f5f9; border-radius:6px; border:1px dashed #cbd5e1; }
+.staff-spec-select-row small { font-size:10.5px; font-weight:700; color:#475569; display:block; margin-bottom:4px; }
+.staff-spec-buttons { display:flex; gap:6px; flex-wrap:wrap; }
+.btn-spec { font-size:10.5px; font-weight:700; padding:3px 8px; border-radius:6px; background:#ffffff; border:1px solid #94a3b8; color:#0f172a; cursor:pointer; }
+.btn-spec:hover { background:#e0f2fe; border-color:#0284c7; color:#0369a1; }
+
 /* Operational UI: Quiet interval cue, familiar customer badge, map shop statuses, and recommendations */
 .quiet-accel-pill { display:inline-flex; align-items:center; gap:3px; background:#45280c; color:#fde68a; border:1px solid #d97706; border-radius:5px; padding:1px 5px; font-size:9.5px; font-weight:800; white-space:nowrap; letter-spacing:-0.2px; animation:quietPulse 2s infinite ease-in-out; }
 @keyframes quietPulse { 0%,100% { opacity:0.88; } 50% { opacity:1; border-color:#fbbf24; } }

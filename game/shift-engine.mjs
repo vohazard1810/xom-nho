@@ -77,8 +77,10 @@ export function advanceShift(input, elapsedMs, options = {}) {
       p.elapsedMs+=ms;
       if(p.elapsedMs>=400) {p.selected=cookingNeeds(s);p.phase='PREP';p.elapsedMs=0;}
     } else if(p.phase==='PREP') {
-      const rain=['rain','morning_drizzle'].includes(s.dayEvent.event)&&!s.upgrades.canopy? .9:1;
-      p.elapsedMs+=ms*(boost?.active?2:1)*(s.employeeSpeed ?? (s.staffHiredToday?1.35:1))*(c.isOnline?(s.packingSpeed||1):1)*rain;
+      const isRainy = ['rain', 'morning_drizzle', 'storm'].includes(s.dayEvent?.event) || ['rain', 'morning_drizzle', 'storm'].includes(s.dayEvent?.weather?.id);
+      const rain = isRainy && !s.upgrades.canopy ? 0.9 : 1;
+      const panBonus = s.upgrades.dual_pan ? 1.33 : 1;
+      p.elapsedMs += ms * (boost?.active ? 2 : 1) * (s.employeeSpeed ?? (s.staffHiredToday ? 1.35 : 1)) * (c.isOnline ? (s.packingSpeed || 1) : 1) * rain * panBonus;
       if(p.elapsedMs>=p.prepMs) {p.phase='READY';p.elapsedMs=0;}
     } else if(p.phase==='READY' && assist) {p.phase='HANDOFF';p.elapsedMs=0;}
     else if(p.phase==='HANDOFF') {

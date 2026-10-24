@@ -7,6 +7,7 @@ Enforces Anti-Bloat Rules, Auto-Handoff, and Sprint Gate for Director Approval.
 from __future__ import annotations
 
 import glob
+import io
 import json
 import os
 import shutil
@@ -14,6 +15,13 @@ import subprocess
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
+
+if sys.platform == "win32":
+    try:
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+        sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 TASKS_FILE = REPO_ROOT / "docs" / "office_hub" / "tasks.json"
@@ -135,7 +143,7 @@ def dispatch() -> None:
         save_tasks(data)
         sys.exit(3)
 
-    print(f"\n[GATE PASSED] 14/14 engine tests PASS! Day 1 baseline verified: {BASELINE_DAY1_CASH}k / {BASELINE_DAY1_PROFIT}k.")
+    print(f"\n[GATE PASSED] {pass_count}/{pass_count} engine tests PASS! Day 1 baseline verified: {BASELINE_DAY1_CASH}k / {BASELINE_DAY1_PROFIT}k.")
     data["sprintStatus"] = "READY_FOR_DIRECTOR"
     data["active_turn"] = "Director"
     data["updatedAt"] = datetime.now(timezone.utc).isoformat()
@@ -149,10 +157,14 @@ def dispatch() -> None:
     print("\n" + "#" * 60)
     print("BELL SOUND: *DINGGG!*")
     print("SPRINT STATUS: READY_FOR_DIRECTOR")
-    print("All tasks completed, tests 14/14 PASS, baseline 127k/67k intact.")
+    print(f"All tasks completed, tests {pass_count}/{pass_count} PASS, baseline 127k/67k intact.")
     print("Ready for Director review and approval!")
     print("#" * 60)
 
 
 if __name__ == "__main__":
+    if "--run-tests-only" in sys.argv:
+        passed, count, fails = run_node_tests()
+        print(f"Result: {count} passed, failures: {fails}")
+        sys.exit(0 if passed else 1)
     dispatch()

@@ -7,10 +7,30 @@ export const extraRecipe = {
 export const UPGRADE_CATALOG = Object.freeze({
   bike_basket: { name: 'Rổ đèo hàng', cost: 30000, nextCost: 45000, description: 'Sức chở 20 → 30 → 45 đơn vị', maxLevel: 2 },
   counter: { name: 'Nới quầy', cost: 25000, description: 'Mở slot thứ 4 và món bánh mì ốp la', maxLevel: 1 },
-  seating: { name: 'Ghế nhựa thêm', cost: 20000, description: 'Thêm 2 chỗ ngồi, thu hút thêm khách', maxLevel: 2 },
+  seating: { name: 'Ghế nhựa thêm', cost: 20000, description: 'Thêm 2 chỗ ngồi (+15% tip khi khách ngồi)', maxLevel: 2 },
   canopy: { name: 'Mái che quán', cost: 35000, description: 'Giữ khách trú mưa và tránh chậm chế biến vì mưa', maxLevel: 1, unlockDay: 5 },
+  dual_pan: { name: 'Chảo chiên đôi', cost: 40000, description: 'Quầy bếp đôi: giảm 25% thời gian làm món nóng', maxLevel: 1, unlockDay: 4 },
+  led_sign: { name: 'Biển hiệu đèn LED', cost: 35000, description: 'Biển hiệu sáng buổi tối: tăng uy tín và thêm khách quen', maxLevel: 1, unlockDay: 6 },
   cargo: { name: 'Thùng hàng xe máy', cost: 95000, description: 'Thêm 30 đơn vị sức chở, cần rổ hàng cấp 2', maxLevel: 1, unlockDay: 10 }
 });
+
+export const WEATHER_TYPES = Object.freeze({
+  sunny: { id: 'sunny', name: 'Nắng ráo', icon: '☀️', patienceMultiplier: 1.0, description: 'Thời tiết ấm áp, buôn bán thuận lợi.' },
+  hot_weather: { id: 'hot_weather', name: 'Nắng gắt', icon: '🔥', patienceMultiplier: 0.85, description: 'Trời oi bức: tăng 50% nhu cầu Trà Tắc & Sữa Đậu, khách nóng vội hơn.' },
+  rain: { id: 'rain', name: 'Mưa rào', icon: '🌧️', patienceMultiplier: 1.0, description: 'Mưa rào: giảm khách vãng lai; bạt che giúp không bị ướt và chậm bếp.' },
+  storm: { id: 'storm', name: 'Mưa bão', icon: '⛈️', patienceMultiplier: 0.9, description: 'Trời bão gió: ít khách vãng lai, khách ghé lại ủng hộ tip cao.' },
+  morning_drizzle: { id: 'morning_drizzle', name: 'Mưa phùn', icon: '🌦️', patienceMultiplier: 1.05, description: 'Mưa phùn nhẹ: khách nán lại hiên quán trú mưa, thích uống nước mát.' },
+  cool_breeze: { id: 'cool_breeze', name: 'Dịu mát', icon: '🍃', patienceMultiplier: 1.15, description: 'Gió mát trong lành: khách thảnh thơi kiên nhẫn hơn, bán đắt hàng.' }
+});
+
+export function getWeatherForEvent(event) {
+  if (event === 'hot_weather' || event === 'power_maintenance') return WEATHER_TYPES.hot_weather;
+  if (event === 'rain' || event === 'delivery_app') return WEATHER_TYPES.rain;
+  if (event === 'morning_drizzle') return WEATHER_TYPES.morning_drizzle;
+  if (event === 'storm') return WEATHER_TYPES.storm;
+  if (event === 'cool_breeze' || event === 'sleepy' || event === 'cleanup_day' || event === 'elder_gathering') return WEATHER_TYPES.cool_breeze;
+  return WEATHER_TYPES.sunny;
+}
 export const FRESH_INGREDIENTS = new Set(['bread', 'cha', 'vegetable', 'ice', 'kumquat', 'soy_milk', 'egg']);
 
 export const WALK_IN_ARCHETYPES = {
@@ -88,7 +108,7 @@ export const TWENTY_ONE_DAY_EVENTS = [
 ];
 
 export function dayConfig(day, progress = {}) {
-  if (day === 1) return { marketPrices: null, ...TWENTY_ONE_DAY_EVENTS[0] };
+  if (day === 1) return { marketPrices: null, weather: WEATHER_TYPES.sunny, ...TWENTY_ONE_DAY_EVENTS[0] };
   // Seven introductory days, then a seeded calendar independent of a 21-day loop.
   const seed = Math.imul(day, 2654435761) >>> 0;
   const pool = TWENTY_ONE_DAY_EVENTS.slice(7,20);
@@ -106,8 +126,10 @@ export function dayConfig(day, progress = {}) {
     ...(day > 7 ? {cha:5000+(seed%3)*500,soy_milk:4000+((seed>>>4)%3)*500}: {})
   };
 
+  const weather = choice.weather || getWeatherForEvent(choice.event);
   return {
     ...choice,
+    weather,
     generated:day>7,
     seed,
     rival:rivalDay?{id:'co_tu',name:'Xe bánh mì cô Tư',offer:'BANH_MI_CHA',suggestedPrice:22000}:null,
@@ -116,12 +138,12 @@ export function dayConfig(day, progress = {}) {
   };
 }
 
-export function rosterForDay(day, rating = 3, seatingLevel = 0, canopy = 0, knownRecipes = null) {
+export function rosterForDay(day, rating = 3, seatingLevel = 0, canopy = 0, knownRecipes = null, ledSign = 0) {
   if (day === 1) return null; // Day 1 retains its approved eight-customer fixture.
   const config = dayConfig(day);
   const reputationDemand = rating >= 4 ? 2 : rating < 2 ? -3 : rating < 3 ? -1 : 0;
   const growth = day <= 7 ? day-1 : 3 + Math.max(0,Math.floor((rating-3)*3)) + Math.min(4,(knownRecipes?.length||3)-3);
-  const extra = growth + seatingLevel * 2 + reputationDemand + config.demandDelta + (config.event === 'rain' ? canopy : 0);
+  const extra = growth + seatingLevel * 2 + (ledSign ? 1 : 0) + reputationDemand + config.demandDelta + (config.event === 'rain' ? canopy : 0);
   const count = Math.max(6, Math.min(20, 8 + extra));
   const recipes = ['BANH_MI_CHA', 'TRA_TAC', 'SUA_DAU_DA', 'BANH_MI_CHA', 'TRA_TAC', 'BANH_MI_TRUNG'];
   return Array.from({ length: count }, (_, i) => {
@@ -131,7 +153,7 @@ export function rosterForDay(day, rating = 3, seatingLevel = 0, canopy = 0, know
     const nameIndex = (day * 7 + i) % arch.names.length;
     const name = arch.names[nameIndex];
     const temperament = day >= 3 && i === 2 ? 'RUSH' : (day + i * 3) % 5 === 0 ? 'RUSH' : (day + i) % 4 === 0 ? 'FRIENDLY' : 'NORMAL';
-    let recipe = config.event === 'hot_weather' ? (i % 3 ? 'TRA_TAC' : 'SUA_DAU_DA') : recipes[(day + i) % recipes.length];
+    let recipe = (config.event === 'hot_weather' || config.weather?.id === 'hot_weather') ? (i % 3 ? 'TRA_TAC' : 'SUA_DAU_DA') : recipes[(day + i) % recipes.length];
     if (knownRecipes && !knownRecipes.includes(recipe)) recipe = 'BANH_MI_CHA';
     const dialogue = arch.quotes[temperament] || arch.quotes.NORMAL;
 

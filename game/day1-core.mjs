@@ -160,7 +160,7 @@ export function fresh(seed = populationSeed()) {
     onlineFees: 0,
     lastDayReport: null,
     rating: null,
-    upgrades: { vehicleCapacity: 20, counterSlots: 3, seatingLevel: 0, bike_basket: 0, counter: 0, seating: 0, canopy: 0, cargo: 0 },
+    upgrades: { vehicleCapacity: 20, counterSlots: 3, seatingLevel: 0, bike_basket: 0, counter: 0, seating: 0, canopy: 0, cargo: 0, dual_pan: 0, led_sign: 0 },
     marketPrices: Object.fromEntries(Object.entries(ingredients).map(([id, item]) => [id, item.price])),
     dayEvent: dayConfig(1),
     dayCustomers: structuredClone(fixtureCustomers),
@@ -387,9 +387,9 @@ export function action(state, type, payload) {
     if (payload === 'counter') {
       s.upgrades.counterSlots = 4;
     }
-    if (payload === 'seating' || payload === 'canopy') {
+    if (payload === 'seating' || payload === 'canopy' || payload === 'led_sign') {
       const extras = s.dayCustomers.filter(c => c.isOnline || c.id.startsWith('staff_peak_'));
-      s.dayCustomers = [...identifyRoster(s,rosterForDay(s.currentDay, s.rating ?? 3, s.upgrades.seating, s.upgrades.canopy, s.knownRecipeIds)), ...extras].sort((a, b) => a.arrivalMinute - b.arrivalMinute);
+      s.dayCustomers = [...identifyRoster(s,rosterForDay(s.currentDay, s.rating ?? 3, s.upgrades.seating, s.upgrades.canopy, s.knownRecipeIds, s.upgrades.led_sign)), ...extras].sort((a, b) => a.arrivalMinute - b.arrivalMinute);
     }
   } else if (type === 'HIRE_STAFF') {
     if (s.screen !== 'XOM_OI' || s.currentDay < 8 || s.staffHiredToday || s.cash < 8000) return fail('Từ ngày 8 có thể thuê người phụ với lương 8.000đ/ca.');
@@ -569,7 +569,8 @@ export function action(state, type, payload) {
     while (s.spawnedIndex < s.dayCustomers.length && s.customerIndex < s.dayCustomers.length) {
       const nextCust = s.dayCustomers[s.spawnedIndex];
       if (s.clock >= nextCust.arrivalMinute) {
-        const maxPat = (nextCust.maxPatience ?? (nextCust.temperament === 'RUSH' ? 55 : nextCust.temperament === 'FRIENDLY' ? 180 : 120)) * (1 + .1 * s.upgrades.seating);
+        const weatherMult = s.dayEvent?.weather?.patienceMultiplier ?? 1.0;
+        const maxPat = (nextCust.maxPatience ?? (nextCust.temperament === 'RUSH' ? 55 : nextCust.temperament === 'FRIENDLY' ? 180 : 120)) * (1 + .1 * s.upgrades.seating) * weatherMult;
         const custInstance = {
           ...nextCust,
           patience: maxPat,
@@ -787,9 +788,12 @@ export function action(state, type, payload) {
     }
 
     // 4. Fulfill order successfully
-    const cogs = consumeBatches(s, needs);
+    const rawCogs = consumeBatches(s, needs);
+    const cogs = s.staffSpecializationCraft ? Math.round(rawCogs * 0.9) : rawCogs;
     const sellPrice = menuItem.sellPrice;
-    const tip = s.currentDay > 1 && cust.temperament === 'FRIENDLY' ? 1000 + (s.dayEvent.tipBonus || 0) + (s.staffHiredToday ? 500 : 0) : 0;
+    const seatingTip = s.currentDay > 1 && s.upgrades.seating > 0 && cust.temperament === 'FRIENDLY' ? s.upgrades.seating * 500 : 0;
+    const charmTip = s.currentDay > 1 && s.staffSpecializationCharm ? 500 : 0;
+    const tip = s.currentDay > 1 && cust.temperament === 'FRIENDLY' ? 1000 + (s.dayEvent.tipBonus || 0) + (s.staffHiredToday ? 500 : 0) + seatingTip + charmTip : 0;
     const onlineFee = cust.isOnline ? Math.max(0, 2000 - (s.deliverySaving || 0)) : 0;
     s.cash += sellPrice + tip - onlineFee;
     s.onlineFees = (s.onlineFees || 0) + onlineFee;
@@ -937,7 +941,7 @@ export function action(state, type, payload) {
     s.basket = Object.fromEntries(Object.keys(ingredients).map(k => [k, 0]));
     s.dayEvent = dayConfig(s.currentDay);
     s.marketPrices = Object.fromEntries(Object.entries(ingredients).map(([id, item]) => [id, s.dayEvent.marketPrices?.[id] ?? item.price]));
-    s.dayCustomers = identifyRoster(s,rosterForDay(s.currentDay, s.rating ?? 3, s.upgrades.seating, s.upgrades.canopy, s.knownRecipeIds));
+    s.dayCustomers = identifyRoster(s,rosterForDay(s.currentDay, s.rating ?? 3, s.upgrades.seating, s.upgrades.canopy, s.knownRecipeIds, s.upgrades.led_sign));
     s.openingTime = 'ontime_8am';
     s.screen = 'XOM_OI';
   } else {
@@ -1081,6 +1085,8 @@ export function decode(raw) {
     s.login ||= { lastClaimDate: null, visitDays: 0, stamps: [] };
     s.upgrades.canopy ||= 0;
     s.upgrades.cargo ||= 0;
+    s.upgrades.dual_pan ||= 0;
+    s.upgrades.led_sign ||= 0;
     s.service ||= null;
     s.manualPaused ||= false;
     s.staffHiredToday ||= false;

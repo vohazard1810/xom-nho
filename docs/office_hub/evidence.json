@@ -135,6 +135,27 @@
       "topic": "day1_result",
       "viewport": "360x640",
       "kind": "fresh"
+    },
+    {
+      "file": "../mobile_gate_evidence/operational_handoff/shot_n1_n2_n3_morning_390x844.png",
+      "title": "shot n1 n2 n3 morning",
+      "topic": "shot_n1_n2_n3_morning",
+      "viewport": "390x844",
+      "kind": "other"
+    },
+    {
+      "file": "../mobile_gate_evidence/operational_handoff/shot_n1_n2_n3_shop_360x640.png",
+      "title": "shot n1 n2 n3 shop",
+      "topic": "shot_n1_n2_n3_shop",
+      "viewport": "360x640",
+      "kind": "other"
+    },
+    {
+      "file": "../mobile_gate_evidence/operational_handoff/shot_n1_n2_n3_shop_390x844.png",
+      "title": "shot n1 n2 n3 shop",
+      "topic": "shot_n1_n2_n3_shop",
+      "viewport": "390x844",
+      "kind": "other"
     }
   ]
 }

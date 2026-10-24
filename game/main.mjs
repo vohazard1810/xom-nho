@@ -1,6 +1,6 @@
 import {loadFixture as createFixture} from './fixtures.mjs';
 import { serviceVisual, cookingNeeds, cookingComplete } from './shift-engine.mjs';
-import { ensureEmpire, empireAction, advanceEmpire, LOCATIONS, STAFF_ROLES, openingEligibility, staffCondition, staffRoleAvailable, STAFF_MILESTONES, shopOperationalStatus, isQuietInterval, currentMinuteRate } from './empire-engine.mjs';
+import { ensureEmpire, empireAction, advanceEmpire, LOCATIONS, STAFF_ROLES, STAFF_SPECIALIZATIONS, openingEligibility, staffCondition, staffRoleAvailable, STAFF_MILESTONES, shopOperationalStatus, isQuietInterval, currentMinuteRate } from './empire-engine.mjs';
 import {
   ingredients,
   recipes,
@@ -341,6 +341,12 @@ function renderXomOi() {
   const forecast=state.currentDay===1?'Trời nóng · chuẩn bị thêm thức uống. Khách nhí sẽ ghé xin thêm chả.':state.dayEvent.forecast;
   return `<header class="top-nav"><b>${shopTitle()}</b><span class="wallet-badge">${money(state.cash)}</span></header><section class="morning-dashboard"><div class="morning-hero"><span>Ngày ${state.currentDay}</span><h2>Mở quán thôi!</h2></div>
     <div class="day-stats"><div><b>${state.dayCustomers.length}</b><small>Khách dự kiến</small></div><div><b>${state.upgrades.vehicleCapacity}</b><small>Sức chở</small></div><div><b>${state.rating?.toFixed(1)||'—'} ★</b><small>Sao quán</small></div></div>
+    ${(() => {
+      const w = state.dayEvent?.weather || { id: 'sunny', name: 'Nắng ráo', icon: '☀️', description: 'Thời tiết ấm áp, buôn bán thuận lợi.' };
+      return `<div class="morning-weather-card weather-${w.id}">
+        <div class="weather-card-top"><span class="weather-card-icon">${w.icon}</span><div><b class="weather-card-title">${w.name}</b><p class="weather-card-desc">${escapeHtml(w.description || '')}</p></div></div>
+      </div>`;
+    })()}
     <div class="forecast-card"><b>Tin xóm hôm nay</b><p>${escapeHtml(forecast)}</p></div>
     ${state.dayEvent?.rival ? `
       <div class="rival-card">
@@ -355,7 +361,7 @@ function renderXomOi() {
     ${message?`<div class="alert-message">${escapeHtml(message)}</div>`:''}
     <button class="btn-primary" data-type="NAVIGATE">Đi chợ nhập hàng →</button>
     <div class="empire-nav"><button data-type="OPEN_MAP">Bản đồ xóm · ${Object.keys(state.empire.shops).length} quán</button><button data-type="OPEN_STAFF">Nhân sự · ${state.empire.employees.filter(x=>x.shopId===state.empire.activeShopId).length} người</button></div>
-    ${state.currentDay>1?`<h3>Nâng cấp quán</h3><div class="upgrade-grid">${Object.entries(UPGRADE_CATALOG).filter(([id,u])=>state.currentDay>=(u.unlockDay||2)).map(([id,u])=>{const level=state.upgrades[id]||0,cost=level===1?(u.nextCost||u.cost):u.cost;const icon={bike_basket:'🚲',counter:'🪵',seating:'🪑',canopy:'🎪',cargo:'🛵'}[id]||'✨';return `<button data-type="UPGRADE" data-payload="${id}" ${level>=u.maxLevel||state.cash<cost||(id==='cargo'&&state.upgrades.bike_basket<2)?'disabled':''}><div class="upgrade-header-row"><span class="upgrade-icon">${icon}</span><b>${u.name}</b></div><span>${level>=u.maxLevel?'Đã nâng tối đa':money(cost)}</span><small>${escapeHtml(u.description)}</small></button>`}).join('')}</div>
+    ${state.currentDay>1?`<h3>Nâng cấp quán</h3><div class="upgrade-grid">${Object.entries(UPGRADE_CATALOG).filter(([id,u])=>state.currentDay>=(u.unlockDay||2)).map(([id,u])=>{const level=state.upgrades[id]||0,cost=level===1?(u.nextCost||u.cost):u.cost;const icon={bike_basket:'🚲',counter:'🪵',seating:'🪑',canopy:'🎪',cargo:'🛵',dual_pan:'🍳',led_sign:'✨'}[id]||'✨';return `<button data-type="UPGRADE" data-payload="${id}" ${level>=u.maxLevel||state.cash<cost||(id==='cargo'&&state.upgrades.bike_basket<2)?'disabled':''}><div class="upgrade-header-row"><span class="upgrade-icon">${icon}</span><b>${u.name}</b></div><span>${level>=u.maxLevel?'Đã nâng tối đa':money(cost)}</span><small>${escapeHtml(u.description)}</small></button>`}).join('')}</div>
       ${state.currentDay>=3?`<button class="btn-secondary" data-type="LEARN_RECIPE" data-payload="BANH_MI_TRUNG" ${!state.upgrades.counter||state.knownRecipeIds.includes('BANH_MI_TRUNG')||state.cash<12000?'disabled':''}>Học bánh mì ốp la · 12k ${state.knownRecipeIds.includes('BANH_MI_TRUNG')?'· Đã học':''}</button>`:''}
       ${state.currentDay>=15?`<button class="btn-secondary" data-type="ENABLE_ONLINE" ${state.onlineEnabledToday?'disabled':''}>Nhận thêm đơn online · phí 2k/đơn</button>`:''}
       ${state.cash<11000&&!state.sideJobIncome?'<button class="btn-secondary" data-type="SIDE_JOB">Phụ dọn sân · nhận 15k vốn</button>':''}
@@ -541,7 +547,7 @@ function renderShop() {
   const rate = currentMinuteRate(state);
   const isQuietAccelerating = isQuietInterval(state) && rate === 30;
   return `<div class="play-screen">
-    <header class="play-header"><div><b>${shopTitle()}</b><small>Ngày ${state.currentDay} · ${String(Math.floor(time/60)).padStart(2,'0')}:${String(Math.floor(time%60)).padStart(2,'0')} · ${state.servedOrders.length}/${state.dayCustomers.length} khách${isQuietAccelerating ? ' · <span class="quiet-accel-pill" title="Không có đơn chờ · thời gian trôi nhanh 30 phút/giây">⚡ Vắng khách · giờ chạy nhanh</span>' : ''}</small></div><div class="play-cash-group">${floatingCash?`<span class="cash-floating-gain">${floatingCash}</span>`:''}<span class="play-cash">${money(state.cash)}</span></div><button class="play-pause" data-type="TOGGLE_PAUSE" aria-label="${state.manualPaused?'Tiếp tục':'Tạm dừng'}">${state.manualPaused?'▶':'Ⅱ'}</button></header>
+    <header class="play-header"><div><b>${shopTitle()}</b><small>Ngày ${state.currentDay} · ${String(Math.floor(time/60)).padStart(2,'0')}:${String(Math.floor(time%60)).padStart(2,'0')} · ${state.servedOrders.length}/${state.dayCustomers.length} khách <span class="weather-pill weather-${state.dayEvent?.weather?.id || 'sunny'}" title="${state.dayEvent?.weather?.name || 'Thời tiết'}">${state.dayEvent?.weather?.icon || '☀️'} ${state.dayEvent?.weather?.name || 'Nắng ráo'}</span>${state.upgrades?.seating ? ` · <span class="perk-pill seating-pill">🪑 ${state.upgrades.seating*2} chỗ</span>` : ''}${state.upgrades?.dual_pan ? ` · <span class="perk-pill pan-pill">🍳 Chảo đôi</span>` : ''}${state.upgrades?.led_sign ? ` · <span class="perk-pill led-pill">✨ LED</span>` : ''}${isQuietAccelerating ? ' · <span class="quiet-accel-pill" title="Không có đơn chờ · thời gian trôi nhanh 30 phút/giây">⚡ Vắng khách · giờ chạy nhanh</span>' : ''}</small></div><div class="play-cash-group">${floatingCash?`<span class="cash-floating-gain">${floatingCash}</span>`:''}<span class="play-cash">${money(state.cash)}</span></div><button class="play-pause" data-type="TOGGLE_PAUSE" aria-label="${state.manualPaused?'Tiếp tục':'Tạm dừng'}">${state.manualPaused?'▶':'Ⅱ'}</button></header>
     <div class="play-scene">
       <svg class="play-stage" viewBox="0 0 1200 896" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
         <defs>
@@ -551,6 +557,7 @@ function renderShop() {
         </defs>
         <image href="../assets/environment/alley_counter_clean.jpg" x="0" y="0" width="1200" height="896" preserveAspectRatio="none" />
         ${state.upgrades?.canopy?`<image class="play-canopy" href="${CANOPY_AWNING_IMG}" x="0" y="0" width="1200" height="240" preserveAspectRatio="none" />`:''}
+        ${state.upgrades?.led_sign?`<g class="stage-led-sign"><rect x="880" y="24" width="280" height="40" rx="8" fill="rgba(15,23,42,0.85)" stroke="#38bdf8" stroke-width="2" filter="drop-shadow(0 0 10px rgba(56,189,248,0.7))" /><text x="1020" y="51" fill="#38bdf8" font-size="16" font-weight="bold" text-anchor="middle" letter-spacing="2">★ ${escapeHtml(state.shopName.toUpperCase())} ★</text></g>`:''}
         ${q1&&waiting1Coords?`<image class="play-waiting waiting-1 stage-waiting" href="${getCustomerSprite(q1)}" x="${waiting1Coords.x}" y="${waiting1Coords.y}" width="${waiting1Coords.w}" height="${waiting1Coords.h}" preserveAspectRatio="xMidYMax meet" />`:''}
         ${q0&&waiting0Coords?`<image class="play-waiting waiting-0 stage-waiting" href="${getCustomerSprite(q0)}" x="${waiting0Coords.x}" y="${waiting0Coords.y}" width="${waiting0Coords.w}" height="${waiting0Coords.h}" preserveAspectRatio="xMidYMax meet" />`:''}
         ${c&&counterCoords?`<image class="play-customer stage-customer ${c.id==='be_ti'?'small-child':c.archetype==='teen'?'teen':''} ${phase==='REACTION'?'react':''}" href="${getCustomerSprite(c,autoPrepState?.customerPose)}" x="${counterCoords.x}" y="${counterCoords.y}" width="${counterCoords.w}" height="${counterCoords.h}" preserveAspectRatio="xMidYMax meet" />`:''}
@@ -745,6 +752,7 @@ function renderEmpirePanels(){
       </div>
       <div class="employee-meters">
         <span>Tay nghề: <b>${x.skill}/3</b></span>
+        ${x.specialization ? `<span class="staff-spec-pill">⭐ ${escapeHtml(STAFF_SPECIALIZATIONS[x.specialization]?.name || x.specialization)}</span>` : ''}
         <span>Mệt mỏi: <b class="${x.fatigue >= 70 ? 'meter-warn' : ''}">${x.fatigue}/100</b></span>
         <span>Tinh thần: <b class="${x.mood < 50 ? 'meter-warn' : ''}">${x.mood}/100</b></span>
       </div>
@@ -753,6 +761,16 @@ function renderEmpirePanels(){
       </div>
       <div class="staff-advice">💡 <b>Tư vấn:</b> ${escapeHtml(cond.advice)}</div>
       ${x.lastShift ? `<div class="staff-prior-shift">📋 <b>Ca trước:</b> ${x.lastShift.rested ? 'Nghỉ ngơi hồi phục (+8 tinh thần, -30 mệt)' : `${x.lastShift.served} đơn phục vụ · mệt ${x.lastShift.fatigueChange > 0 ? '+' : ''}${x.lastShift.fatigueChange} · tinh thần ${x.lastShift.moodChange > 0 ? '+' : ''}${x.lastShift.moodChange}`}</div>` : ''}
+      ${x.skill >= 2 && !x.specialization ? `
+        <div class="staff-spec-select-row">
+          <small>Chọn chuyên môn:</small>
+          <div class="staff-spec-buttons">
+            <button class="btn-spec" data-type="STAFF_SPECIALIZE" data-payload="${x.id}:speed" title="Tốc độ gió: +25% tốc độ chế biến">⚡ Tốc độ</button>
+            <button class="btn-spec" data-type="STAFF_SPECIALIZE" data-payload="${x.id}:craft" title="Khéo léo: tiết kiệm 10% nguyên liệu">✂️ Khéo léo</button>
+            <button class="btn-spec" data-type="STAFF_SPECIALIZE" data-payload="${x.id}:charm" title="Thân thiện: thêm 500đ tip">💬 Thân thiện</button>
+          </div>
+        </div>
+      ` : ''}
       <div class="employee-actions">
         <button class="btn-staff-bonus" data-type="STAFF_BONUS" data-payload="${x.id}" ${x.lastBonusDay===state.currentDay||state.cash<5000?'disabled':''}>🎁 Thưởng 5k (+20 tinh thần)</button>
         <button class="btn-staff-train" data-type="STAFF_TRAIN" data-payload="${x.id}" ${x.skill>=3||x.lastTrainedDay===state.currentDay?'disabled':''}>📚 Đào tạo · 8k</button>

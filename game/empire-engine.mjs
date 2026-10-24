@@ -8,6 +8,11 @@ export const LOCATIONS=Object.freeze({
  school:{name:'Quán cổng trường',district:'Đường tới trường',unlockDay:8,deposit:120000,reserve:80000,description:'Khách học sinh dồn giờ tan học · bánh mì, trà tắc'},
  office:{name:'Quán khu văn phòng',district:'Cuối đường lớn',unlockDay:15,deposit:250000,reserve:120000,description:'Khách vội, đơn mang đi · đồ ăn sáng và sữa đậu'}
 });
+export const STAFF_SPECIALIZATIONS = Object.freeze({
+ craft:{id:'craft',name:'Tay nghề khéo',description:'Tiết kiệm 10% chi phí nguyên liệu'},
+ speed:{id:'speed',name:'Tốc độ gió',description:'Tăng 25% tốc độ chế biến món'},
+ charm:{id:'charm',name:'Thân thiện',description:'Tăng 500đ tiền tip từ khách thân thiện'}
+});
 export const STAFF_ROLES=Object.freeze({
  helper:{name:'Phụ bếp',wage:6000,unlockDay:4,description:'Làm món nhanh hơn; giảm quá tải'},
  manager:{name:'Quản lý',wage:10000,unlockDay:8,description:'Tự vận hành quán khi chủ vắng'},
@@ -47,18 +52,21 @@ export function ensureEmpire(input){
  const s=structuredClone(input);s.legacyHelperToday=Boolean(input.staffHiredToday);s.empire={version:1,revisionCounter:input.revision,activeShopId:'home',shops:{home:{id:'home',state:strip(s),ready:false}},employees:[],nextEmployeeId:1,mapOpen:false,staffOpen:false,shiftRunning:input.screen==='SHOP',worldClock:input.clock,openingCash:input.dayStartingCash,report:null,history:[],notifications:[]};return s;
 }
 function pack(e, s, cash){s.cash=cash;e.revisionCounter=Math.max(e.revisionCounter||0,s.revision)+1;s.revision=e.revisionCounter;e.shops[e.activeShopId].state=strip(s);const out=strip(s);out.cash=cash;out.empire=e;if(e.shiftRunning){out.screen='SHOP';out.clock=e.worldClock;out.speed=e.speed||s.speed||1;}return out}
-function employeeEffects(e,id,s,away=false){
+export function employeeEffects(e,id,s,away=false){
  const workers=liveEmployees(e,id), manager=workers.find(x=>x.role==='manager');
  s.staffHiredToday=workers.some(x=>x.role==='helper'||x.role==='manager')||Boolean(s.legacyHelperToday);
  if(away)s.assistEnabled=Boolean(manager);
  const boost=workers.reduce((n,x)=>n+({manager:.06,helper:.14,cleaner:.05}[x.role]||0)*x.skill*staffCondition(x).efficiency,0);
  const hands=away?Math.max(.5,(.65+.12*(manager?.skill||0)-.002*(manager?.fatigue||0))*(manager?(.8+.2*(manager.mood??80)/100):1)):1.25;
- s.employeeSpeed=(1+boost+(s.legacyHelperToday?.35:0))*hands;s.packingSpeed=1+workers.filter(x=>x.role==='packer').reduce((n,x)=>n+.2*x.skill*staffCondition(x).efficiency,0);
+ const speedBonus = workers.some(x=>x.specialization==='speed')?1.25:1;
+ s.employeeSpeed=(1+boost+(s.legacyHelperToday?.35:0))*hands*speedBonus;s.packingSpeed=1+workers.filter(x=>x.role==='packer').reduce((n,x)=>n+.2*x.skill*staffCondition(x).efficiency,0);
  const driver=workers.find(x=>x.role==='driver');s.deliverySaving=driver?Math.min(1900,1200+300*driver.skill):0;
+ s.staffSpecializationCraft = workers.some(x=>x.specialization==='craft');
+ s.staffSpecializationCharm = workers.some(x=>x.specialization==='charm');
  return manager;
 }
 function roster(id,s){
- const list=rosterForDay(s.currentDay,s.rating??3,s.upgrades.seating,s.upgrades.canopy,s.knownRecipeIds)||s.dayCustomers;
+ const list=rosterForDay(s.currentDay,s.rating??3,s.upgrades.seating,s.upgrades.canopy,s.knownRecipeIds,s.upgrades.led_sign)||s.dayCustomers;
  if(id==='home')return identifyRoster(s,list,id);
  const arch=WALK_IN_ARCHETYPES[id==='school'?'teen':'office'];
  return identifyRoster(s,list.map((c,i)=>({...c,id:`${id}_${c.id}`,personId:`${id}_${arch.archetype}_${i}`,archetype:arch.archetype,visualVariantId:arch.visualVariantId,name:arch.names[(s.currentDay+i)%arch.names.length],temperament:id==='office'&&i%3===0?'RUSH':c.temperament,recipe:id==='school'?(i%2?'TRA_TAC':'BANH_MI_CHA'):(i%3===0?'SUA_DAU_DA':i%3===1?'BANH_MI_CHA':'TRA_TAC'),dialogue:arch.quotes[id==='office'?'RUSH':'NORMAL']})),id);
@@ -93,6 +101,12 @@ export function empireAction(input,type,payload){
  }
  if(type.startsWith('STAFF_')){
   if(!safe)return fail('Chỉnh nhân sự trước ca.');
+  if(type==='STAFF_SPECIALIZE'){
+   const [id,spec]=String(payload||'').split(':');const x=e.employees.find(p=>p.id===id);if(!x)return fail('Không tìm thấy nhân viên.');
+   if(!STAFF_SPECIALIZATIONS[spec])return fail('Chuyên môn không hợp lệ.');
+   if(x.skill<2)return fail('Cần đạt tay nghề cấp 2 để chọn chuyên môn.');
+   x.specialization=spec;return{state:pack(e,s,root.cash)};
+  }
   if(type==='STAFF_HIRE'){
    const role=payload,def=STAFF_ROLES[role];if(!def||!staffRoleAvailable(root,role))return fail('Vị trí này chưa mở.');if(def.seating&&!s.upgrades.seating)return fail('Quán có chỗ ngồi mới cần vị trí này.');if(def.online&&!s.onlineEnabledToday)return fail('Bật nhận đơn online trước khi thuê vị trí này.');if(e.employees.some(x=>x.shopId===e.activeShopId&&x.role===role))return fail('Quán đã có người ở vị trí này.');if(root.cash<5000+def.wage+15000)return fail('Cần phí tuyển 5k, tiền lương và ít nhất 15k vốn hàng.');
    const n=e.nextEmployeeId++;e.employees.push({id:`employee_${n}`,name:staffNames[(n-1)%staffNames.length],role,shopId:e.activeShopId,skill:1,fatigue:0,mood:80,restingToday:false,daysWorked:0,lastTrainedDay:0});s.cash-=5000;s.operatingExpenses+=5000;
