@@ -216,7 +216,7 @@ class Office:
             if body.get('expectedRevision') != self.state['revision']:
                 raise WorkflowError('Dữ liệu đã đổi. Tải lại trước khi duyệt.', 409)
             action = body.get('action')
-            if action not in ['approve', 'request_changes', 'approve_proposal', 'retry_review']:
+            if action not in ['approve', 'request_changes', 'approve_proposal', 'retry_review', 'return_for_revision']:
                 raise WorkflowError('Hành động không hợp lệ')
             if body.get('recipient', 'Antigravity') not in ['Antigravity', 'Both']:
                 raise WorkflowError('Luồng này giao UI cho Antigravity, sau đó Codex review; không hỗ trợ route khác.')
@@ -227,6 +227,30 @@ class Office:
             active = [r for r in self.state['requests'] if r['status'] in ['queued', 'dispatching', 'delivered', 'received', 'working', 'verifying', 'reviewing', 'review_waiting']]
             if active:
                 raise WorkflowError('Đang có yêu cầu chưa kết thúc; tránh giao việc trùng.', 409)
+            if action == 'return_for_revision':
+                req = next((r for r in self.state['requests'] if r['id'] == body.get('requestId')), None)
+                feedback = str(body.get('feedback', '')).strip()
+                if not req or req['status'] != 'ready_for_director':
+                    raise WorkflowError('Không có bản đã kiểm chứng đang chờ nghiệm thu.', 409)
+                if not feedback or len(feedback) > 6000:
+                    raise WorkflowError('Cần góp ý cụ thể, tối đa 6000 ký tự.')
+                if req.get('reviewRound', 0) >= self.config['maxReviewRounds']:
+                    self.block(req, 'Nghiệm thu cuối chưa đạt: ' + feedback)
+                    raise WorkflowError('Đã đủ ba vòng; giữ Blocked thay vì mở vòng bốn.', 409)
+                receipt = {'time': utc(), 'actor': actor, 'authority': authority,
+                           'action': action, 'requestId': req['id'], 'feedback': feedback,
+                           'snapshot': self.snapshot(), 'reviewRound': req['reviewRound']}
+                atomic(self.receipt_path(req['id']) / ('RETURN-' + str(uuid.uuid4()) + '.json'), receipt)
+                for name in ['ACK.json', 'STARTED.json', 'HEARTBEAT.json', 'RESULT.json']:
+                    file = self.receipt_path(req['id']) / name
+                    if file.exists():
+                        file.rename(file.with_name('RETURN-' + str(uuid.uuid4()) + '-' + name))
+                req.update(status='queued', nonce=secrets.token_hex(16), reviewFeedback=feedback, seen=[])
+                self.state['submission']['status'] = 'changes_requested'
+                self.agent('Antigravity', 'queued', 'Nghiệm thu yêu cầu sửa; giữ nguyên số vòng review', req['id'])
+                self.event('acceptance_returned', 'Bản qua kiểm chứng được trả sửa sau nghiệm thu trực tiếp.',
+                           requestId=req['id'], actor=actor, authority=authority)
+                return {'state': self.view(), 'decisionId': req['id']}
             if action == 'retry_review':
                 req = next((r for r in self.state['requests'] if r['id'] == body.get('requestId')), None)
                 if not req or req['status'] not in ['blocked', 'interrupted'] or not req.get('result'):
@@ -500,6 +524,7 @@ Return ONLY JSON {{"verdict":"PASS" or "FAIL","requestId":"{req['id']}","snapsho
 Original RESULT may be historical; the supervisor has refreshed the evidence hashes for the exact current snapshot. Review current files, not old screenshots as proof of new changes.
 This is a headless code reviewer. A browser may be unavailable in your process; lack of a browser alone is NOT a product failure.
 Read the supplied current-snapshot browser test artifacts, scripts, interaction logs and screenshots. Evaluate their scope and freshness.
+Also read docs/office_hub/reports/CODEX_ACCEPTANCE_FINDINGS.md if present. It contains independent browser observations; apply only findings matching this snapshot.
 If essential evidence is missing, report exactly what is missing. Do not list working features as failures. Do not fabricate an interaction test.
 This is review {round_number}/{self.config['maxReviewRounds']}. No code edits or self-approved next steps.'''
             code = self.run_child(req, self.config['codex'], ['exec', '--sandbox', 'read-only', '--model', self.config['lightModel'],

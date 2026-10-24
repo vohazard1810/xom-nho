@@ -67,3 +67,8 @@ POST decision với actingAs=CodexDelegated ghi actor=Codex và hash biên bản
 Không tự phê duyệt khi chưa có verdict đạt. Mã đổi sau bàn giao sẽ Blocked, kể cả bấm lại.
 Sau gói bốn việc, ghi báo cáo rồi bật STOP; không tự chạy đề xuất mới hoặc hẹn giờ ngày mai.
 
+
+Nghiệm thu trực tiếp có thể POST return_for_revision với requestId, submissionId, expectedRevision, feedback.
+Hành động giữ cùng yêu cầu và số vòng; vòng cuối bị từ chối sẽ Blocked. Không tự tạo vòng bốn.
+Nhật ký CUA độc lập trong CODEX_BROWSER_ACTIONS.json kiểm chứng fixture, không phải gameplay thật.
+

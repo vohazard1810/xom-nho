@@ -72,6 +72,20 @@ class WorkflowTests(unittest.TestCase):
         with self.assertRaises(m.WorkflowError):
             self.action('approve', actingAs='CodexDelegated')
 
+    def test_acceptance_return_preserves_request_and_review_limit(self):
+        req = self.request()
+        req.update(status='ready_for_director', reviewRound=1)
+        old_nonce = req['nonce']
+        self.action('return_for_revision', requestId=req['id'], feedback='Actual browser image cropped')
+        self.assertEqual(len(self.office.state['requests']), 1)
+        self.assertEqual(req['reviewRound'], 1)
+        self.assertEqual(req['status'], 'queued')
+        self.assertNotEqual(req['nonce'], old_nonce)
+        self.assertTrue(list(self.office.receipts.glob('*/RETURN-*.json')))
+        req.update(status='ready_for_director', reviewRound=3)
+        with self.assertRaises(m.WorkflowError):
+            self.action('return_for_revision', requestId=req['id'], feedback='Do not open fourth round')
+        self.assertEqual(req['status'], 'blocked')
     def test_feedback_required_stale_revision_rejected_and_no_fake_agent_work(self):
         with self.assertRaises(m.WorkflowError):
             self.action('request_changes', feedback='')
