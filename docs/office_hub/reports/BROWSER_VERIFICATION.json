@@ -1,0 +1,137 @@
+{
+  "nonce": "4bdd3efdfbb16c9fb332373ba9418000",
+  "requestId": "5ae9ba69-6bcd-42f1-9b15-011332460a79",
+  "reviewRound": 2,
+  "timestamp": "2026-10-24T09:37:51.620948+00:00",
+  "fixturePort": 8991,
+  "productionPort": 8990,
+  "productionUntouched": true,
+  "snapshot": "9b26e6087a7e663e6d96809f2426d76ab0e1d09d8ede91572f4a71c553e62893",
+  "provenance": {
+    "testScript": "docs/office_hub/reports/verify_browser_interactions.py",
+    "interactionLog": "docs/office_hub/reports/browser_interaction.log",
+    "targetUrl": "http://127.0.0.1:8991/docs/office_hub/index.html",
+    "fixtureRoot": "C:\\Users\\truonggiang.vo01\\.codex\\.chatgpt-projects\\g-p-6ac3ce0ff4848191a05f9d02d76bd217\\xom-nho\\handoff\\.runtime\\workflow-ui-fixture",
+    "testedSnapshotMatchesProduction": true
+  },
+  "tasksVerified": {
+    "T1": "Desks + all four character faces clear, assistant beside Director on common floor, Director inside Room 2 right wall, responsive mobile app shell with compact navigation, zero horizontal scrollbar at 1280px and mobile 390x844",
+    "T2": "Mobile QA Lab image/card/caption layout fixed desktop+narrow: absolute inset:0 overlay with centered expand button, display:block screen, object-fit:contain image with naturalWidth>0 (no 404), unclipped title ellipsis; compare/filter usable, zero overflow",
+    "T3": "Kanban counters accurately distinguish total (20), filtered (20), unfinished (1 Review: A6), done (19); historical notes vs current state clear; no fake Done",
+    "T4": "Controlled-fixture browser acceptance on final snapshot: approve successful POST/state (200), request_changes successful POST/state (200), nested X and Esc modal close verified"
+  },
+  "detailedSteps": [
+    {
+      "step": "A",
+      "action": "Load Desktop Lobby at 1280x800",
+      "assertions": {
+        "hasHorizontalOverflow": false,
+        "topbarHasOverflow": false,
+        "directorWithinRightWall": true,
+        "approveButtonEnabled": true,
+        "statusBadge": "CHỜ PHÊ DUYỆT",
+        "cardAssistantText": "Trợ lý Codex: Điều phối · Kiểm chứng · Duyệt theo ủy quyền"
+      },
+      "screenshot": "docs/mobile_gate_evidence/assistant_delegation_v2_7/01_desktop_lobby_assistant_director.png",
+      "passed": true
+    },
+    {
+      "step": "B",
+      "action": "Close dialog via nested <span>✕</span>",
+      "target": "#modal-exchange-history .drawer-close span",
+      "result": "Modal closed successfully",
+      "screenshot": "docs/mobile_gate_evidence/assistant_delegation_v2_7/06_modal_closed_by_nested_span.png",
+      "passed": true
+    },
+    {
+      "step": "C",
+      "action": "Close dialog via keyboard Escape key",
+      "target": "#modal-exchange-history",
+      "result": "Modal closed successfully",
+      "screenshot": "docs/mobile_gate_evidence/assistant_delegation_v2_7/07_modal_closed_by_escape.png",
+      "passed": true
+    },
+    {
+      "step": "D",
+      "action": "POST /api/office/decision action='approve'",
+      "httpStatus": 200,
+      "submissionStatus": "approved",
+      "uiState": {
+        "btnDisabled": true,
+        "badgeText": "ĐÃ DUYỆT",
+        "trayText": "ĐÃ DUYỆT"
+      },
+      "screenshot": "docs/mobile_gate_evidence/assistant_delegation_v2_7/08_fixture_real_mutation_approved.png",
+      "passed": true
+    },
+    {
+      "step": "E",
+      "action": "POST /api/office/decision action='request_changes'",
+      "feedbackSent": "Kiểm thử cô lập: Yêu cầu tinh chỉnh thêm responsive cho tablet.",
+      "httpStatus": 200,
+      "submissionStatus": "changes_requested",
+      "uiState": {
+        "badgeText": "ĐANG XỬ LÝ (Đang xếp hàng)"
+      },
+      "screenshot": "docs/mobile_gate_evidence/assistant_delegation_v2_7/09_fixture_real_mutation_request_changes.png",
+      "passed": true
+    },
+    {
+      "step": "F",
+      "action": "Verify Kanban Metrics",
+      "metrics": {
+        "total": "20",
+        "pending": "1",
+        "done": "19",
+        "filtered": "20"
+      },
+      "screenshot": "docs/mobile_gate_evidence/assistant_delegation_v2_7/05_kanban_metrics_and_pending.png",
+      "passed": true
+    },
+    {
+      "step": "G",
+      "action": "Verify Mobile QA Lab Desktop Layout & Assets",
+      "evaluation": {
+        "bezelWidth": 230,
+        "bezelHeight": 540.234375,
+        "imgLoaded": true,
+        "imgNaturalWidth": 360,
+        "screenDisplay": "block",
+        "overlayPosition": "absolute",
+        "overlayWithinScreen": true,
+        "topbarNoScroll": true,
+        "titleText": "Tổng kết đa quán"
+      },
+      "screenshot": "docs/mobile_gate_evidence/assistant_delegation_v2_7/03_qa_lab_desktop_compact.png",
+      "passed": true
+    },
+    {
+      "step": "H",
+      "action": "Verify Narrow Viewport (390x844) Mobile App Shell & Management Stage",
+      "qaMobileEvaluation": {
+        "docW": 390,
+        "scrollW": 390,
+        "hasOverflow": false,
+        "bezelWidth": 280
+      },
+      "lobbyMobileChecks": {
+        "docW": 390,
+        "scrollW": 390,
+        "hasHorizontalOverflow": false,
+        "topbarHasOverflow": false,
+        "sidebarWidth": 390,
+        "mainWidth": 390,
+        "astVisible": true,
+        "ceoVisible": true,
+        "deskAstVisible": true,
+        "deskCeoVisible": true
+      },
+      "screenshots": [
+        "docs/mobile_gate_evidence/assistant_delegation_v2_7/04_qa_lab_mobile_compact_390x844.png",
+        "docs/mobile_gate_evidence/assistant_delegation_v2_7/02_mobile_lobby_390x844.png"
+      ],
+      "passed": true
+    }
+  ],
+  "verdict": "PASS"
+}

@@ -1,0 +1,17 @@
+{
+  "time": "2026-10-24T09:47:22.292364+00:00",
+  "actor": "Codex",
+  "role": "Assistant Director under owner delegation",
+  "requestId": "5ae9ba69-6bcd-42f1-9b15-011332460a79",
+  "authoritySha256": "3467dec263cf7d394e12084f5a3277a00890bfd8f82f923655cea656e5b8e0a4",
+  "snapshot": "9b26e6087a7e663e6d96809f2426d76ab0e1d09d8ede91572f4a71c553e62893",
+  "packageVerdict": "NOT_APPROVED",
+  "tasks": {
+    "T1": "Review",
+    "T2": "Review",
+    "T3": "Done",
+    "T4": "Done"
+  },
+  "reviewRound": 3,
+  "nextAction": "STOP; resume outstanding defects tomorrow"
+}

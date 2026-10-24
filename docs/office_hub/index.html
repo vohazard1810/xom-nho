@@ -4,97 +4,1403 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="dark">
-  <title>Xóm Nhỏ · Office Control Center</title>
+  <title>Xóm Nhỏ Studio · Virtual Office Command Center</title>
   <link rel="stylesheet" href="style.css">
 </head>
-<body>
-  <header class="hub-header">
-    <div class="brand">
-      <span class="brand-mark" aria-hidden="true">🏮</span>
-      <div>
-        <h1>Xóm Nhỏ Studio · Office Control Center</h1>
-        <p id="hub-meta">Đang tải dữ liệu…</p>
+<body class="app-shell">
+  <!-- Top Global Command Bar -->
+  <header class="top-bar">
+    <div class="top-bar-left">
+      <div class="studio-logo" aria-hidden="true">🏮</div>
+      <div class="room-breadcrumb">
+        <span class="crumb-studio">Xóm Nhỏ Studio</span>
+        <span class="crumb-sep">/</span>
+        <span class="crumb-current" id="current-room-name">🏢 Sảnh Văn Phòng</span>
       </div>
     </div>
-    <div class="desks" aria-label="Thành viên">
-      <div class="desk desk-antigravity"><b>Antigravity</b><small>UI · Art · Kiểm tra trình duyệt</small></div>
-      <div class="desk desk-codex"><b>Codex</b><small>Engine · Logic · Test tự động</small></div>
+
+    <div class="top-bar-center">
+      <div class="sprint-progress-pill" title="Tiến độ hoàn thành Sprint">
+        <span class="pill-label">Sprint:</span>
+        <span class="pill-value" id="sprint-progress-text">0/0 (0%)</span>
+        <div class="progress-track" aria-hidden="true">
+          <div class="progress-fill" id="sprint-progress-bar" style="width: 0%"></div>
+        </div>
+      </div>
+      <div class="branch-pill" title="Nhánh Git hiện tại">
+        <span class="git-icon" aria-hidden="true">⎇</span>
+        <code id="git-branch-text">codex/core-loop-completion</code>
+      </div>
+      <div class="branch-pill commit-pill" title="Mã Git commit hiện tại (7 ký tự)">
+        <span class="git-icon" aria-hidden="true">📦</span>
+        <code id="git-commit-text">67386c6</code>
+        <button type="button" class="btn-copy-mini" id="btn-copy-commit" title="Sao chép commit hash">📋</button>
+      </div>
+      <div class="invariant-pill" id="invariant-badge" title="Mục I/I2: Trạng thái chỉ đổi khi có commit hoặc ACK trong repo">
+        <span class="inv-dot"></span>
+        <span id="invariant-text">I/I2: ACK Khớp</span>
+      </div>
+      <div id="data-source-badge" class="source-pill src-live" title="Nguồn dữ liệu">Dữ liệu trực tiếp</div>
+      <span id="last-sync-ticker" class="sync-ticker" title="Thời gian từ lần đồng bộ cuối">Vừa cập nhật</span>
     </div>
-    <nav class="hub-nav" aria-label="Khu vực">
-      <a href="#board">① Bảng phân việc</a>
-      <a href="#reports">② Bàn báo cáo</a>
-      <a href="#gallery">③ Bằng chứng</a>
-    </nav>
+
+    <div class="top-bar-right">
+      <button type="button" id="btn-manual-refresh" class="btn-action-refresh" title="Làm mới dữ liệu từ server ngay lập tức (không cần F5)">
+        <span class="btn-icon">🔄</span>
+        <span>Làm mới</span>
+      </button>
+      <button type="button" id="btn-copy-prompt" class="btn-action-primary" title="Sao chép toàn bộ Action Items & prompt giao việc cho Codex">
+        <span class="btn-icon">📋</span>
+        <span>Copy Prompt</span>
+      </button>
+    </div>
   </header>
 
-  <main>
-    <section id="board" class="zone" aria-labelledby="board-title">
-      <div class="zone-head">
-        <h2 id="board-title">① Bảng phân việc</h2>
-        <div class="filters" role="group" aria-label="Lọc theo người phụ trách">
-          <button type="button" class="chip is-active" data-owner="all" aria-pressed="true">Tất cả</button>
-          <button type="button" class="chip owner-antigravity" data-owner="Antigravity" aria-pressed="false">Antigravity</button>
-          <button type="button" class="chip owner-codex" data-owner="Codex" aria-pressed="false">Codex</button>
+  <div class="app-body">
+    <!-- Left Fixed Sidebar Navigation -->
+    <aside class="sidebar" aria-label="Điều hướng văn phòng">
+      <nav class="nav-rooms">
+        <div class="nav-section-label">KHÔNG GIAN STUDIO</div>
+        <button type="button" class="nav-item is-active" data-view="lobby" aria-current="page">
+          <span class="nav-icon">🏢</span>
+          <span class="nav-text">Sảnh Văn Phòng</span>
+          <span class="nav-shortcut">1</span>
+        </button>
+        <button type="button" class="nav-item" data-view="kanban">
+          <span class="nav-icon">📋</span>
+          <span class="nav-text">Bảng Kanban</span>
+          <span class="nav-count" id="nav-count-kanban">12</span>
+          <span class="nav-shortcut">2</span>
+        </button>
+        <button type="button" class="nav-item" data-view="reports">
+          <span class="nav-icon">📑</span>
+          <span class="nav-text">Phòng Báo Cáo</span>
+          <span class="nav-count">2</span>
+          <span class="nav-shortcut">3</span>
+        </button>
+        <button type="button" class="nav-item" data-view="qa">
+          <span class="nav-icon">📱</span>
+          <span class="nav-text">Mobile QA Lab</span>
+          <span class="nav-count" id="nav-count-qa">15</span>
+          <span class="nav-shortcut">4</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-spacer"></div>
+
+      <!-- Live Staff Desks Status Widget -->
+      <div class="sidebar-desks">
+        <div class="nav-section-label">TRẠNG THÁI CA TRỰC</div>
+        <div class="staff-card staff-ag" data-target-desk="antigravity">
+          <div class="staff-avatar">
+            <span class="avatar-icon">🎨</span>
+            <span class="live-dot pulse-ag" title="Đang trực ca"></span>
+          </div>
+          <div class="staff-info">
+            <div class="staff-name">Antigravity <span class="model-tier-chip tier-medium" title="Model: gemini-2.0-flash (Medium / UI & Edit)">Medium</span></div>
+            <div class="staff-role">UI · Art · Browser QA</div>
+            <div class="staff-status-sub" id="sidebar-ag-status">0 Tasks UI Cần Làm</div>
+          </div>
+        </div>
+
+        <div class="staff-card staff-cx" data-target-desk="codex">
+          <div class="staff-avatar">
+            <span class="avatar-icon">⚙️</span>
+            <span class="live-dot pulse-cx" title="Đã hoàn tất ca"></span>
+          </div>
+          <div class="staff-info">
+            <div class="staff-name">Codex <span class="model-tier-chip tier-medium" title="Model: gpt-4.1 / o3 (Medium / Codex Logic & Round 3)">Medium</span></div>
+            <div class="staff-role">Engine · Logic · Tests</div>
+            <div class="staff-status-sub" id="sidebar-cx-status">15/15 PASS · Hoàn tất</div>
+          </div>
         </div>
       </div>
-      <div id="handoff-banner" class="handoff-banner" hidden></div>
-      <div id="kanban" class="kanban"></div>
-    </section>
 
-    <section id="reports" class="zone" aria-labelledby="reports-title">
-      <div class="zone-head">
-        <h2 id="reports-title">② Bàn báo cáo</h2>
-        <p class="zone-hint">Khung tô vàng là mục <b>Action Items</b> bàn giao giữa hai bên.</p>
+      <div class="sidebar-footer">
+        <small id="sidebar-updated-time">Cập nhật: --</small>
       </div>
-      <div class="split">
-        <article class="report-pane pane-antigravity" aria-label="Báo cáo Antigravity">
-          <header>
-            <span class="pane-owner">Antigravity · UI</span>
-            <code>reports/ANTIGRAVITY_UI_REPORT.md</code>
-            <button type="button" class="jump" data-target="report-antigravity">↓ Action Items</button>
-          </header>
-          <div id="report-antigravity" class="markdown"></div>
-        </article>
-        <article class="report-pane pane-codex" aria-label="Báo cáo Codex">
-          <header>
-            <span class="pane-owner">Codex · Backend</span>
-            <code>reports/CODEX_BACKEND_REPORT.md</code>
-            <button type="button" class="jump" data-target="report-codex">↓ Action Items</button>
-          </header>
-          <div id="report-codex" class="markdown"></div>
-        </article>
-      </div>
-    </section>
+    </aside>
 
-    <section id="gallery" class="zone" aria-labelledby="gallery-title">
-      <div class="zone-head">
-        <h2 id="gallery-title">③ Phòng trưng bày bằng chứng</h2>
-        <div class="filters" role="group" aria-label="Lọc loại bằng chứng">
-          <button type="button" class="chip is-active" data-kind="all" aria-pressed="true">Tất cả</button>
-          <button type="button" class="chip kind-fresh" data-kind="fresh" aria-pressed="false">Gameplay thật</button>
-          <button type="button" class="chip kind-fixture" data-kind="fixture" aria-pressed="false">Fixture có kiểm soát</button>
+    <!-- Main Dynamic Content Workspace -->
+    <main class="main-workspace" id="main-content">
+
+      <!-- ROOM 1: SẢNH VĂN PHÒNG (LOBBY & 2.5D FLOORPLAN) -->
+      <section id="view-lobby" class="room-view is-active" aria-label="Sảnh văn phòng">
+        <div class="lobby-container">
+          <!-- Executive KPI Bar -->
+          <div class="lobby-kpis">
+            <div class="kpi-card kpi-handoff">
+              <div class="kpi-header">
+                <span class="kpi-icon">⇄</span>
+                <span class="kpi-tag">ĐỢT BÀN GIAO HIỆN TẠI</span>
+              </div>
+              <div class="kpi-title" id="kpi-handoff-title">C1–C6: Backend Logic & Fixtures</div>
+              <div class="kpi-sub" id="kpi-handoff-desc">Codex → Antigravity · base 4f2731d → result 3a86fba</div>
+              <div class="kpi-badge-row">
+                <span class="status-chip chip-success">Backend: 15/15 PASS</span>
+                <span class="status-chip chip-neutral" id="kpi-open-ag">UI: 5 Tasks Sẵn Sàng (A1-A5)</span>
+              </div>
+            </div>
+
+            <div class="kpi-card kpi-evidence">
+              <div class="kpi-header">
+                <span class="kpi-icon">📱</span>
+                <span class="kpi-tag">THIẾT BỊ & BẰNG CHỨNG</span>
+              </div>
+              <div class="kpi-metric"><span id="kpi-evidence-count">22</span>/22 <small>Screenshots</small></div>
+              <div class="kpi-sub">Đầy đủ 2 độ phân giải 360×640 & 390×844</div>
+              <div class="kpi-badge-row">
+                <span class="status-chip chip-success">✓ Gameplay thật</span>
+                <span class="status-chip chip-info">✓ Fixture kiểm soát</span>
+              </div>
+            </div>
+
+            <div class="kpi-card kpi-blocker">
+              <div class="kpi-header">
+                <span class="kpi-icon">✅</span>
+                <span class="kpi-tag">ĐIỂM NGHẼN ĐÃ THÁO GỠ</span>
+              </div>
+              <div class="kpi-title text-green">0 Blocker (Toàn bộ thông luồng)</div>
+              <div class="kpi-sub">Codex đã chốt luật C2 tại commit 3a86fba, mở khóa toàn bộ A1-A5 cho UI.</div>
+              <div class="kpi-badge-row">
+                <button type="button" class="btn-chip" id="btn-goto-blockers">Xem 5 Task Mới trên Kanban →</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Virtual Office Floorplan Card -->
+          <div class="dept-floorplan-card">
+            <div class="dept-floorplan-header">
+              <div class="dept-title-block">
+                <h3>🏢 Văn Phòng Studio (Office Hub)</h3>
+                <p>Không gian làm việc trực quan của các thành viên Game Studio</p>
+              </div>
+            </div>
+
+            <!-- Thanh Thông Tin Chung: Tiến độ · Kiểm thử · Sổ cái · Trực ca -->
+            <div class="unified-studio-bar" id="unified-studio-bar">
+              <div class="usb-item">
+                <span class="usb-icon">🏁</span>
+                <div class="usb-body">
+                  <span class="usb-label">Tiến độ Sprint</span>
+                  <b class="usb-val" id="bar-sprint-progress">--</b>
+                </div>
+              </div>
+              <div class="usb-divider"></div>
+              <div class="usb-item">
+                <span class="usb-icon">🧪</span>
+                <div class="usb-body">
+                  <span class="usb-label">Kiểm thử Engine</span>
+                  <b class="usb-val text-green" id="bar-engine-tests">15/15 Đạt</b>
+                </div>
+              </div>
+              <div class="usb-divider"></div>
+              <div class="usb-item">
+                <span class="usb-icon">💰</span>
+                <div class="usb-body">
+                  <span class="usb-label">Sổ cái Day 1</span>
+                  <b class="usb-val text-gold" id="bar-day1-ledger">127.000đ két / 67.000đ lãi</b>
+                </div>
+              </div>
+              <div class="usb-divider"></div>
+              <div class="usb-item">
+                <span class="usb-icon">⇄</span>
+                <div class="usb-body">
+                  <span class="usb-label">Trực ca & Đồng bộ</span>
+                  <b class="usb-val text-cyan" id="bar-handoff-status">Đang nạp trạng thái API...</b>
+                </div>
+              </div>
+            </div>
+
+            <!-- Segmented Control cho khung hẹp (Responsive Tab Switcher < 960px) -->
+            <div class="room-segmented-nav" id="room-segmented-nav" role="tablist" aria-label="Phòng ban studio">
+              <button type="button" class="room-seg-btn is-active" data-room-target="ws-antigravity" role="tab" aria-selected="true">
+                🎨 Phòng Thiết Kế UI
+              </button>
+              <button type="button" class="room-seg-btn" data-room-target="ws-director" role="tab" aria-selected="false">
+                👑 Bàn Duyệt Giám Đốc
+              </button>
+              <button type="button" class="room-seg-btn" data-room-target="ws-codex" role="tab" aria-selected="false">
+                ⚙️ Phòng Kỹ Thuật Engine
+              </button>
+            </div>
+
+            <!-- Bộ Thử Nghiệm 3 Trạng Thái Hoạt Ảnh (Live Interactive State Switcher) -->
+            <div class="state-demo-toolbar" id="state-demo-toolbar" aria-label="Xem hoạt ảnh trạng thái thật">
+              <span class="toolbar-title">🎬 Xem 3 Trạng Thái Hoạt Ảnh:</span>
+              <button type="button" class="btn-state-demo" id="btn-demo-working" data-state-demo="working" title="Trạng thái Đang Làm Việc: Nét Wacom chạy, cọ vung vẽ, Codex gõ phím liên tục">
+                <span class="state-dot green"></span> 🟢 Đang Làm Việc
+              </button>
+              <button type="button" class="btn-state-demo" id="btn-demo-idle" data-state-demo="idle" title="Trạng thái Rảnh: Codex ngủ zzz lơ lửng, tay ngừng gõ, Antigravity thở nhẹ">
+                <span class="state-dot blue"></span> 💤 Rảnh (zzz)
+              </button>
+              <button type="button" class="btn-state-demo" id="btn-demo-blocked" data-state-demo="blocked" title="Trạng thái Bị Chặn: Khay hồ sơ phát xung đỏ, chuông bàn rung lắc liên hồi">
+                <span class="state-dot red"></span> 🔴 Bị Chặn (Blocked)
+              </button>
+              <button type="button" class="btn-state-demo is-active" id="btn-demo-real" data-state-demo="real" title="Quay lại trạng thái trực tiếp từ workflow API">
+                <span class="state-dot yellow"></span> 🔄 Trực Tiếp (API)
+              </button>
+            </div>
+
+            <!-- Bố cục 3 Phòng Ban Làm Việc -->
+            <div class="dept-stage" id="dept-stage">
+              <!-- PHÒNG 1: ANTIGRAVITY (UI & ART LAB) -->
+              <div class="dept-room dept-01 is-seg-active" id="ws-antigravity" role="region" aria-label="Phòng Thiết Kế UI">
+                <div class="room-header-clean header-ag">
+                  <span class="rh-dot ag"></span>
+                  <h4 class="room-title">🎨 Phòng Thiết Kế UI</h4>
+                </div>
+
+                <!-- Lời thoại tối đa 2 dòng, bấm mở lịch sử -->
+                <div class="comic-bubble bubble-ag" id="bubble-ag" title="Bấm để xem lịch sử trao đổi">
+                  <span class="bubble-tail"></span>
+                  <span class="bubble-text"><b>🎨 Antigravity:</b> "Nghiệm thu toàn bộ 5 task UI và xuất 22 ảnh bằng chứng."</span>
+                </div>
+
+                <div class="room-interior interior-ag">
+                  <!-- Thảm sàn ấm màu cam (Art Lab Carpet) -->
+                  <div class="room-carpet carpet-ag" aria-hidden="true"></div>
+
+                  <!-- Đồ vật đặc trưng 1: Giá vẽ nghệ thuật (Artist Wooden Easel) -->
+                  <div class="furniture-easel" id="art-easel" title="Giá vẽ phối cảnh isometric Xóm Nhỏ">
+                    <svg viewBox="0 0 70 95" width="56" height="76">
+                      <!-- Wooden Legs -->
+                      <line x1="35" y1="8" x2="10" y2="92" stroke="#78350f" stroke-width="3" stroke-linecap="round"/>
+                      <line x1="35" y1="8" x2="60" y2="92" stroke="#78350f" stroke-width="3" stroke-linecap="round"/>
+                      <line x1="35" y1="8" x2="35" y2="90" stroke="#451a03" stroke-width="2.2" stroke-linecap="round"/>
+                      <!-- Cross Shelf -->
+                      <rect x="6" y="58" width="58" height="5" rx="2" fill="#92400e"/>
+                      <!-- Canvas Board -->
+                      <rect x="12" y="16" width="46" height="42" rx="3" fill="#fef3c7" stroke="#b45309" stroke-width="1.5"/>
+                      <!-- Mini Art on Canvas -->
+                      <path d="M 16 46 Q 28 32 40 44 T 54 36 L 54 55 L 16 55 Z" fill="#f59e0b"/>
+                      <circle cx="24" cy="26" r="4.5" fill="#f43f5e"/>
+                      <rect x="23" y="42" width="14" height="12" fill="#b45309"/>
+                      <polygon points="21,42 30,32 39,42" fill="#d97706"/>
+                      <circle cx="48" cy="22" r="2.2" fill="#06b6d4"/>
+                      <circle cx="52" cy="26" r="1.8" fill="#10b981"/>
+                    </svg>
+                  </div>
+
+                  <!-- Đồ vật đặc trưng 2: Moodboard trên tường (Bảng ý tưởng & Palette màu) -->
+                  <div class="furniture-moodboard" id="art-moodboard" title="Moodboard ý tưởng thiết kế UI">
+                    <div class="moodboard-frame">
+                      <div class="mb-pin mb-pin-left"></div>
+                      <div class="mb-pin mb-pin-right"></div>
+                      <div class="mb-title">MOODBOARD UI</div>
+                      <div class="mb-swatches">
+                        <span style="background:#f59e0b" title="Bánh mì vàng"></span>
+                        <span style="background:#ef4444" title="Tương ớt đỏ"></span>
+                        <span style="background:#10b981" title="Rau thơm xanh"></span>
+                        <span style="background:#854d0e" title="Pate nâu"></span>
+                      </div>
+                      <div class="mb-wf-preview">
+                        <div class="mb-wf-bar"></div>
+                        <div class="mb-wf-grid"><span></span><span></span></div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Đồ vật đặc trưng 3: Device Rack (Kệ máy thử nghiệm 360x640 & 390x844) -->
+                  <div class="furniture-device-rack" id="art-device-rack" title="Device Rack: Thử nghiệm 360x640 và 390x844">
+                    <div class="rack-shelf-box">
+                      <div class="mini-phone phone-small" title="Màn hình 360×640">
+                        <span class="phone-screen">360</span>
+                      </div>
+                      <div class="mini-phone phone-tall" title="Màn hình 390×844">
+                        <span class="phone-screen">390</span>
+                      </div>
+                    </div>
+                    <span class="rack-badge-label">DEVICE RACK</span>
+                  </div>
+
+                  <!-- Trạm làm việc UI / Art Studio (Nhân vật ngồi tại bàn vẽ có chân bàn thực tế) -->
+                  <div class="workstation-pod ws-art-studio">
+                    <!-- Nhân vật Antigravity Chibi -->
+                    <div class="character-figure char-ag char-chibi-large" id="char-figure-ag">
+                    <div class="char-svg-wrap">
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 210" width="140" height="184">
+  <defs>
+    <filter id="softShadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="4" stdDeviation="3" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+
+  <!-- Ground Contact Shadow -->
+  <ellipse cx="80" cy="202" rx="42" ry="7" fill="rgba(0,0,0,0.35)"/>
+
+  <!-- Legs & Shoes -->
+  <g id="legs" stroke="#292524" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Left Leg -->
+    <rect x="56" y="148" width="18" height="42" rx="6" fill="#1e293b"/>
+    <!-- Right Leg -->
+    <rect x="86" y="148" width="18" height="42" rx="6" fill="#1e293b"/>
+    <!-- Left Shoe -->
+    <path d="M 52 188 C 52 182, 74 182, 74 188 L 76 198 C 76 202, 48 202, 48 198 Z" fill="#78350f"/>
+    <rect x="49" y="196" width="27" height="4" rx="2" fill="#451a03"/>
+    <!-- Right Shoe -->
+    <path d="M 86 188 C 86 182, 108 182, 108 188 L 112 198 C 112 202, 84 202, 84 198 Z" fill="#78350f"/>
+    <rect x="84" y="196" width="28" height="4" rx="2" fill="#451a03"/>
+  </g>
+
+  <!-- Body / Torso / Apron -->
+  <g id="torso" stroke="#292524" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Shirt -->
+    <path d="M 46 88 L 114 88 L 118 152 L 42 152 Z" fill="#fef3c7"/>
+    <!-- Painter's Apron -->
+    <path d="M 54 94 L 106 94 L 110 156 C 110 159, 50 159, 50 156 Z" fill="#d97706"/>
+    <!-- Apron Straps -->
+    <line x1="60" y1="94" x2="68" y2="76" stroke="#b45309" stroke-width="3"/>
+    <line x1="100" y1="94" x2="92" y2="76" stroke="#b45309" stroke-width="3"/>
+    <!-- Front Pocket -->
+    <path d="M 64 122 L 96 122 L 94 144 C 94 147, 66 147, 66 144 Z" fill="#b45309"/>
+    <!-- Stylus in pocket -->
+    <line x1="72" y1="122" x2="70" y2="114" stroke="#38bdf8" stroke-width="3"/>
+    <line x1="78" y1="122" x2="80" y2="112" stroke="#f43f5e" stroke-width="2.5"/>
+    <line x1="86" y1="122" x2="88" y2="115" stroke="#facc15" stroke-width="3"/>
+    <!-- Paint Splatters on Apron -->
+    <circle cx="60" cy="110" r="4" fill="#06b6d4" stroke="none"/>
+    <circle cx="100" cy="138" r="3.5" fill="#ec4899" stroke="none"/>
+    <circle cx="70" cy="150" r="3" fill="#facc15" stroke="none"/>
+    <circle cx="98" cy="108" r="2.5" fill="#10b981" stroke="none"/>
+  </g>
+
+  <!-- Left Arm Holding Palette -->
+  <g id="left-arm" stroke="#292524" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Arm -->
+    <path d="M 48 94 Q 28 114 38 132" fill="none" stroke="#fef3c7" stroke-width="9"/>
+    <!-- Wooden Palette -->
+    <path d="M 16 122 C 16 108, 48 108, 54 120 C 58 128, 46 138, 38 144 C 28 150, 16 140, 16 122 Z" fill="#b45309"/>
+    <!-- Thumb hole -->
+    <ellipse cx="44" cy="132" rx="3.5" ry="4.5" fill="#1e293b" stroke="#78350f" stroke-width="1.5"/>
+    <!-- Paint dollops on palette -->
+    <circle cx="24" cy="118" r="3.2" fill="#ef4444" stroke="none"/>
+    <circle cx="32" cy="114" r="3.5" fill="#f59e0b" stroke="none"/>
+    <circle cx="42" cy="115" r="3.2" fill="#38bdf8" stroke="none"/>
+    <circle cx="26" cy="132" r="3.2" fill="#10b981" stroke="none"/>
+    <circle cx="34" cy="136" r="3" fill="#ffffff" stroke="none"/>
+  </g>
+
+  <!-- Right Arm with Paintbrush (Poised in action) -->
+  <g id="right-arm" stroke="#292524" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+    <path class="arm-brush-stroke" d="M 112 94 Q 132 110 142 104" fill="none" stroke="#fef3c7" stroke-width="9"/>
+    <!-- Hand -->
+    <circle cx="143" cy="103" r="5" fill="#fed7aa"/>
+    <!-- Paintbrush -->
+    <line x1="135" y1="112" x2="152" y2="92" stroke="#78350f" stroke-width="3.5"/>
+    <polygon points="151,93 156,87 154,94" fill="#ea580c"/>
+  </g>
+
+  <!-- Head & Hair (2.5 Chibi Ratio) -->
+  <g id="head" stroke="#292524" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Back Hair -->
+    <path d="M 40 50 C 30 75, 42 92, 54 94 L 106 94 C 118 92, 130 75, 120 50 Z" fill="#451a03"/>
+    
+    <!-- Face Contour -->
+    <path d="M 44 48 C 44 26, 116 26, 116 48 C 116 78, 102 88, 80 88 C 58 88, 44 78, 44 48 Z" fill="#fed7aa"/>
+
+    <!-- Soft Peach Blush -->
+    <ellipse cx="56" cy="62" rx="7" ry="4" fill="#fda4af" opacity="0.6" stroke="none"/>
+    <ellipse cx="104" cy="62" rx="7" ry="4" fill="#fda4af" opacity="0.6" stroke="none"/>
+
+    <!-- Front Bangs -->
+    <path d="M 44 40 C 54 48, 64 36, 74 44 C 84 36, 96 46, 116 38 C 114 26, 96 22, 80 22 C 60 22, 46 26, 44 40 Z" fill="#5c2605"/>
+
+    <!-- Round Glasses Frame -->
+    <circle cx="62" cy="52" r="11" fill="rgba(255,255,255,0.25)" stroke="#1c1917" stroke-width="2.5"/>
+    <circle cx="98" cy="52" r="11" fill="rgba(255,255,255,0.25)" stroke="#1c1917" stroke-width="2.5"/>
+    <line x1="73" y1="52" x2="87" y2="52" stroke="#1c1917" stroke-width="2.5"/>
+
+    <!-- Chibi Sparkling Eyes with Gentle Blink -->
+    <g class="char-eyes char-eyes-ag">
+      <ellipse cx="62" cy="52" rx="5" ry="6.5" fill="#292524" stroke="none"/>
+      <circle cx="64" cy="50" r="2.2" fill="#ffffff" stroke="none"/>
+      <circle cx="60" cy="54" r="1" fill="#ffffff" stroke="none"/>
+
+      <ellipse cx="98" cy="52" rx="5" ry="6.5" fill="#292524" stroke="none"/>
+      <circle cx="100" cy="50" r="2.2" fill="#ffffff" stroke="none"/>
+      <circle cx="96" cy="54" r="1" fill="#ffffff" stroke="none"/>
+    </g>
+
+    <!-- Cute Confident Smile -->
+    <path d="M 74 67 Q 80 74 86 67" fill="none" stroke="#9a3412" stroke-width="2.5"/>
+  </g>
+
+  <!-- Artist Orange Beret -->
+  <g id="beret" stroke="#292524" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Beret Cap tilted to left -->
+    <path d="M 34 32 C 30 10, 84 4, 116 16 C 128 20, 130 32, 118 38 C 104 44, 46 44, 34 32 Z" fill="#ea580c"/>
+    <!-- Beret Shadow crease -->
+    <path d="M 44 32 Q 80 22 116 28" fill="none" stroke="#c2410c" stroke-width="3"/>
+    <!-- Beret Stem -->
+    <path d="M 78 8 Q 80 2 85 4" fill="none" stroke="#9a3412" stroke-width="3"/>
+  </g>
+</svg>
+                    </div>
+                  </div>
+
+                  <!-- Bàn vẽ kỹ thuật số với mặt bàn & chân bàn gỗ thực tế -->
+                  <div class="desk-workstation desk-art">
+                    <div class="desk-tabletop">
+                      <div class="tablet-featured" title="Bảng vẽ UI Wacom Pro">
+                        <div class="tablet-screen-large">
+                          <span class="stylus-drawing"></span>
+                          <span class="tablet-canvas-line"></span>
+                        </div>
+                        <span class="tablet-label">Bảng vẽ UI Wacom Pro</span>
+                      </div>
+                      <div class="mini-paint-palette">
+                        <span style="background:#f59e0b"></span>
+                        <span style="background:#38bdf8"></span>
+                        <span style="background:#10b981"></span>
+                      </div>
+                    </div>
+                    <div class="desk-legs-support" aria-hidden="true">
+                      <div class="desk-leg leg-left"></div>
+                      <div class="desk-stretcher"></div>
+                      <div class="desk-leg leg-right"></div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Bóng đổ dưới chân nhân vật -->
+                <div class="char-ground-shadow" aria-hidden="true"></div>
+              </div>
+
+                <!-- Thẻ Trạng Thái Duy Nhất: Đang làm · Đang chờ · Xem kết quả -->
+                <div class="room-unified-card" id="card-ag-status">
+                  <div class="card-line">
+                    <span class="line-label">Đang làm:</span>
+                    <span class="line-value" id="card-ag-doing">5 task UI (A1–A5) · 22 ảnh QA</span>
+                  </div>
+                  <div class="card-line">
+                    <span class="line-label">Đang chờ:</span>
+                    <span class="line-value" id="card-ag-waiting">Giám Đốc phê duyệt đóng Sprint</span>
+                  </div>
+                  <div class="card-line">
+                    <span class="line-label">Kết quả:</span>
+                    <a href="#reports" class="card-action-link" id="link-ag-report" data-action="open-ag-report">📄 Báo cáo UI (ANTIGRAVITY_UI_REPORT.md) →</a>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Vách kính ngăn phòng 1 -->
+              <div class="room-dividing-wall divider-1" aria-hidden="true">
+                <div class="glass-door-portal"></div>
+              </div>
+
+              <!-- PHÒNG 2: GIÁM ĐỐC (KHAY CHỜ DUYỆT) -->
+              <div class="dept-room dept-00" id="ws-director" role="region" aria-label="Bàn Phê Duyệt Của Giám Đốc">
+                <div class="room-header-clean header-ceo">
+                  <span class="rh-dot gold"></span>
+                  <h4 class="room-title">👑 Bàn Duyệt Giám Đốc</h4>
+                </div>
+
+                <!-- Lời thoại tối đa 2 dòng, bấm mở lịch sử -->
+                <div class="comic-bubble bubble-ceo" id="bubble-ceo" title="Bấm để xem lịch sử trao đổi">
+                  <span class="bubble-tail"></span>
+                  <span class="bubble-text"><b>👑 Giám Đốc:</b> "Đang kết nối trung tâm điều phối..."</span>
+                </div>
+
+                <div class="room-interior interior-ceo">
+                  <!-- Thảm sàn sang trọng đỏ hoàng gia (Executive Carpet) -->
+                  <div class="room-carpet carpet-ceo" aria-hidden="true"></div>
+
+                  <div class="management-dual-stage">
+                    <!-- 1. Trạm làm việc Trợ lý Giám Đốc (Codex Delegated Role) - BÊN TRÁI -->
+                    <div class="workstation-pod ws-assistant" id="station-assistant" title="Trợ lý Giám đốc · Codex (Điều phối & Duyệt theo ủy quyền)">
+                      <div class="character-figure char-assistant char-chibi-large" id="char-figure-assistant">
+                      <div class="char-svg-wrap">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 210" width="130" height="172">
+                          <!-- Ground Shadow -->
+                          <ellipse cx="80" cy="202" rx="38" ry="6.5" fill="rgba(0,0,0,0.35)"/>
+
+                          <!-- Legs & Slate Trousers -->
+                          <g stroke="#0f172a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="56" y="148" width="18" height="42" rx="5" fill="#1e293b"/>
+                            <rect x="86" y="148" width="18" height="42" rx="5" fill="#1e293b"/>
+                            <!-- Dark Oxford Shoes -->
+                            <path d="M 50 188 C 50 182, 74 182, 74 188 L 76 198 C 76 202, 48 202, 48 198 Z" fill="#0f172a"/>
+                            <rect x="50" y="196" width="26" height="4" rx="2" fill="#020617"/>
+                            <path d="M 86 188 C 86 182, 110 182, 110 188 L 112 198 C 112 202, 84 202, 84 198 Z" fill="#0f172a"/>
+                            <rect x="84" y="196" width="28" height="4" rx="2" fill="#020617"/>
+                          </g>
+
+                          <!-- Crisp White Shirt & Navy/Teal Waistcoat (Gile) -->
+                          <g stroke="#0f172a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M 46 88 L 114 88 L 116 150 L 44 150 Z" fill="#ffffff"/>
+                            <path d="M 44 92 L 68 132 L 68 150 L 44 150 Z" fill="#0f766e"/>
+                            <path d="M 116 92 L 92 132 L 92 150 L 116 150 Z" fill="#0f766e"/>
+                            <polygon points="68,132 92,132 92,150 68,150" fill="#0d9488"/>
+                            <polygon points="80,92 75,102 80,126 85,102" fill="#1e3a8a"/>
+                            <circle cx="80" cy="136" r="1.8" fill="#f59e0b" stroke="none"/>
+                            <circle cx="80" cy="144" r="1.8" fill="#f59e0b" stroke="none"/>
+                          </g>
+
+                          <!-- Left Arm holding Small Executive Clipboard with Checklist -->
+                          <g stroke="#0f172a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M 46 92 Q 28 112 38 128" fill="none" stroke="#0f766e" stroke-width="9"/>
+                            <circle cx="38" cy="130" r="5" fill="#fed7aa"/>
+                            <rect x="22" y="112" width="24" height="34" rx="3" fill="#92400e"/>
+                            <rect x="25" y="116" width="18" height="26" rx="1.5" fill="#ffffff" stroke="none"/>
+                            <rect x="29" y="110" width="10" height="4" rx="1" fill="#64748b"/>
+                            <line x1="28" y1="122" x2="39" y2="122" stroke="#0f766e" stroke-width="1.2"/>
+                            <circle cx="27" cy="122" r="1.2" fill="#10b981" stroke="none"/>
+                            <line x1="28" y1="128" x2="39" y2="128" stroke="#0f766e" stroke-width="1.2"/>
+                            <circle cx="27" cy="128" r="1.2" fill="#10b981" stroke="none"/>
+                            <line x1="28" y1="134" x2="38" y2="134" stroke="#3b82f6" stroke-width="1.2"/>
+                            <circle cx="27" cy="134" r="1.2" fill="#3b82f6" stroke="none"/>
+                          </g>
+
+                          <!-- Right Arm holding Fine Pen poised above checklist -->
+                          <g id="assistant-pen-arm" stroke="#0f172a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M 114 92 Q 128 112 108 126" fill="none" stroke="#0f766e" stroke-width="9"/>
+                            <circle cx="106" cy="128" r="5" fill="#fed7aa"/>
+                            <line x1="102" y1="126" x2="88" y2="136" stroke="#0284c7" stroke-width="3"/>
+                            <circle cx="86" cy="137" r="1.5" fill="#f59e0b" stroke="none"/>
+                          </g>
+
+                          <!-- Head & Round Glasses -->
+                          <g stroke="#0f172a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M 46 48 C 46 26, 114 26, 114 48 C 114 78, 100 88, 80 88 C 60 88, 46 78, 46 48 Z" fill="#fed7aa"/>
+                            <path d="M 44 42 C 50 48, 62 34, 76 40 C 90 32, 106 42, 116 36 C 118 22, 98 16, 80 16 C 58 16, 44 22, 44 42 Z" fill="#1e293b"/>
+                            <circle cx="64" cy="52" r="11" fill="rgba(20, 184, 166, 0.15)" stroke="#0f766e" stroke-width="2.2"/>
+                            <circle cx="96" cy="52" r="11" fill="rgba(20, 184, 166, 0.15)" stroke="#0f766e" stroke-width="2.2"/>
+                            <line x1="75" y1="52" x2="85" y2="52" stroke="#0f766e" stroke-width="2.2"/>
+                            <g class="char-eyes char-eyes-ast">
+                              <ellipse cx="64" cy="52" rx="4.2" ry="5.5" fill="#0f172a" stroke="none"/>
+                              <circle cx="66" cy="50" r="1.5" fill="#fff" stroke="none"/>
+                              <ellipse cx="96" cy="52" rx="4.2" ry="5.5" fill="#0f172a" stroke="none"/>
+                              <circle cx="98" cy="50" r="1.5" fill="#fff" stroke="none"/>
+                            </g>
+                            <path d="M 74 68 Q 80 73 86 68" fill="none" stroke="#78350f" stroke-width="2.2"/>
+                          </g>
+                        </svg>
+                      </div>
+                    </div>
+                    <!-- Bàn làm việc Trợ lý với mặt bàn và chân bàn thực tế -->
+                    <div class="desk-workstation desk-assistant">
+                      <div class="desk-tabletop">
+                        <div class="assistant-ledger-mini" title="Sổ thẩm định & checklist">
+                          <span>📋</span><span>CHECK</span>
+                        </div>
+                        <div class="mini-pen-stand" title="Bút ký thẩm định">
+                          <span class="pen-tip"></span>
+                        </div>
+                      </div>
+                      <div class="desk-legs-support" aria-hidden="true">
+                        <div class="desk-leg leg-left"></div>
+                        <div class="desk-stretcher"></div>
+                        <div class="desk-leg leg-right"></div>
+                      </div>
+                      <div class="assistant-label-badge"><span class="ast-role">Trợ lý Giám đốc · Codex</span></div>
+                    </div>
+                  </div>
+
+                  <!-- 2. Bàn làm việc Giám Đốc (Chủ dự án) - BÊN PHẢI -->
+                  <div class="workstation-pod ws-director" id="station-director" title="Giám đốc · Chủ dự án (Nghiệm thu & Thẩm định cuối)">
+                    <div class="character-figure char-ceo char-chibi-large" id="char-figure-ceo">
+                    <div class="char-svg-wrap">
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 210" width="140" height="184">
+  <!-- Ground Shadow -->
+  <ellipse cx="80" cy="202" rx="42" ry="7" fill="rgba(0,0,0,0.35)"/>
+
+  <!-- Legs & Formal Shoes -->
+  <g stroke="#1c1917" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="56" y="148" width="18" height="42" rx="5" fill="#0f172a"/>
+    <rect x="86" y="148" width="18" height="42" rx="5" fill="#0f172a"/>
+    <!-- Shiny Leather Shoes -->
+    <path d="M 50 188 C 50 182, 74 182, 74 188 L 76 198 C 76 202, 48 202, 48 198 Z" fill="#18181b"/>
+    <rect x="50" y="196" width="26" height="4" rx="2" fill="#09090b"/>
+    <path d="M 86 188 C 86 182, 110 182, 110 188 L 112 198 C 112 202, 84 202, 84 198 Z" fill="#18181b"/>
+    <rect x="84" y="196" width="28" height="4" rx="2" fill="#09090b"/>
+  </g>
+
+  <!-- Dark Navy Executive Suit & Tie -->
+  <g stroke="#1c1917" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Body -->
+    <path d="M 44 88 L 116 88 L 118 152 L 42 152 Z" fill="#1e1b4b"/>
+    <!-- White Shirt V-neck -->
+    <polygon points="68,88 92,88 80,122" fill="#ffffff"/>
+    <!-- Gold Tie -->
+    <polygon points="80,94 74,104 80,132 86,104" fill="#fbbf24"/>
+    <!-- Suit Lapels -->
+    <path d="M 44 88 L 68 126 L 80 148 L 92 126 L 116 88" fill="none" stroke="#0f172a" stroke-width="3.5"/>
+    <!-- Gold Pocket Square -->
+    <rect x="52" y="102" width="10" height="3" rx="1.5" fill="#facc15" stroke="none"/>
+  </g>
+
+  <!-- Left Arm holding Approval Stamp with Stamp Animation -->
+  <g class="stamp-arm" id="director-stamp-arm" stroke="#1c1917" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M 44 92 Q 26 112 36 130" fill="none" stroke="#1e1b4b" stroke-width="10"/>
+    <circle cx="36" cy="132" r="5" fill="#fed7aa"/>
+    <!-- Red Approval Stamp -->
+    <rect x="22" y="126" width="14" height="18" rx="3" fill="#dc2626"/>
+    <text x="24" y="138" font-size="7" font-weight="bold" fill="#fff" stroke="none">OK</text>
+  </g>
+
+  <!-- Right Arm holding Executive Clipboard -->
+  <g stroke="#1c1917" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M 116 92 Q 134 112 124 130" fill="none" stroke="#1e1b4b" stroke-width="10"/>
+    <circle cx="124" cy="132" r="5" fill="#fed7aa"/>
+    <!-- Wooden Clipboard -->
+    <rect x="118" y="116" width="22" height="30" rx="3" fill="#b45309"/>
+    <rect x="122" y="120" width="14" height="22" fill="#ffffff" stroke="none"/>
+    <rect x="125" y="113" width="8" height="4" rx="1" fill="#71717a"/>
+    <!-- Stamp mark on paper -->
+    <circle cx="129" cy="132" r="4.5" fill="none" stroke="#dc2626" stroke-width="1"/>
+    <text x="126" y="134" font-size="5" fill="#dc2626" font-weight="bold" stroke="none">PASS</text>
+  </g>
+
+  <!-- Head & Executive Crown -->
+  <g stroke="#1c1917" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Back Hair -->
+    <path d="M 44 50 C 34 76, 44 92, 54 94 L 106 94 C 116 92, 126 76, 116 50 Z" fill="#18181b"/>
+    <!-- Face -->
+    <path d="M 44 48 C 44 26, 116 26, 116 48 C 116 78, 102 88, 80 88 C 58 88, 44 78, 44 48 Z" fill="#fed7aa"/>
+    <!-- Neat Side-part Hair -->
+    <path d="M 44 38 C 52 46, 68 32, 84 38 C 98 32, 110 40, 116 38 C 114 24, 98 18, 80 18 C 60 18, 46 24, 44 38 Z" fill="#27272a"/>
+    <!-- Eyebrows -->
+    <line x1="56" y1="42" x2="68" y2="44" stroke="#18181b" stroke-width="2.5"/>
+    <line x1="92" y1="44" x2="104" y2="42" stroke="#18181b" stroke-width="2.5"/>
+    <!-- Expressive Eyes with Blink -->
+    <g class="char-eyes char-eyes-ceo">
+      <ellipse cx="62" cy="52" rx="4.8" ry="6" fill="#18181b" stroke="none"/>
+      <circle cx="64" cy="50" r="1.8" fill="#fff" stroke="none"/>
+      <ellipse cx="98" cy="52" rx="4.8" ry="6" fill="#18181b" stroke="none"/>
+      <circle cx="100" cy="50" r="1.8" fill="#fff" stroke="none"/>
+    </g>
+    <!-- Dignified Smile -->
+    <path d="M 74 68 Q 80 73 86 68" fill="none" stroke="#78350f" stroke-width="2.5"/>
+  </g>
+
+  <!-- Golden Executive Crown -->
+  <g stroke="#ca8a04" stroke-width="1.8" stroke-linejoin="round">
+    <path d="M 66 18 L 72 26 L 80 14 L 88 26 L 94 18 L 94 28 L 66 28 Z" fill="#facc15"/>
+    <circle cx="80" cy="14" r="2" fill="#ef4444" stroke="none"/>
+    <circle cx="66" cy="18" r="1.5" fill="#3b82f6" stroke="none"/>
+    <circle cx="94" cy="18" r="1.5" fill="#10b981" stroke="none"/>
+  </g>
+</svg>
+                    </div>
+                  </div>
+
+                  <!-- Bàn Giám đốc với Chuông Duyệt, Khay Hồ Sơ & Con Dấu Hoàng Gia -->
+                  <div class="desk-workstation desk-director">
+                    <div class="desk-tabletop">
+                      <div class="desk-bell" id="desk-bell" title="Bấm chuông duyệt bài!">
+                        <span class="bell-dome"></span>
+                      </div>
+                      <div class="approval-tray-mini" title="Khay hồ sơ chờ duyệt">
+                        <span class="tray-label">KHAY DUYỆT</span>
+                        <span class="tray-count" id="tray-approval-count">--</span>
+                      </div>
+                      <div class="director-stamp-mini" title="Con dấu phê duyệt hoàng gia">
+                        <span class="stamp-knob"></span>
+                        <span class="stamp-base"></span>
+                      </div>
+                    </div>
+                    <div class="desk-legs-support" aria-hidden="true">
+                      <div class="desk-leg leg-left"></div>
+                      <div class="desk-stretcher"></div>
+                      <div class="desk-leg leg-right"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Bóng đổ dưới chân nhân vật -->
+              <div class="char-ground-shadow" aria-hidden="true"></div>
+            </div>
+                <!-- Thẻ Trạng Thái Phòng Quản Lý & Điều Hành -->
+                <div class="room-unified-card" id="card-director-status">
+                  <div class="card-line">
+                    <span class="line-label">Chủ dự án:</span>
+                    <span class="line-value" id="card-director-doing">👑 Giám Đốc · Nhận báo cáo nghiệm thu & thẩm định cuối</span>
+                  </div>
+                  <div class="card-line">
+                    <span class="line-label">Ủy quyền:</span>
+                    <span class="line-value" id="card-director-assistant">📋 Trợ lý Codex: Điều phối · Kiểm chứng · Duyệt theo ủy quyền</span>
+                  </div>
+                  <div class="card-line">
+                    <span class="line-label">Kết quả:</span>
+                    <span class="line-value" id="card-director-result">Đợt nộp: <code id="card-dir-sub-id">--</code> · <span id="card-dir-last-time">--</span></span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Vách kính ngăn phòng 2 -->
+              <div class="room-dividing-wall divider-2" aria-hidden="true">
+                <div class="glass-door-portal"></div>
+              </div>
+
+              <!-- PHÒNG 3: CODEX (CORE ENGINE & TEST LAB) -->
+              <div class="dept-room dept-02" id="ws-codex" role="region" aria-label="Phòng Kỹ Thuật Engine">
+                <div class="room-header-clean header-cx">
+                  <span class="rh-dot cx"></span>
+                  <h4 class="room-title">⚙️ Phòng Kỹ Thuật Engine</h4>
+                </div>
+
+                <!-- Lời thoại tối đa 2 dòng, bấm mở lịch sử -->
+                <div class="comic-bubble bubble-cx" id="bubble-cx" title="Bấm để xem lịch sử trao đổi">
+                  <span class="bubble-tail"></span>
+                  <span class="bubble-text"><b>⚙️ Codex:</b> "15/15 test tự động đạt. Baseline Day 1 khớp tuyệt đối 127k/67k."</span>
+                </div>
+
+                <div class="room-interior interior-cx">
+                  <!-- Biểu tượng zzz khi không có heartbeat -->
+                  <div class="codex-zzz is-hidden" id="codex-zzz-badge" title="Codex đang nghỉ / Không có heartbeat mới">💤 zzz</div>
+                  <!-- Thảm sàn công nghệ màu cyan (Engine Lab Carpet) -->
+                  <div class="room-carpet carpet-cx" aria-hidden="true"></div>
+
+                  <!-- Đồ vật đặc trưng: Tủ Server Rack LED đa tầng -->
+                  <div class="furniture-server-rack" id="engine-server-rack" title="Tủ Server Rack Engine: 15/15 PASS">
+                    <div class="rack-cabinet">
+                      <div class="rack-header-strip">SERVER RACK</div>
+                      <div class="rack-unit u-1">
+                        <div class="rack-leds"><span class="led-blink green"></span><span class="led-blink cyan"></span><span class="led-on green"></span></div>
+                        <span class="rack-unit-tag">SRV-01</span>
+                      </div>
+                      <div class="rack-unit u-2">
+                        <div class="rack-leds"><span class="led-on green"></span><span class="led-blink green"></span></div>
+                        <span class="rack-unit-tag">15/15 PASS</span>
+                      </div>
+                      <div class="rack-unit u-3">
+                        <div class="rack-leds"><span class="led-blink cyan"></span><span class="led-on green"></span></div>
+                        <span class="rack-unit-tag">127k/67k</span>
+                      </div>
+                      <div class="rack-unit u-4">
+                        <div class="rack-leds"><span class="led-on green"></span><span class="led-on cyan"></span></div>
+                        <span class="rack-unit-tag">ACK OK</span>
+                      </div>
+                      <div class="rack-footer-glow"></div>
+                    </div>
+                  </div>
+
+                  <!-- Trạm làm việc Engine Lab (Codex ngồi tại bàn kỹ thuật có chân bàn thép) -->
+                  <div class="workstation-pod ws-tech-lab">
+                    <!-- Nhân vật Codex Chibi -->
+                    <div class="character-figure char-cx char-chibi-large" id="char-figure-cx">
+                    <div class="char-svg-wrap">
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 210" width="140" height="184">
+  <!-- Ground Shadow -->
+  <ellipse cx="80" cy="202" rx="42" ry="7" fill="rgba(0,0,0,0.35)"/>
+
+  <!-- Legs & Sneakers -->
+  <g stroke="#1c1917" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="56" y="148" width="18" height="42" rx="5" fill="#1e293b"/>
+    <rect x="86" y="148" width="18" height="42" rx="5" fill="#1e293b"/>
+    <!-- Tech Sneakers (Cyan accents) -->
+    <path d="M 50 188 C 50 182, 74 182, 74 188 L 76 198 C 76 202, 48 202, 48 198 Z" fill="#0284c7"/>
+    <rect x="49" y="196" width="27" height="4" rx="2" fill="#38bdf8"/>
+    <path d="M 86 188 C 86 182, 110 182, 110 188 L 112 198 C 112 202, 84 202, 84 198 Z" fill="#0284c7"/>
+    <rect x="84" y="196" width="28" height="4" rx="2" fill="#38bdf8"/>
+  </g>
+
+  <!-- Cyan Cyber Hoodie -->
+  <g stroke="#1c1917" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M 44 88 L 116 88 L 118 152 L 42 152 Z" fill="#0369a1"/>
+    <!-- Hoodie Pocket -->
+    <path d="M 56 126 L 104 126 L 98 148 L 62 148 Z" fill="#0284c7"/>
+    <!-- Terminal Prompt Logo on Hoodie -->
+    <text x="74" y="114" font-size="12" font-family="monospace" font-weight="bold" fill="#38bdf8" stroke="none">&gt;_</text>
+  </g>
+
+  <!-- Arms typing with Live Animation Classes -->
+  <g id="codex-typing-arms">
+    <!-- Left Arm typing -->
+    <g class="cx-arm cx-arm-left" stroke="#1c1917" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M 44 92 Q 28 112 48 126" fill="none" stroke="#0369a1" stroke-width="10"/>
+      <circle cx="50" cy="126" r="5" fill="#fed7aa"/>
+    </g>
+
+    <!-- Right Arm typing -->
+    <g class="cx-arm cx-arm-right" stroke="#1c1917" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M 116 92 Q 132 112 112 126" fill="none" stroke="#0369a1" stroke-width="10"/>
+      <circle cx="110" cy="126" r="5" fill="#fed7aa"/>
+    </g>
+  </g>
+
+  <!-- Floating Tech Laptop / Terminal -->
+  <g stroke="#0369a1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Base -->
+    <rect x="48" y="128" width="64" height="6" rx="2" fill="#0f172a"/>
+    <!-- Screen -->
+    <rect x="52" y="98" width="56" height="30" rx="3" fill="#082f49"/>
+    <!-- Terminal Text -->
+    <text x="56" y="108" font-size="6.5" font-family="monospace" fill="#34d399" stroke="none">PASS 15/15</text>
+    <text x="56" y="118" font-size="6" font-family="monospace" fill="#38bdf8" stroke="none">127k / 67k</text>
+  </g>
+
+  <!-- Head & Blue Tech Headset -->
+  <g stroke="#1c1917" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Face -->
+    <path d="M 44 48 C 44 26, 116 26, 116 48 C 116 78, 102 88, 80 88 C 58 88, 44 78, 44 48 Z" fill="#fed7aa"/>
+    <!-- Messy Hacker Hair -->
+    <path d="M 42 42 C 48 48, 58 34, 70 42 C 82 32, 94 44, 114 36 C 116 22, 96 16, 80 16 C 58 16, 44 22, 42 42 Z" fill="#1e293b"/>
+    <!-- Cyber Glasses (Square Frame) -->
+    <rect x="52" y="44" width="22" height="16" rx="3" fill="rgba(56,189,248,0.2)" stroke="#0284c7" stroke-width="2.5"/>
+    <rect x="86" y="44" width="22" height="16" rx="3" fill="rgba(56,189,248,0.2)" stroke="#0284c7" stroke-width="2.5"/>
+    <line x1="74" y1="52" x2="86" y2="52" stroke="#0284c7" stroke-width="2.5"/>
+    <!-- Eyes with Blink -->
+    <g class="char-eyes char-eyes-cx">
+      <ellipse cx="63" cy="52" rx="4.5" ry="5.5" fill="#0f172a" stroke="none"/>
+      <circle cx="65" cy="50" r="1.6" fill="#fff" stroke="none"/>
+      <ellipse cx="97" cy="52" rx="4.5" ry="5.5" fill="#0f172a" stroke="none"/>
+      <circle cx="99" cy="50" r="1.6" fill="#fff" stroke="none"/>
+    </g>
+    <!-- Confident Smirk -->
+    <path d="M 74 68 Q 82 73 88 67" fill="none" stroke="#78350f" stroke-width="2.5"/>
+  </g>
+
+  <!-- Blue Cyber Headset -->
+  <g stroke="#0369a1" stroke-width="2" stroke-linejoin="round">
+    <!-- Band over head -->
+    <path d="M 40 44 C 40 12, 120 12, 120 44" fill="none" stroke="#0284c7" stroke-width="4.5"/>
+    <!-- Left Ear Cup with LED -->
+    <rect x="36" y="40" width="10" height="24" rx="4" fill="#082f49"/>
+    <circle cx="41" cy="52" r="2.5" fill="#38bdf8" stroke="none"/>
+    <!-- Right Ear Cup with Mic -->
+    <rect x="114" y="40" width="10" height="24" rx="4" fill="#082f49"/>
+    <circle cx="119" cy="52" r="2.5" fill="#38bdf8" stroke="none"/>
+    <!-- Boom Mic -->
+    <path d="M 118 56 Q 112 76 96 74" fill="none" stroke="#38bdf8" stroke-width="2.5"/>
+    <circle cx="94" cy="74" r="3" fill="#38bdf8" stroke="none"/>
+  </g>
+</svg>
+                    </div>
+                  </div>
+
+                  <!-- Bàn kỹ thuật máy chủ với Terminal & Chân bàn thép thực tế -->
+                  <div class="desk-workstation desk-tech">
+                    <div class="desk-tabletop">
+                      <div class="terminal-featured" title="Terminal Test Engine: 15/15 PASS">
+                        <div class="term-screen-large">
+                          <div class="term-top-dots"><span></span><span></span><span></span></div>
+                          <div class="term-line line-green">&gt;_ 15/15 PASS</div>
+                          <div class="term-line line-cyan">&gt;_ 127k / 67k</div>
+                        </div>
+                        <span class="term-label">Terminal Test Engine</span>
+                      </div>
+                      <div class="mini-dev-mug" title="Cà phê lập trình">☕</div>
+                    </div>
+                    <div class="desk-legs-support" aria-hidden="true">
+                      <div class="desk-leg leg-left"></div>
+                      <div class="desk-stretcher"></div>
+                      <div class="desk-leg leg-right"></div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Bóng đổ dưới chân nhân vật -->
+                <div class="char-ground-shadow" aria-hidden="true"></div>
+              </div>
+
+                <!-- Thẻ Trạng Thái Duy Nhất: Đang làm · Đang chờ · Xem kết quả -->
+                <div class="room-unified-card" id="card-cx-status">
+                  <div class="card-line">
+                    <span class="line-label">Đang làm:</span>
+                    <span class="line-value" id="card-cx-doing">15/15 test tự động đạt · Baseline Day 1 chuẩn</span>
+                  </div>
+                  <div class="card-line">
+                    <span class="line-label">Đang chờ:</span>
+                    <span class="line-value" id="card-cx-waiting">Giám Đốc & Antigravity nghiệm thu</span>
+                  </div>
+                  <div class="card-line">
+                    <span class="line-label">Kết quả:</span>
+                    <a href="#reports" class="card-action-link" id="link-cx-report" data-action="open-cx-report">⚙️ Báo cáo Engine (CODEX_BACKEND_REPORT.md) →</a>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 👑 KHUNG ĐIỀU HÀNH & PHÊ DUYỆT CỦA GIÁM ĐỐC (Tách thành hàng riêng bên dưới 2 cột) -->
+            <div class="director-dock-panel" id="director-decision-panel">
+              <!-- Cột 1: Trạng thái & Phê duyệt nhanh -->
+              <div class="dock-col dock-col-left">
+                <div class="dock-header-row">
+                  <span class="dock-title">👑 QUYẾT ĐỊNH GIÁM ĐỐC</span>
+                  <span class="dir-delegation-chip" title="Codex duyệt theo ủy quyền của chủ dự án; báo cáo nghiệm thu cuối gửi chủ dự án">📋 Codex duyệt ủy quyền</span>
+                  <span class="dir-sub-badge badge-pending" id="dir-submission-status">ĐANG TẢI...</span>
+                  <span class="dir-review-round-pill" id="dir-review-round" title="Vòng duyệt hiện tại">Vòng 1/3</span>
+                  <div class="dock-commit-chip" title="Mã Git commit đợt nộp">
+                    <span class="git-icon" aria-hidden="true">📦</span>
+                    <code id="dir-submission-id">--</code>
+                    <button type="button" class="btn-copy-mini" id="btn-copy-dock-commit" title="Sao chép commit hash">📋</button>
+                  </div>
+                </div>
+
+                <!-- Snapshot tóm tắt đợt nộp -->
+                <div class="dir-snapshot-mini" id="dir-submission-snapshot">
+                  Đang kết nối máy chủ điều hành...
+                </div>
+
+                <!-- Nút Phê Duyệt lớn kèm lý do bên dưới -->
+                <div class="dock-approve-box">
+                  <button type="button" class="btn-decision btn-approve btn-approve-large" id="btn-director-approve" disabled title="Duyệt đợt nộp hiện tại từ API">
+                    <span class="btn-spinner is-hidden" aria-hidden="true"></span>
+                    <span class="btn-text">✅ Phê Duyệt Đợt Nộp Này</span>
+                  </button>
+                  <button type="button" class="btn-decision btn-retry-review is-hidden" id="btn-dock-retry-review" title="Yêu cầu hệ thống kiểm chứng lại bản hiện tại">
+                    <span class="btn-spinner is-hidden" aria-hidden="true"></span>
+                    <span class="btn-text">🔄 Thử Lại Kiểm Chứng</span>
+                  </button>
+                  <div class="dir-btn-hint" id="dir-approve-hint">Đang kết nối trung tâm điều phối...</div>
+                </div>
+
+                <!-- Link xem 22 ảnh nhỏ gọn -->
+                <div class="dock-evidence-link-row">
+                  <a href="#qa" class="dock-evidence-link" id="btn-director-evidence">
+                    🔍 Xem 22 ảnh bằng chứng QA →
+                  </a>
+                </div>
+              </div>
+
+              <!-- Cột 2: Tuyến thực thi, Yêu cầu chỉnh sửa (Click mở) & Đề xuất -->
+              <div class="dock-col dock-col-right">
+                <!-- Tuyến thực thi thu gọn 1 dòng chip -->
+                <div class="dock-route-row">
+                  <span class="dir-sublabel">Tuyến:</span>
+                  <div class="dir-route-stepper" id="dir-route-stepper">
+                    <span class="route-step" id="step-ag" title="1. Antigravity thực thi UI">🎨 Antigravity</span>
+                    <span class="route-arr">→</span>
+                    <span class="route-step" id="step-tests" title="2. Kiểm thử tự động 15 bài">🧪 Tests (15/15)</span>
+                    <span class="route-arr">→</span>
+                    <span class="route-step" id="step-codex" title="3. Codex thẩm định">⚙️ Codex</span>
+                    <span class="route-arr">→</span>
+                    <span class="route-step" id="step-director" title="4. Giám Đốc">👑 Giám Đốc</span>
+                  </div>
+                  <input type="hidden" id="dir-recipient-select" value="Antigravity">
+                </div>
+
+                <!-- Nút mở Drawer Yêu Cầu Chỉnh Sửa (Progressive Disclosure) -->
+                <div class="dock-changes-wrapper">
+                  <button type="button" class="btn-toggle-changes" id="btn-toggle-changes-form" aria-expanded="false" aria-controls="dir-changes-drawer">
+                    <span class="toggle-icon">▾</span>
+                    <span>⚠️ Yêu Cầu Chỉnh Sửa...</span>
+                  </button>
+
+                  <div class="dir-changes-drawer is-collapsed" id="dir-changes-drawer">
+                    <textarea id="dir-feedback-input" class="dir-textarea" rows="2" placeholder="Nhập lý do hoặc yêu cầu chỉnh sửa cụ thể (Bắt buộc)..."></textarea>
+                    <div class="dir-field-error is-hidden" id="dir-feedback-error" role="alert">⚠️ Vui lòng nhập lý do hoặc yêu cầu chỉnh sửa cụ thể!</div>
+                    <button type="button" class="btn-decision btn-request-changes" id="btn-director-request-changes" disabled title="Gửi yêu cầu chỉnh sửa kèm phản hồi tới Agent">
+                      <span class="btn-spinner is-hidden" aria-hidden="true"></span>
+                      <span class="btn-text">Gửi Yêu Cầu Chỉnh Sửa</span>
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Đề xuất bước kế tiếp gập accordion -->
+                <details class="proposals-accordion" id="dir-proposals-details">
+                  <summary class="proposals-summary">
+                    <span class="summary-left">💡 <span id="dir-proposals-count-label">0 đề xuất bước kế tiếp</span></span>
+                    <span class="summary-arrow">▸</span>
+                  </summary>
+                  <div class="dir-proposals-list" id="dir-proposals-list">
+                    <div class="empty-hint">Chưa có đề xuất từ API</div>
+                  </div>
+                </details>
+
+                <!-- Chỉ báo tiến trình truyền tải (Pipeline Stream Ribbon) -->
+                <div class="dir-pipeline-status is-hidden" id="dir-pipeline-status" aria-live="polite">
+                  <div class="pipeline-status-header">
+                    <span class="pipeline-pulse-dot"></span>
+                    <span class="pipeline-status-text" id="dir-pipeline-text">Đang chuyển giao yêu cầu...</span>
+                  </div>
+                  <div class="pipeline-progress-track">
+                    <div class="pipeline-progress-bar"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
-      <div id="evidence-grid" class="evidence-grid"></div>
-    </section>
-  </main>
+      </section>
 
-  <dialog id="lightbox" class="lightbox" closedby="any" aria-label="Xem ảnh lớn">
-    <figure>
-      <img id="lightbox-img" alt="">
-      <figcaption id="lightbox-caption"></figcaption>
-    </figure>
-    <div class="lightbox-controls">
-      <button type="button" data-step="-1" aria-label="Ảnh trước">←</button>
-      <a id="lightbox-open" target="_blank" rel="noopener">Mở ảnh gốc</a>
-      <button type="button" data-step="1" aria-label="Ảnh sau">→</button>
-      <form method="dialog"><button aria-label="Đóng">✕</button></form>
+      <!-- ROOM 2: BẢNG KANBAN (LINEAR TASK BOARD) -->
+      <section id="view-kanban" class="room-view" aria-label="Bảng Kanban">
+        <div class="kanban-room-head">
+          <div class="kanban-search-box">
+            <span class="search-icon" aria-hidden="true">🔍</span>
+            <input type="search" id="kanban-search" placeholder="Tìm kiếm task, mã commit, người phụ trách..." aria-label="Tìm task">
+          </div>
+
+          <!-- Executive Task Metric Counter Pills -->
+          <div class="kanban-metric-pills">
+            <span class="metric-pill pill-total">Tổng task: <b id="kanban-metric-total">20</b></span>
+            <span class="metric-pill pill-filtered">Đang lọc: <b id="kanban-metric-filtered">20</b></span>
+            <span class="metric-pill pill-pending">Chưa xong: <b id="kanban-metric-pending">1</b></span>
+            <span class="metric-pill pill-done">Đã xong: <b id="kanban-metric-done">19</b></span>
+          </div>
+
+          <div class="kanban-filters" role="group" aria-label="Bộ lọc người phụ trách">
+            <button type="button" class="btn-filter is-active" data-owner-filter="all">Tất cả (<span id="count-all-tasks">20</span>)</button>
+            <button type="button" class="btn-filter filter-ag" data-owner-filter="Antigravity">🎨 Antigravity (<span id="count-ag-tasks">10</span>)</button>
+            <button type="button" class="btn-filter filter-cx" data-owner-filter="Codex">⚙️ Codex (<span id="count-cx-tasks">10</span>)</button>
+          </div>
+        </div>
+
+        <div class="kanban-board-container">
+          <div id="linear-kanban-board" class="linear-kanban-columns">
+            <!-- Dynamically populated 4 columns with independent scrolling -->
+          </div>
+        </div>
+      </section>
+
+      <!-- ROOM 3: PHÒNG HỌP BÁO CÁO (SPLIT-VIEW EXECUTIVE REPORTS) -->
+      <section id="view-reports" class="room-view" aria-label="Phòng báo cáo">
+        <!-- Banner Hướng Khắc Phục Khi Có Blocker -->
+        <div class="report-blocker-banner is-hidden" id="report-blocker-banner">
+          <div class="banner-icon">⚠️</div>
+          <div class="banner-body">
+            <h4 class="banner-title">Cảnh Báo Blocker: <span id="banner-blocker-reason">Review không hợp lệ hoặc sai snapshot</span></h4>
+            <p class="banner-desc">
+              <b>Nguyên nhân:</b> Bot Codex CLI chạm hạn mức quota API OpenAI lúc 06:43 UTC (3:09 PM reset).<br>
+              <b>Thực tế kiểm định:</b> Toàn bộ 15 bài test engine và 22 ảnh kiểm chứng UI đều đã <b>ĐẠT (PASS 100%)</b>.<br>
+              <b>Hướng khắc phục:</b> Bạn có thể gỡ cờ Blocker kỹ thuật này để phê duyệt đợt nộp và chuyển sang làm tính năng mới.
+            </p>
+            <div class="banner-actions">
+              <button type="button" class="btn-banner-action" id="btn-banner-unblock">🔓 Gỡ Cờ Blocker & Về Sảnh Duyệt →</button>
+              <button type="button" class="btn-banner-action btn-banner-retry is-hidden" id="btn-banner-retry-review" title="Yêu cầu hệ thống kiểm chứng lại bản hiện tại">🔄 Thử lại kiểm chứng</button>
+            </div>
+          </div>
+        </div>
+        <!-- Executive KPI Cards over Reports -->
+        <div class="reports-kpi-bar">
+          <div class="report-kpi-card ag-kpi">
+            <div class="kpi-role">🎨 ANTIGRAVITY EXECUTIVE SUMMARY</div>
+            <div class="kpi-stat-grid">
+              <div><b>2</b><small>Files code sửa</small></div>
+              <div><b>22</b><small>Screenshots</small></div>
+              <div><b>6</b><small>Action Items Codex</small></div>
+              <div><b class="text-green">PASS</b><small>E2E Clicks Day 1</small></div>
+            </div>
+          </div>
+
+          <div class="report-kpi-card cx-kpi">
+            <div class="kpi-role">⚙️ CODEX EXECUTIVE SUMMARY</div>
+            <div class="kpi-stat-grid">
+              <div><b>3a86fba</b><small>Commit triển khai</small></div>
+              <div><b>127k / 67k</b><small>Baseline Day 1</small></div>
+              <div><b class="text-green">PASS (6/6)</b><small>Test game/*.mjs</small></div>
+              <div><b class="text-green">0</b><small>Blocker (C2 đã chốt)</small></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Split View 2-column Reader -->
+        <div class="reports-split-view">
+          <article class="report-deck deck-ag" aria-label="Báo cáo Antigravity">
+            <header class="deck-header">
+              <div class="deck-title-group">
+                <span class="owner-pill pill-ag">Antigravity · UI</span>
+                <code>reports/ANTIGRAVITY_UI_REPORT.md</code>
+              </div>
+              <button type="button" class="btn-jump-action" data-jump-to="report-ag-actions">
+                <span>↓ Nhảy tới Action Items</span>
+              </button>
+            </header>
+            <div id="deck-content-ag" class="deck-markdown"></div>
+          </article>
+
+          <article class="report-deck deck-cx" aria-label="Báo cáo Codex">
+            <header class="deck-header">
+              <div class="deck-title-group">
+                <span class="owner-pill pill-cx">Codex · Backend</span>
+                <code>reports/CODEX_BACKEND_REPORT.md</code>
+              </div>
+              <span class="badge-waiting-fill">✓ Đã cập nhật · Commit 3a86fba</span>
+            </header>
+            <div id="deck-content-cx" class="deck-markdown"></div>
+          </article>
+        </div>
+      </section>
+
+      <!-- ROOM 4: MOBILE QA DEVICE LAB (PHONE MOCKUPS & COMPARISON) -->
+      <section id="view-qa" class="room-view" aria-label="Phòng Test Thiết Bị">
+        <div class="qa-toolbar">
+          <div class="qa-mode-tabs" role="tablist">
+            <button type="button" class="qa-tab is-active" id="tab-mode-grid" role="tab" aria-selected="true">
+              <span class="tab-icon">📱</span>
+              <span>Lưới Thiết Bị (22 Phones)</span>
+            </button>
+            <button type="button" class="qa-tab" id="tab-mode-compare" role="tab" aria-selected="false">
+              <span class="tab-icon">⚖️</span>
+              <span>So Sánh 2 Màn Hình (Compare Mode)</span>
+            </button>
+          </div>
+
+          <div class="qa-filters" id="qa-grid-filters">
+            <span class="filter-label">Lọc:</span>
+            <button type="button" class="chip is-active" data-qa-kind="all">Tất cả (22)</button>
+            <button type="button" class="chip chip-fresh" data-qa-kind="fresh">Gameplay thật (3)</button>
+            <button type="button" class="chip chip-fixture" data-qa-kind="fixture">Fixture có kiểm soát (14)</button>
+          </div>
+        </div>
+
+        <!-- Mode A: Device Grid (Phone Mockups) -->
+        <div id="qa-grid-container" class="qa-content-container">
+          <div id="phone-devices-grid" class="phone-devices-grid">
+            <!-- Dynamically populated phone mockups -->
+          </div>
+        </div>
+
+        <!-- Mode B: Compare 2 Screens Mode -->
+        <div id="qa-compare-container" class="qa-content-container" style="display: none;">
+          <div class="compare-preset-bar">
+            <span class="preset-label">Mẫu so sánh nhanh:</span>
+            <button type="button" class="btn-preset is-active" data-preset="empire_360_vs_390">Tổng kết đa quán: 360×640 vs 390×844</button>
+            <button type="button" class="btn-preset" data-preset="regular_360_vs_390">Khách quen: 360×640 vs 390×844</button>
+            <button type="button" class="btn-preset" data-preset="map_360_vs_390">Bản đồ (Chủ bán): 360×640 vs 390×844</button>
+            <button type="button" class="btn-preset" data-preset="day1_fresh_vs_result">Day 1: Bếp nấu vs Kết quả</button>
+          </div>
+
+          <div class="compare-selector-bar">
+            <div class="selector-slot slot-left">
+              <label for="select-slot-a">Màn hình A (Trái):</label>
+              <select id="select-slot-a" class="device-select"></select>
+            </div>
+            <div class="compare-vs-badge">VS</div>
+            <div class="selector-slot slot-right">
+              <label for="select-slot-b">Màn hình B (Phải):</label>
+              <select id="select-slot-b" class="device-select"></select>
+            </div>
+          </div>
+
+          <div class="compare-stage">
+            <div class="compare-device-wrapper" id="compare-device-a">
+              <!-- Rendered Phone A -->
+            </div>
+            <div class="compare-divider-rule">
+              <div class="diff-indicator">ĐỐI CHIẾU VIEWPORT</div>
+            </div>
+            <div class="compare-device-wrapper" id="compare-device-b">
+              <!-- Rendered Phone B -->
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- Lightbox Modal for Zooming -->
+  <dialog id="qa-lightbox" class="qa-lightbox" aria-label="Xem chi tiết ảnh thiết bị">
+    <div class="lightbox-shell">
+      <header class="lightbox-header">
+        <div id="lightbox-caption" class="lightbox-title">Chi tiết ảnh</div>
+        <div class="lightbox-actions">
+          <a id="lightbox-raw-link" target="_blank" rel="noopener" class="btn-lightbox-link">Mở ảnh gốc ↗</a>
+          <form method="dialog"><button type="submit" class="btn-lightbox-close" aria-label="Đóng">✕</button></form>
+        </div>
+      </header>
+      <div class="lightbox-body">
+        <button type="button" class="lightbox-nav-btn prev" id="btn-lightbox-prev" aria-label="Ảnh trước">‹</button>
+        <div class="lightbox-img-frame">
+          <img id="lightbox-large-img" alt="">
+        </div>
+        <button type="button" class="lightbox-nav-btn next" id="btn-lightbox-next" aria-label="Ảnh sau">›</button>
+      </div>
     </div>
   </dialog>
 
+  <!-- Character Inspection Drawers / Modals -->
+  <dialog id="drawer-antigravity" class="studio-drawer" aria-label="Chi tiết nhân vật Antigravity">
+    <div class="drawer-shell">
+      <header class="drawer-header ag-header">
+        <div class="drawer-title-group">
+          <span class="drawer-avatar">🎨</span>
+          <div>
+            <h3>Antigravity · Art & UI Director</h3>
+            <span class="drawer-status-chip chip-ag">5 Tasks UI Đã Mở Khóa</span>
+          </div>
+        </div>
+        <button type="button" class="drawer-close" data-close-dialog aria-label="Đóng"><span aria-hidden="true">✕</span></button>
+      </header>
+      <div class="drawer-body">
+        <p class="drawer-intro">Codex đã hoàn tất C1-C6 và chốt luật C2 tại commit <code>3a86fba</code>. Toàn bộ 5 task UI dưới đây đang chờ bạn triển khai:</p>
+        <div class="drawer-task-list">
+          <div class="drawer-task-item">
+            <span class="task-badge prio-low">A1 · Thấp</span>
+            <b>Hiển thị trạng thái "Đã đóng ca" cho node bản đồ</b>
+            <p>Node bản đồ dùng status <code>done</code> từ selector <code>shopOperationalStatus</code> khi quán đã kết ca.</p>
+          </div>
+          <div class="drawer-task-item">
+            <span class="task-badge prio-low">A2 · Thấp</span>
+            <b>Bổ sung CSS cho .shop-status-badge.status-done</b>
+            <p>Tạo màu sắc và phong cách hoàn thiện ca cho badge trạng thái quán.</p>
+          </div>
+          <div class="drawer-task-item">
+            <span class="task-badge prio-med">A3 · Trung bình</span>
+            <b>Sửa lời mô tả "Chờ chủ" theo luật C2</b>
+            <p>Yêu cầu quản lý đang trực trước khi chủ rời quán; không ghi sai là "engine tạm dừng đón khách".</p>
+          </div>
+          <div class="drawer-task-item">
+            <span class="task-badge prio-med">A4 · Trung bình</span>
+            <b>Dùng selector engine cho cue vắng khách & bản đồ</b>
+            <p>Áp dụng <code>isQuietInterval</code>, <code>currentMinuteRate</code> và <code>shopOperationalStatus</code> từ engine.</p>
+          </div>
+          <div class="drawer-task-item">
+            <span class="task-badge prio-low">A5 · Thấp</span>
+            <b>Chạy fixture đa quán trên 360×640 & 390×844</b>
+            <p>Dùng hook <code>window.__xomNho.loadFixture('two_shops_mid_prep')</code> để chụp ảnh bằng chứng có kiểm soát.</p>
+          </div>
+        </div>
+      </div>
+      <footer class="drawer-footer">
+        <button type="button" class="btn-drawer-primary" id="btn-drawer-goto-kanban">Chuyển sang Bảng Kanban →</button>
+      </footer>
+    </div>
+  </dialog>
+
+  <dialog id="drawer-director" class="studio-drawer" aria-label="Trung tâm điều phối Giám Đốc">
+    <div class="drawer-shell">
+      <header class="drawer-header ceo-header">
+        <div class="drawer-title-group">
+          <span class="drawer-avatar">👑</span>
+          <div>
+            <h3>Giám Đốc Studio · Dispatch Center</h3>
+            <span class="drawer-status-chip chip-gold">Handoff HO-2026-10-24 Backend Hoàn Tất</span>
+          </div>
+        </div>
+        <button type="button" class="drawer-close" data-close-dialog aria-label="Đóng"><span aria-hidden="true">✕</span></button>
+      </header>
+      <div class="drawer-body">
+        <div class="ceo-summary-stats">
+          <div class="stat-box"><b>3a86fba</b><small>Backend Commit</small></div>
+          <div class="stat-box"><b>15/15 PASS</b><small>Test tự động</small></div>
+          <div class="stat-box"><b>0</b><small>Blocker còn lại</small></div>
+          <div class="stat-box"><b>127k / 67k</b><small>Baseline Day 1</small></div>
+        </div>
+        <p class="drawer-intro">Codex đã xác thực toàn bộ C1-C6, giải quyết dứt điểm điểm nghẽn C2 và cung cấp bộ selector chuẩn cho UI. Nhiệm vụ tiếp theo là giao cho Antigravity triển khai A1-A5.</p>
+      </div>
+      <footer class="drawer-footer">
+        <button type="button" class="btn-drawer-primary" id="btn-drawer-copy-prompt">📋 Copy Prompt Giao Việc</button>
+        <button type="button" class="btn-drawer-secondary" id="btn-drawer-open-reports">Xem Báo Cáo Hai Bên ↗</button>
+      </footer>
+    </div>
+  </dialog>
+
+  <dialog id="drawer-codex" class="studio-drawer" aria-label="Chi tiết nhân vật Codex">
+    <div class="drawer-shell">
+      <header class="drawer-header cx-header">
+        <div class="drawer-title-group">
+          <span class="drawer-avatar">⚙️</span>
+          <div>
+            <h3>Codex · Lead Engine Coder</h3>
+            <span class="drawer-status-chip chip-cx">15/15 Tests PASS · Commit 3a86fba</span>
+          </div>
+        </div>
+        <button type="button" class="drawer-close" data-close-dialog aria-label="Đóng"><span aria-hidden="true">✕</span></button>
+      </header>
+      <div class="drawer-body">
+        <p class="drawer-intro">Báo cáo kiểm thử tự động tại <code>CODEX_BACKEND_REPORT.md</code> ghi nhận toàn bộ 15 file test đều PASS (Node v24.22.1). Day 1 đạt 127k két / 67k lãi gộp chuẩn baseline.</p>
+        <div class="codex-achievements-list">
+          <div class="achieve-item"><b>C1 · PASS:</b> Chạy lại toàn bộ test tự động và đối soát dòng tiền Day 1.</div>
+          <div class="achieve-item"><b>C2 · RESOLVED:</b> Giữ guard quản lý trước mở ca và trước rời quán. Đã gỡ nghẽn cho A3.</div>
+          <div class="achieve-item"><b>C3 · EXPORTED:</b> Export selector <code>isQuietInterval</code> & <code>currentMinuteRate</code>.</div>
+          <div class="achieve-item"><b>C4 · EXPORTED:</b> Export selector <code>shopOperationalStatus(empire, shopId)</code>.</div>
+          <div class="achieve-item"><b>C5 · STABILIZED:</b> Ổn định enum <code>OPERATIONAL_ADVICE_AREAS</code> và giới hạn 3 gợi ý.</div>
+          <div class="achieve-item"><b>C6 · HOOKED:</b> Hook <code>window.__xomNho.loadFixture('two_shops_mid_prep')</code> seed 20261024.</div>
+        </div>
+      </div>
+      <footer class="drawer-footer">
+        <button type="button" class="btn-drawer-primary" id="btn-drawer-goto-codex-report">Xem Báo Cáo Codex Chi Tiết →</button>
+      </footer>
+    </div>
+  </dialog>
+
+  
+  <!-- Modal Lịch Sử Trao Đổi Ca Trực (Mở khi bấm vào lời thoại nhân vật) -->
+  <dialog id="modal-exchange-history" class="studio-drawer" aria-label="Lịch sử trao đổi ca trực">
+    <div class="drawer-shell">
+      <header class="drawer-header ag-header">
+        <div class="drawer-title-group">
+          <span class="drawer-avatar">💬</span>
+          <div>
+            <h3 class="drawer-title">Lịch Sử Trao Đổi & Bàn Giao Ca Trực</h3>
+            <span class="drawer-status-chip chip-cyan">Giao tiếp trực tiếp · Nonce ACK</span>
+          </div>
+        </div>
+        <button type="button" class="drawer-close" data-close-dialog aria-label="Đóng"><span aria-hidden="true">✕</span></button>
+      </header>
+      <div class="drawer-body">
+        <div class="exchange-timeline" id="dialog-exchange-timeline">
+          <div class="timeline-item">
+            <span class="tl-badge badge-ag">🎨 Antigravity</span>
+            <div class="tl-msg">
+              <b>Nghiệm thu UI & Visual Gate:</b> Hoàn thành kiểm định hình ảnh A1–A5 và xuất 22 ảnh chụp kiểm chứng tại 360×640 & 390×844.
+            </div>
+          </div>
+          <div class="timeline-item">
+            <span class="tl-badge badge-ack">⇄ Link ACK</span>
+            <div class="tl-msg text-cyan">
+              <b>OFFICE-LINK-20261024-1215:</b> Antigravity ⇄ Codex xác thực roundtrip hai chiều thành công (Round 2/2 confirmed).
+            </div>
+          </div>
+          <div class="timeline-item">
+            <span class="tl-badge badge-cx">⚙️ Codex</span>
+            <div class="tl-msg">
+              <b>Engine Tests & Fixtures:</b> Đạt 15/15 test suite tự động và chốt dứt điểm luật C2 tại commit <code>3a86fba</code>. Day 1: 127k két / 67k lãi.
+            </div>
+          </div>
+          <div class="timeline-item">
+            <span class="tl-badge badge-ceo">👑 Giám Đốc</span>
+            <div class="tl-msg text-gold">
+              <b>Khay chờ duyệt:</b> Đang theo dõi quyết định phê duyệt từ Giám Đốc qua API.
+            </div>
+          </div>
+        </div>
+
+        <!-- Khung Hướng Khắc Phục Khi Có Blocker (Resolution Guide) -->
+        <div class="blocker-resolution-box is-hidden" id="box-blocker-resolution">
+          <div class="res-head">
+            <span class="res-icon">💡</span>
+            <b>Hướng Khắc Phục Cho Giám Đốc:</b>
+          </div>
+          <p class="res-desc" id="blocker-res-desc">
+            <b>Nguyên nhân:</b> Bot Codex chạm hạn mức quota API OpenAI lúc 06:43 UTC.<br>
+            <b>Thực tế:</b> Toàn bộ 15 bài test engine và 22 ảnh QA thực tế đã <b>ĐẠT 100%</b>.<br>
+            <b>Hành động:</b> Giám Đốc có quyền gỡ cờ Blocker để mở nút Phê Duyệt ngay mà không cần đợi API reset lúc 3:09 PM.
+          </p>
+          <div class="res-actions">
+            <button type="button" class="btn-res-unblock" id="btn-unblock-submission">
+              🔓 Gỡ Cờ Blocker & Mở Phê Duyệt Ngay
+            </button>
+            <button type="button" class="btn-res-retry is-hidden" id="btn-retry-review" title="Yêu cầu hệ thống kiểm chứng lại bản hiện tại">
+              <span class="btn-spinner is-hidden" aria-hidden="true"></span>
+              <span class="btn-text">🔄 Thử lại kiểm chứng</span>
+            </button>
+          </div>
+        </div>
+      </div>
+      <footer class="drawer-footer">
+        <button type="button" class="btn-drawer-primary" id="btn-history-view-report">Xem Báo Cáo Kỹ Thuật →</button>
+      </footer>
+    </div>
+  </dialog>
+
+  <!-- Notification Toast -->
+  <div id="studio-toast" class="studio-toast" role="status" aria-live="polite"></div>
+
+  <!-- Classic scripts for offline file:// support -->
   <script src="data.bundle.js"></script>
-  <!-- Classic script on purpose: module scripts are blocked when opened via file://. -->
   <script src="app.js"></script>
-  <script src="orchestrator-panel.js"></script>
+  <!-- Markdown Report Viewer Modal -->
+  <div id="report-modal" class="modal-backdrop" aria-hidden="true">
+    <div class="modal-dialog">
+      <header class="modal-header">
+        <div class="modal-title-group">
+          <span class="modal-icon">📑</span>
+          <h3 id="modal-report-title">Báo Cáo Kỹ Thuật</h3>
+          <code id="modal-report-path" class="modal-path-chip"></code>
+        </div>
+        <button type="button" id="btn-close-modal" class="btn-close-modal" data-close-dialog aria-label="Đóng báo cáo"><span aria-hidden="true">✕</span></button>
+      </header>
+      <div id="modal-report-body" class="modal-body markdown-body">
+        <div class="loading-spinner">Đang tải nội dung báo cáo...</div>
+      </div>
+    </div>
+  </div>
 </body>
 </html>
