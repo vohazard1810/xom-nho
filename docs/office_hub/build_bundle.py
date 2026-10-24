@@ -20,6 +20,7 @@ EVIDENCE_DIRS = ["mobile_gate_evidence/operational_handoff"]
 REPORTS = {
     "antigravity": "reports/ANTIGRAVITY_UI_REPORT.md",
     "codex": "reports/CODEX_BACKEND_REPORT.md",
+    "audit": "reports/AUDIT_REPORT_V3.md",
 }
 
 TOPICS = {

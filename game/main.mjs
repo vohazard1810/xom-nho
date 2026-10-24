@@ -1,6 +1,6 @@
 import {loadFixture as createFixture} from './fixtures.mjs';
 import { serviceVisual, cookingNeeds, cookingComplete } from './shift-engine.mjs';
-import { ensureEmpire, empireAction, advanceEmpire, LOCATIONS, STAFF_ROLES, openingEligibility, staffCondition, staffRoleAvailable, STAFF_MILESTONES } from './empire-engine.mjs';
+import { ensureEmpire, empireAction, advanceEmpire, LOCATIONS, STAFF_ROLES, openingEligibility, staffCondition, staffRoleAvailable, STAFF_MILESTONES, shopOperationalStatus, isQuietInterval, currentMinuteRate } from './empire-engine.mjs';
 import {
   ingredients,
   recipes,

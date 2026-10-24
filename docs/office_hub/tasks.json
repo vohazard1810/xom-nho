@@ -3,8 +3,8 @@
   "project": "Xóm Nhỏ — Office Control Center",
   "branch": "codex/core-loop-completion",
   "repository": "https://github.com/vohazard1810/xom-nho",
-  "updatedAt": "2026-10-24T04:14:15.522966+00:00",
-  "updatedBy": "Auto-Dispatcher",
+  "updatedAt": "2026-10-24T11:26:00+07:00",
+  "updatedBy": "Antigravity & Codex",
   "statuses": [
     "Todo",
     "In Progress",
@@ -16,13 +16,13 @@
     "Codex": "Engine / Logic / Transactions / Automated tests"
   },
   "currentHandoff": {
-    "id": "HO-2026-10-24-v2.2-completion",
-    "title": "Studio v2.2: Department Rooms, Auto-Dispatcher, A1–A5 Complete",
-    "from": "Antigravity",
+    "id": "HO-2026-10-24-v3.0-audit",
+    "title": "System Diagnostic Audit V3 & Next Sprint Proposals (N1–N3)",
+    "from": "Antigravity & Codex",
     "to": "Director",
-    "baseCommit": "3a86fba",
+    "baseCommit": "7e31305",
     "resultCommit": "HEAD",
-    "source": "docs/office_hub/reports/ANTIGRAVITY_UI_REPORT.md"
+    "source": "docs/office_hub/reports/AUDIT_REPORT_V3.md"
   },
   "tasks": [
     {
@@ -198,6 +198,36 @@
       "updatedAt": "2026-10-24T11:12:00+07:00",
       "updatedBy": "Antigravity",
       "commit": "HEAD"
+    },
+    {
+      "id": "N1",
+      "title": "Hệ thống Thời tiết & Sự kiện Hẻm Phố (Nắng gắt, Mưa rào, Bão)",
+      "owner": "Codex",
+      "area": "Logic",
+      "status": "Todo",
+      "priority": "High",
+      "report": "docs/office_hub/reports/AUDIT_REPORT_V3.md",
+      "notes": "4 kiểu thời tiết: Nắng gắt (+50% Trà Tắc), Mưa rào (+đơn mang đi), Bão, Dịu mát. Sự kiện hẻm phố ngẫu nhiên."
+    },
+    {
+      "id": "N2",
+      "title": "Hệ thống Mở rộng Quán & Bàn ghế Khách Ngồi (Multi-slot prep)",
+      "owner": "Antigravity",
+      "area": "UI",
+      "status": "Todo",
+      "priority": "Medium",
+      "report": "docs/office_hub/reports/AUDIT_REPORT_V3.md",
+      "notes": "Bàn ghế ngồi lại (+15% tip), quầy chảo đôi chế biến 2 món cùng lúc, bảng hiệu đèn Led tăng sao."
+    },
+    {
+      "id": "N3",
+      "title": "Cân bằng Kinh tế Chuỗi & Kỹ năng Nhân sự Nâng cao",
+      "owner": "Codex",
+      "area": "Logic",
+      "status": "Todo",
+      "priority": "Medium",
+      "report": "docs/office_hub/reports/AUDIT_REPORT_V3.md",
+      "notes": "Cây kỹ năng nhân viên (Khéo léo, Tốc độ, Thân thiện), quản lý tự động nhập kho an toàn, phí chuỗi."
     }
   ],
   "handoffRound": 2,

@@ -25,7 +25,8 @@ BASELINE_DAY1_PROFIT = 67000
 ALLOWED_TASK_IDS = {
     "HO-01", "HO-02", "HO-03",
     "C1", "C2", "C3", "C4", "C5", "C6",
-    "A1", "A2", "A3", "A4", "A5"
+    "A1", "A2", "A3", "A4", "A5",
+    "N1", "N2", "N3"
 }
 
 FALLBACK_NODE = Path(
