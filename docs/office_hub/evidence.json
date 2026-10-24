@@ -1,0 +1,112 @@
+{
+  "folders": [
+    "mobile_gate_evidence/operational_handoff"
+  ],
+  "items": [
+    {
+      "file": "../mobile_gate_evidence/operational_handoff/shot_controlled_empire_result_360x640.png",
+      "title": "Tổng kết đa quán",
+      "topic": "empire_result",
+      "viewport": "360x640",
+      "kind": "fixture"
+    },
+    {
+      "file": "../mobile_gate_evidence/operational_handoff/shot_controlled_empire_result_390x844.png",
+      "title": "Tổng kết đa quán",
+      "topic": "empire_result",
+      "viewport": "390x844",
+      "kind": "fixture"
+    },
+    {
+      "file": "../mobile_gate_evidence/operational_handoff/shot_controlled_familiar_badge_360x640.png",
+      "title": "Phiếu đơn · ★ Khách quen",
+      "topic": "familiar_badge",
+      "viewport": "360x640",
+      "kind": "fixture"
+    },
+    {
+      "file": "../mobile_gate_evidence/operational_handoff/shot_controlled_familiar_badge_390x844.png",
+      "title": "Phiếu đơn · ★ Khách quen",
+      "topic": "familiar_badge",
+      "viewport": "390x844",
+      "kind": "fixture"
+    },
+    {
+      "file": "../mobile_gate_evidence/operational_handoff/shot_controlled_map_home_owner_360x640.png",
+      "title": "Bản đồ · Bạn đang đứng bán",
+      "topic": "map_home_owner",
+      "viewport": "360x640",
+      "kind": "fixture"
+    },
+    {
+      "file": "../mobile_gate_evidence/operational_handoff/shot_controlled_map_home_owner_390x844.png",
+      "title": "Bản đồ · Bạn đang đứng bán",
+      "topic": "map_home_owner",
+      "viewport": "390x844",
+      "kind": "fixture"
+    },
+    {
+      "file": "../mobile_gate_evidence/operational_handoff/shot_controlled_map_office_closed_360x640.png",
+      "title": "Bản đồ · Nghỉ hôm nay",
+      "topic": "map_office_closed",
+      "viewport": "360x640",
+      "kind": "fixture"
+    },
+    {
+      "file": "../mobile_gate_evidence/operational_handoff/shot_controlled_map_office_closed_390x844.png",
+      "title": "Bản đồ · Nghỉ hôm nay",
+      "topic": "map_office_closed",
+      "viewport": "390x844",
+      "kind": "fixture"
+    },
+    {
+      "file": "../mobile_gate_evidence/operational_handoff/shot_controlled_map_school_managed_360x640.png",
+      "title": "Bản đồ · Quản lý đang tự bán",
+      "topic": "map_school_managed",
+      "viewport": "360x640",
+      "kind": "fixture"
+    },
+    {
+      "file": "../mobile_gate_evidence/operational_handoff/shot_controlled_map_school_managed_390x844.png",
+      "title": "Bản đồ · Quản lý đang tự bán",
+      "topic": "map_school_managed",
+      "viewport": "390x844",
+      "kind": "fixture"
+    },
+    {
+      "file": "../mobile_gate_evidence/operational_handoff/shot_controlled_quiet_interval_cue_360x640.png",
+      "title": "Chỉ báo vắng khách · giờ chạy nhanh",
+      "topic": "quiet_interval_cue",
+      "viewport": "360x640",
+      "kind": "fixture"
+    },
+    {
+      "file": "../mobile_gate_evidence/operational_handoff/shot_controlled_quiet_interval_cue_390x844.png",
+      "title": "Chỉ báo vắng khách · giờ chạy nhanh",
+      "topic": "quiet_interval_cue",
+      "viewport": "390x844",
+      "kind": "fixture"
+    },
+    {
+      "file": "../mobile_gate_evidence/operational_handoff/shot_fresh_day1_kitchen_360x640.png",
+      "title": "Day 1 · Bếp thực tế",
+      "topic": "day1_kitchen",
+      "viewport": "360x640",
+      "kind": "fresh"
+    },
+    {
+      "file": "../mobile_gate_evidence/operational_handoff/shot_fresh_day1_ledger_expanded_360x640.png",
+      "title": "Day 1 · Sổ tiền mở rộng",
+      "topic": "day1_ledger_expanded",
+      "viewport": "360x640",
+      "kind": "fresh"
+    },
+    {
+      "file": "../mobile_gate_evidence/operational_handoff/shot_fresh_day1_result_360x640.png",
+      "title": "Day 1 · Kết quả cuối ca",
+      "topic": "day1_result",
+      "viewport": "360x640",
+      "kind": "fresh"
+    }
+  ]
+}

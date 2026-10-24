@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>Xóm Nhỏ · Office Control Center</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="hub-header">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true">🏮</span>
+      <div>
+        <h1>Xóm Nhỏ Studio · Office Control Center</h1>
+        <p id="hub-meta">Đang tải dữ liệu…</p>
+      </div>
+    </div>
+    <div class="desks" aria-label="Thành viên">
+      <div class="desk desk-antigravity"><b>Antigravity</b><small>UI · Art · Kiểm tra trình duyệt</small></div>
+      <div class="desk desk-codex"><b>Codex</b><small>Engine · Logic · Test tự động</small></div>
+    </div>
+    <nav class="hub-nav" aria-label="Khu vực">
+      <a href="#board">① Bảng phân việc</a>
+      <a href="#reports">② Bàn báo cáo</a>
+      <a href="#gallery">③ Bằng chứng</a>
+    </nav>
+  </header>
+
+  <main>
+    <section id="board" class="zone" aria-labelledby="board-title">
+      <div class="zone-head">
+        <h2 id="board-title">① Bảng phân việc</h2>
+        <div class="filters" role="group" aria-label="Lọc theo người phụ trách">
+          <button type="button" class="chip is-active" data-owner="all" aria-pressed="true">Tất cả</button>
+          <button type="button" class="chip owner-antigravity" data-owner="Antigravity" aria-pressed="false">Antigravity</button>
+          <button type="button" class="chip owner-codex" data-owner="Codex" aria-pressed="false">Codex</button>
+        </div>
+      </div>
+      <div id="handoff-banner" class="handoff-banner" hidden></div>
+      <div id="kanban" class="kanban"></div>
+    </section>
+
+    <section id="reports" class="zone" aria-labelledby="reports-title">
+      <div class="zone-head">
+        <h2 id="reports-title">② Bàn báo cáo</h2>
+        <p class="zone-hint">Khung tô vàng là mục <b>Action Items</b> bàn giao giữa hai bên.</p>
+      </div>
+      <div class="split">
+        <article class="report-pane pane-antigravity" aria-label="Báo cáo Antigravity">
+          <header>
+            <span class="pane-owner">Antigravity · UI</span>
+            <code>reports/ANTIGRAVITY_UI_REPORT.md</code>
+            <button type="button" class="jump" data-target="report-antigravity">↓ Action Items</button>
+          </header>
+          <div id="report-antigravity" class="markdown"></div>
+        </article>
+        <article class="report-pane pane-codex" aria-label="Báo cáo Codex">
+          <header>
+            <span class="pane-owner">Codex · Backend</span>
+            <code>reports/CODEX_BACKEND_REPORT.md</code>
+            <button type="button" class="jump" data-target="report-codex">↓ Action Items</button>
+          </header>
+          <div id="report-codex" class="markdown"></div>
+        </article>
+      </div>
+    </section>
+
+    <section id="gallery" class="zone" aria-labelledby="gallery-title">
+      <div class="zone-head">
+        <h2 id="gallery-title">③ Phòng trưng bày bằng chứng</h2>
+        <div class="filters" role="group" aria-label="Lọc loại bằng chứng">
+          <button type="button" class="chip is-active" data-kind="all" aria-pressed="true">Tất cả</button>
+          <button type="button" class="chip kind-fresh" data-kind="fresh" aria-pressed="false">Gameplay thật</button>
+          <button type="button" class="chip kind-fixture" data-kind="fixture" aria-pressed="false">Fixture có kiểm soát</button>
+        </div>
+      </div>
+      <div id="evidence-grid" class="evidence-grid"></div>
+    </section>
+  </main>
+
+  <dialog id="lightbox" class="lightbox" closedby="any" aria-label="Xem ảnh lớn">
+    <figure>
+      <img id="lightbox-img" alt="">
+      <figcaption id="lightbox-caption"></figcaption>
+    </figure>
+    <div class="lightbox-controls">
+      <button type="button" data-step="-1" aria-label="Ảnh trước">←</button>
+      <a id="lightbox-open" target="_blank" rel="noopener">Mở ảnh gốc</a>
+      <button type="button" data-step="1" aria-label="Ảnh sau">→</button>
+      <form method="dialog"><button aria-label="Đóng">✕</button></form>
+    </div>
+  </dialog>
+
+  <script src="data.bundle.js"></script>
+  <!-- Classic script on purpose: module scripts are blocked when opened via file://. -->
+  <script src="app.js"></script>
+</body>
+</html>

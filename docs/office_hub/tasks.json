@@ -1,0 +1,128 @@
+{
+  "schemaVersion": 1,
+  "project": "Xóm Nhỏ — Office Control Center",
+  "branch": "codex/core-loop-completion",
+  "repository": "https://github.com/vohazard1810/xom-nho",
+  "updatedAt": "2026-10-24T10:20:00+07:00",
+  "updatedBy": "Antigravity",
+  "statuses": ["Todo", "In Progress", "Review", "Done"],
+  "owners": {
+    "Antigravity": "UI / Art / Browser verification",
+    "Codex": "Engine / Logic / Transactions / Automated tests"
+  },
+  "currentHandoff": {
+    "id": "HO-2026-10-04-operational",
+    "title": "Operational UI pass (chủ/quản lý, tổng kết quán, khách quen)",
+    "from": "Codex",
+    "to": "Antigravity",
+    "baseCommit": "c035ccf",
+    "resultCommit": "7e024a6",
+    "source": "docs/ANTIGRAVITY_OPERATIONAL_HANDOFF.md"
+  },
+  "tasks": [
+    {
+      "id": "HO-01",
+      "title": "Rút ngắn khoảng vắng 40%, gợi ý tổng kết theo nguyên nhân, E2E engine đổi quán",
+      "owner": "Codex",
+      "area": "Logic",
+      "status": "Done",
+      "commit": "c035ccf",
+      "report": "docs/ANTIGRAVITY_OPERATIONAL_HANDOFF.md",
+      "notes": "Day 1 vẫn 127k két / 67k lãi. E2E trình duyệt bị chặn localhost."
+    },
+    {
+      "id": "HO-02",
+      "title": "UI 4 trạng thái quán, cue giờ chạy nhanh, nhãn khách quen, tổng kết đa quán",
+      "owner": "Antigravity",
+      "area": "UI",
+      "status": "Review",
+      "commit": "7e024a6",
+      "report": "docs/office_hub/reports/ANTIGRAVITY_UI_REPORT.md",
+      "evidence": "docs/mobile_gate_evidence/operational_handoff/",
+      "notes": "Chờ Codex chạy test (C1) và chốt luật C2."
+    },
+    {
+      "id": "HO-03",
+      "title": "Office Control Center (docs/office_hub) + AGENTS.md",
+      "owner": "Antigravity",
+      "area": "UI",
+      "status": "Done",
+      "report": "docs/office_hub/reports/ANTIGRAVITY_UI_REPORT.md"
+    },
+    {
+      "id": "C1",
+      "title": "Chạy lại game/test-*.mjs trên 7e024a6",
+      "owner": "Codex",
+      "area": "Logic",
+      "status": "Todo",
+      "priority": "High",
+      "report": "docs/office_hub/reports/CODEX_BACKEND_REPORT.md"
+    },
+    {
+      "id": "C2",
+      "title": "Chốt luật quán vắng chủ khi không có quản lý (dừng đón khách hay lỡ khách)",
+      "owner": "Codex",
+      "area": "Logic",
+      "status": "Todo",
+      "priority": "High",
+      "blocks": ["A3"]
+    },
+    {
+      "id": "C3",
+      "title": "Export selector isQuietInterval / currentMinuteRate cho UI",
+      "owner": "Codex",
+      "area": "Logic",
+      "status": "Todo",
+      "priority": "Medium"
+    },
+    {
+      "id": "C4",
+      "title": "Export selector shopOperationalStatus(empire, shopId)",
+      "owner": "Codex",
+      "area": "Logic",
+      "status": "Todo",
+      "priority": "Medium"
+    },
+    {
+      "id": "C5",
+      "title": "Ổn định enum area của operationalAdvice + test tối đa 3 gợi ý",
+      "owner": "Codex",
+      "area": "Logic",
+      "status": "Todo",
+      "priority": "Low"
+    },
+    {
+      "id": "C6",
+      "title": "Hook loadFixture(name) có seed cố định cho test trình duyệt đa quán",
+      "owner": "Codex",
+      "area": "Logic",
+      "status": "Todo",
+      "priority": "Low"
+    },
+    {
+      "id": "A1",
+      "title": "Node bản đồ hiển thị 'Đã đóng ca' khi quán đã DAY_RESULT giữa ca",
+      "owner": "Antigravity",
+      "area": "UI",
+      "status": "Todo",
+      "priority": "Low"
+    },
+    {
+      "id": "A2",
+      "title": "Thêm CSS cho .shop-status-badge.status-done",
+      "owner": "Antigravity",
+      "area": "UI",
+      "status": "Todo",
+      "priority": "Low"
+    },
+    {
+      "id": "A3",
+      "title": "Sửa câu chữ trạng thái 'Chờ chủ' theo luật C2",
+      "owner": "Antigravity",
+      "area": "UI",
+      "status": "Todo",
+      "priority": "Medium",
+      "blockedBy": ["C2"]
+    }
+  ]
+}
