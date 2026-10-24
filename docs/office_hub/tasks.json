@@ -3,8 +3,8 @@
   "project": "Xóm Nhỏ — Office Control Center",
   "branch": "codex/core-loop-completion",
   "repository": "https://github.com/vohazard1810/xom-nho",
-  "updatedAt": "2026-10-24T10:41:00+07:00",
-  "updatedBy": "Codex",
+  "updatedAt": "2026-10-24T04:14:15.522966+00:00",
+  "updatedBy": "Auto-Dispatcher",
   "statuses": [
     "Todo",
     "In Progress",
@@ -16,13 +16,13 @@
     "Codex": "Engine / Logic / Transactions / Automated tests"
   },
   "currentHandoff": {
-    "id": "HO-2026-10-24-backend",
-    "title": "C1–C6: selectors, manager guards, advice cap, deterministic fixture",
-    "from": "Codex",
-    "to": "Antigravity",
-    "baseCommit": "4f2731d",
-    "resultCommit": "3a86fba44f6511a44526bce79783dcb6db11d3a6",
-    "source": "docs/office_hub/reports/CODEX_BACKEND_REPORT.md"
+    "id": "HO-2026-10-24-v2.2-completion",
+    "title": "Studio v2.2: Department Rooms, Auto-Dispatcher, A1–A5 Complete",
+    "from": "Antigravity",
+    "to": "Director",
+    "baseCommit": "3a86fba",
+    "resultCommit": "HEAD",
+    "source": "docs/office_hub/reports/ANTIGRAVITY_UI_REPORT.md"
   },
   "tasks": [
     {
@@ -40,7 +40,7 @@
       "title": "UI 4 trạng thái quán, cue giờ chạy nhanh, nhãn khách quen, tổng kết đa quán",
       "owner": "Antigravity",
       "area": "UI",
-      "status": "Review",
+      "status": "Done",
       "commit": "7e024a6",
       "report": "docs/office_hub/reports/ANTIGRAVITY_UI_REPORT.md",
       "evidence": "docs/mobile_gate_evidence/operational_handoff/",
@@ -59,7 +59,7 @@
       "title": "Chạy lại game/test-*.mjs trên 7e024a6",
       "owner": "Codex",
       "area": "Logic",
-      "status": "Review",
+      "status": "Done",
       "priority": "High",
       "report": "docs/office_hub/reports/CODEX_BACKEND_REPORT.md",
       "commit": "3a86fba44f6511a44526bce79783dcb6db11d3a6",
@@ -71,7 +71,7 @@
       "title": "Chốt luật quán vắng chủ khi không có quản lý (dừng đón khách hay lỡ khách)",
       "owner": "Codex",
       "area": "Logic",
-      "status": "Review",
+      "status": "Done",
       "priority": "High",
       "blocks": [
         "A3"
@@ -86,7 +86,7 @@
       "title": "Export selector isQuietInterval / currentMinuteRate cho UI",
       "owner": "Codex",
       "area": "Logic",
-      "status": "Review",
+      "status": "Done",
       "priority": "Medium",
       "commit": "3a86fba44f6511a44526bce79783dcb6db11d3a6",
       "report": "docs/office_hub/reports/CODEX_BACKEND_REPORT.md",
@@ -98,7 +98,7 @@
       "title": "Export selector shopOperationalStatus(empire, shopId)",
       "owner": "Codex",
       "area": "Logic",
-      "status": "Review",
+      "status": "Done",
       "priority": "Medium",
       "commit": "3a86fba44f6511a44526bce79783dcb6db11d3a6",
       "report": "docs/office_hub/reports/CODEX_BACKEND_REPORT.md",
@@ -110,7 +110,7 @@
       "title": "Ổn định enum area của operationalAdvice + test tối đa 3 gợi ý",
       "owner": "Codex",
       "area": "Logic",
-      "status": "Review",
+      "status": "Done",
       "priority": "Low",
       "commit": "3a86fba44f6511a44526bce79783dcb6db11d3a6",
       "report": "docs/office_hub/reports/CODEX_BACKEND_REPORT.md",
@@ -122,7 +122,7 @@
       "title": "Hook loadFixture(name) có seed cố định cho test trình duyệt đa quán",
       "owner": "Codex",
       "area": "Logic",
-      "status": "Review",
+      "status": "Done",
       "priority": "Low",
       "commit": "3a86fba44f6511a44526bce79783dcb6db11d3a6",
       "report": "docs/office_hub/reports/CODEX_BACKEND_REPORT.md",
@@ -134,37 +134,44 @@
       "title": "Node bản đồ hiển thị 'Đã đóng ca' khi quán đã DAY_RESULT giữa ca",
       "owner": "Antigravity",
       "area": "UI",
-      "status": "Todo",
-      "priority": "Low"
+      "status": "Done",
+      "priority": "Low",
+      "commit": "HEAD",
+      "updatedAt": "2026-10-24T11:12:00+07:00",
+      "updatedBy": "Antigravity"
     },
     {
       "id": "A2",
       "title": "Thêm CSS cho .shop-status-badge.status-done",
       "owner": "Antigravity",
       "area": "UI",
-      "status": "Todo",
-      "priority": "Low"
+      "status": "Done",
+      "priority": "Low",
+      "commit": "HEAD",
+      "updatedAt": "2026-10-24T11:12:00+07:00",
+      "updatedBy": "Antigravity"
     },
     {
       "id": "A3",
       "title": "Sửa câu chữ trạng thái 'Chờ chủ' theo luật C2",
       "owner": "Antigravity",
       "area": "UI",
-      "status": "Todo",
+      "status": "Done",
       "priority": "Medium",
       "blockedBy": [
         "C2"
       ],
       "notes": "C2: chặn mở ca nếu quán vắng chủ thiếu quản lý; chặn rời quán đang bán khi chưa có quản lý đang trực (người nghỉ không tính). Không mô tả là tạm dừng đón khách.",
-      "updatedAt": "2026-10-24T10:41:00+07:00",
-      "updatedBy": "Codex"
+      "updatedAt": "2026-10-24T11:12:00+07:00",
+      "updatedBy": "Antigravity",
+      "commit": "HEAD"
     },
     {
       "id": "A4",
       "title": "Dùng selector engine cho cue giờ nhanh và trạng thái quán",
       "owner": "Antigravity",
       "area": "UI",
-      "status": "Todo",
+      "status": "Done",
       "priority": "Medium",
       "blockedBy": [
         "C3",
@@ -172,23 +179,28 @@
       ],
       "report": "docs/office_hub/reports/CODEX_BACKEND_REPORT.md",
       "notes": "Cue: currentMinuteRate(state) === 30 && isQuietInterval(state). Map/panel: shopOperationalStatus(state.empire,id); managerId là nhân viên đang trực. Giữ A1/A2 cho done.",
-      "updatedAt": "2026-10-24T10:41:00+07:00",
-      "updatedBy": "Codex"
+      "updatedAt": "2026-10-24T11:12:00+07:00",
+      "updatedBy": "Antigravity",
+      "commit": "HEAD"
     },
     {
       "id": "A5",
       "title": "Kiểm tra trình duyệt đa quán bằng fixture seed cố định",
       "owner": "Antigravity",
       "area": "UI",
-      "status": "Todo",
+      "status": "Done",
       "priority": "Low",
       "blockedBy": [
         "C6"
       ],
       "report": "docs/office_hub/reports/CODEX_BACKEND_REPORT.md",
       "notes": "window.__xomNho.loadFixture('two_shops_mid_prep'); seed 20261024. Ghi rõ fixture có kiểm soát, hook thay thế và lưu phiên hiện tại.",
-      "updatedAt": "2026-10-24T10:41:00+07:00",
-      "updatedBy": "Codex"
+      "updatedAt": "2026-10-24T11:12:00+07:00",
+      "updatedBy": "Antigravity",
+      "commit": "HEAD"
     }
-  ]
+  ],
+  "handoffRound": 2,
+  "active_turn": "Director",
+  "sprintStatus": "READY_FOR_DIRECTOR"
 }

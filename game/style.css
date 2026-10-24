@@ -2736,6 +2736,7 @@ button:focus-visible, [role=button]:focus-visible { outline: 3px solid #0e7490; 
 .shop-status-badge.status-managed { background:#1d4ed8; color:#ffffff; border:1px solid #1e40af; }
 .shop-status-badge.status-waiting { background:#d97706; color:#ffffff; border:1px solid #b45309; }
 .shop-status-badge.status-closed { background:#64748b; color:#ffffff; border:1px solid #475569; }
+.shop-status-badge.status-done { background:#475569; color:#f8fafc; border:1px solid #334155; }
 .shop-status-badge.status-ready { background:#0d9488; color:#ffffff; }
 .shop-status-badge.status-prep { background:#78350f; color:#ffffff; }
 .shop-status-badge.status-unopened { background:#94a3b8; color:#ffffff; }
@@ -2746,6 +2747,7 @@ button:focus-visible, [role=button]:focus-visible { outline: 3px solid #0e7490; 
 .map-node.status-managed { border-color:#1d4ed8; box-shadow:0 3px 0 #1e40af; }
 .map-node.status-waiting { border-color:#d97706; box-shadow:0 3px 0 #b45309; }
 .map-node.status-closed { border-color:#64748b; opacity:0.85; }
+.map-node.status-done { border-color:#475569; box-shadow:0 3px 0 #334155; opacity:0.9; }
 .map-node .node-status-text { display:block; font-size:9.5px; line-height:1.15; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 
 .branch-recommendations { margin:8px 0; padding:8px 10px; background:#fff7ed; border-left:3.5px solid #d97706; border-radius:8px; }

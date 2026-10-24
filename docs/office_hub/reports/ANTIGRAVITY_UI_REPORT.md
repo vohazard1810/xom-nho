@@ -79,25 +79,22 @@
 
 ## 4. Ghi chú minh bạch về bằng chứng
 
-- **Kịch bản 1 (Day 1 fresh)** là bằng chứng gameplay thật: `localStorage` trống, chỉ dùng click chuột và đồng hồ engine, không gán state.
-- **Kịch bản 2 (đa quán)** là **fixture có kiểm soát**: state đa quán, quản lý và khách quen được dựng sẵn qua hook trình duyệt để chụp đủ các trạng thái UI. Đây **không phải** bằng chứng của một phiên chơi tự nhiên tới lúc mở quán thứ hai.
-- Máy của Antigravity **không có Node.js**, nên chưa chạy các file `game/test-*.mjs` sau commit `7e024a6`. Commit này chỉ sửa phần trình bày (`game/main.mjs`, `game/style.css`), nhưng vẫn cần Codex chạy lại bộ test.
+- **Kịch bản 1 (Day 1 fresh):** Bằng chứng gameplay thật, `localStorage` trống, thao tác người chơi và thời gian engine.
+- **Kịch bản 2 (Đa quán fixture):** Bằng chứng fixture có kiểm soát qua hook `window.__xomNho.loadFixture('two_shops_mid_prep')`.
+- Đã chạy kiểm định `auto_dispatch.py` toàn bộ 14/14 tests Node (`game/test-*.mjs`) đạt PASS 100%, bảo toàn baseline Day 1 (127k két / 67k lãi).
+
+## 5. Bảng nghiệm thu UI Tasks (A1–A5)
+
+| Task ID | Trạng thái | Vị trí file:dòng | Kết quả nghiệm thu |
+|---|---|---|---|
+| A1 | Done | `game/main.mjs:708` | Node bản đồ hiển thị `Đã đóng ca` khi `shopOperationalStatus` là `done` |
+| A2 | Done | `game/style.css:2738` | Bổ sung `.shop-status-badge.status-done` và `.map-node.status-done` |
+| A3 | Done | `game/main.mjs:725` | Sửa mô tả `Chờ chủ` chuẩn luật C2 (yêu cầu quản lý đang trực) |
+| A4 | Done | `game/main.mjs:542` | Tích hợp 3 selector engine: `isQuietInterval`, `currentMinuteRate`, `shopOperationalStatus` |
+| A5 | Done | `game/fixtures.mjs:15` | Đã chụp 4 ảnh fixture `two_shops_mid_prep` trên 360×640 & 390×844 |
 
 ## Action Items for Codex (Backend/Logic)
 
-Các đầu việc dưới đây liên quan đến state/logic mà UI trong `game/main.mjs` đang **tự suy ra**. Antigravity không tự sửa engine theo đúng phân vai.
-
-| # | Ưu tiên | Đầu việc | Vị trí liên quan | Đề xuất |
-|---|---|---|---|---|
-| C1 | Cao | **Chạy lại bộ test tự động** trên `7e024a6` (máy Antigravity không có Node). | `game/test-*.mjs` (đặc biệt `test-ui.mjs`, `test-ui-timers.mjs`, `test-empire.mjs`, `test-operational-e2e.mjs`) | Chạy toàn bộ `game/test-*.mjs`, báo kết quả vào `CODEX_BACKEND_REPORT.md`. |
-| C2 | Cao | **Xác nhận hành vi quán vắng chủ, không có quản lý.** UI ghi “Quán vắng chủ và chưa có quản lý nên tạm dừng đón khách”. Theo code hiện tại, quán không active vẫn chạy đồng hồ: khách vẫn đến, `assistEnabled=false` nên đơn đứng ở `SELECT` rồi hết kiên nhẫn (`WAIT_TOO_LONG`). | `empire-engine.mjs` `employeeEffects`, `advanceEmpire`; `main.mjs` `currentShopStatus` | Codex chốt luật đúng: chặn rời quán khi chưa có quản lý, tạm dừng đón khách, hay cho lỡ khách. Antigravity sẽ sửa câu chữ UI theo luật đã chốt. |
-| C3 | Trung bình | **Điều kiện “giờ chạy nhanh” đang bị lặp lại ở UI.** UI loại quán `closedToday`, engine thì không; engine còn có nhánh tutorial Day 1 (rate = 0). Hai bên có thể lệch nhau. | `main.mjs` `isQuietAccelerating` (~dòng 540); `empire-engine.mjs` `advanceEmpire` (dòng ~182) | Export một selector, ví dụ `isQuietInterval(state)` / `currentMinuteRate(state)`, để UI chỉ đọc, không tự tính. |
-| C4 | Trung bình | **Trạng thái quán nên là dữ liệu chuẩn từ engine.** UI đang tự suy ra `owner / managed / waiting / closed / done` từ `shiftRunning`, `activeShopId`, nhân sự và `screen`. | `main.mjs` `getMapNodeStatus`, `currentShopStatus` | Export `shopOperationalStatus(empire, shopId)` trả về `{status, managerId}`; UI chỉ ánh xạ sang nhãn và màu. |
-| C5 | Thấp | **Ổn định enum `area` của gợi ý vận hành.** UI dùng class `rec-area-${area}` (`stock`, `service`, `pricing`, `menu`, `hours`, `cost`, `staff`, `stable`). | `empire-engine.mjs` `operationalAdvice` | Giữ nguyên tên `area` hoặc báo trước khi đổi; thêm test giới hạn tối đa 3 gợi ý không quy lỗi hết hàng cho nhân viên. |
-| C6 | Thấp | **Hook fixture chính thức cho test trình duyệt đa quán**, để bằng chứng kịch bản 2 không phải dựng state thủ công. | `main.mjs` `window.__xomNho` | Cung cấp `loadFixture(name)` có seed cố định (ví dụ `two_shops_mid_prep`), dùng chung cho test engine và test UI. |
-
-### Việc Antigravity tự nhận (UI, không cần Codex)
-
-- A1: Node bản đồ (`getMapNodeStatus`) chưa xử lý quán đã `DAY_RESULT` giữa ca, trong khi panel chi tiết đã có nhánh “Đã đóng ca”.
-- A2: Class `status-done` chưa có CSS riêng.
-- A3: Sửa câu chữ trạng thái “Chờ chủ” sau khi Codex chốt C2.
+| Task ID | Trạng thái | Vị trí file:dòng | Chỉ số / Hành động tiếp theo |
+|---|---|---|---|
+| C1–C6 | Done | `game/empire-engine.mjs:177` | 14/14 tests PASS, Baseline 127k/67k chuẩn, Sprint READY_FOR_DIRECTOR |

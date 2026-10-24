@@ -88,6 +88,34 @@
       "kind": "fixture"
     },
     {
+      "file": "../mobile_gate_evidence/operational_handoff/shot_fixture_two_shops_360x640.png",
+      "title": "shot fixture two shops",
+      "topic": "shot_fixture_two_shops",
+      "viewport": "360x640",
+      "kind": "other"
+    },
+    {
+      "file": "../mobile_gate_evidence/operational_handoff/shot_fixture_two_shops_390x844.png",
+      "title": "shot fixture two shops",
+      "topic": "shot_fixture_two_shops",
+      "viewport": "390x844",
+      "kind": "other"
+    },
+    {
+      "file": "../mobile_gate_evidence/operational_handoff/shot_fixture_two_shops_map_360x640.png",
+      "title": "shot fixture two shops map",
+      "topic": "shot_fixture_two_shops_map",
+      "viewport": "360x640",
+      "kind": "other"
+    },
+    {
+      "file": "../mobile_gate_evidence/operational_handoff/shot_fixture_two_shops_map_390x844.png",
+      "title": "shot fixture two shops map",
+      "topic": "shot_fixture_two_shops_map",
+      "viewport": "390x844",
+      "kind": "other"
+    },
+    {
       "file": "../mobile_gate_evidence/operational_handoff/shot_fresh_day1_kitchen_360x640.png",
       "title": "Day 1 · Bếp thực tế",
       "topic": "day1_kitchen",

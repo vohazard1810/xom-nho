@@ -538,12 +538,8 @@ function renderShop() {
   const q1=(state.waitingQueue||[])[1];
   const counterCoords=c?getCharacterStageCoords(c,'COUNTER'):null;
   const waiting0Coords=q0?getCharacterStageCoords(q0,'WAITING_0'):null;
-  const isQuietAccelerating = state.screen === 'SHOP' && !state.isPaused && !state.manualPaused && (() => {
-    if (state.empire && Object.keys(state.empire.shops).length > 1) {
-      return !Object.values(state.empire.shops).some(x => !x.closedToday && (x.state.activeCustomer || (x.state.waitingQueue && x.state.waitingQueue.length > 0)));
-    }
-    return !c && (!state.waitingQueue || state.waitingQueue.length === 0);
-  })();
+  const rate = currentMinuteRate(state);
+  const isQuietAccelerating = isQuietInterval(state) && rate === 30;
   return `<div class="play-screen">
     <header class="play-header"><div><b>${shopTitle()}</b><small>Ngày ${state.currentDay} · ${String(Math.floor(time/60)).padStart(2,'0')}:${String(Math.floor(time%60)).padStart(2,'0')} · ${state.servedOrders.length}/${state.dayCustomers.length} khách${isQuietAccelerating ? ' · <span class="quiet-accel-pill" title="Không có đơn chờ · thời gian trôi nhanh 30 phút/giây">⚡ Vắng khách · giờ chạy nhanh</span>' : ''}</small></div><div class="play-cash-group">${floatingCash?`<span class="cash-floating-gain">${floatingCash}</span>`:''}<span class="play-cash">${money(state.cash)}</span></div><button class="play-pause" data-type="TOGGLE_PAUSE" aria-label="${state.manualPaused?'Tiếp tục':'Tạm dừng'}">${state.manualPaused?'▶':'Ⅱ'}</button></header>
     <div class="play-scene">
@@ -702,26 +698,28 @@ function renderMapPanel(){
  const manager=workers.find(p=>p.role==='manager'),reason=openingEligibility(state,id);
 
  const getMapNodeStatus = (key) => {
-   const shop = e.shops[key];
-   if (!shop) return { text: 'Chưa mở', cls: 'status-unopened' };
-   if (shop.closedToday) return { text: 'Nghỉ hôm nay', cls: 'status-closed' };
+   const op = shopOperationalStatus(e, key);
+   if (op.status === 'unavailable') return { text: 'Chưa mở', cls: 'status-unopened' };
+   if (op.status === 'closed') return { text: 'Nghỉ hôm nay', cls: 'status-closed' };
+   if (op.status === 'done') return { text: 'Đã đóng ca', cls: 'status-done' };
    if (e.shiftRunning) {
-     if (e.activeShopId === key) return { text: 'Bạn ở đây', cls: 'status-owner' };
-     const mgr = e.employees.find(p => p.shopId === key && p.role === 'manager' && !p.restingToday);
-     if (mgr) return { text: 'Quản lý bán', cls: 'status-managed' };
+     if (op.status === 'owner') return { text: 'Bạn ở đây', cls: 'status-owner' };
+     if (op.status === 'managed') return { text: 'Quản lý bán', cls: 'status-managed' };
      return { text: 'Chờ chủ', cls: 'status-waiting' };
    }
-   return { text: shop.ready ? 'Đã chuẩn bị' : 'Đã mở', cls: 'status-ready' };
+   const shop = e.shops[key];
+   return { text: shop?.ready ? 'Đã chuẩn bị' : 'Đã mở', cls: 'status-ready' };
  };
 
  const currentShopStatus = (() => {
-   if (!x) return { label: 'Chưa mở quán', cls: 'status-unopened', desc: reason || 'Đủ điều kiện thuê mặt bằng.' };
-   if (x.closedToday) return { label: '💤 Nghỉ hôm nay', cls: 'status-closed', desc: 'Quán tạm nghỉ hôm nay; không phát sinh lương ca.' };
+   const op = shopOperationalStatus(e, id);
+   if (op.status === 'unavailable') return { label: 'Chưa mở quán', cls: 'status-unopened', desc: reason || 'Đủ điều kiện thuê mặt bằng.' };
+   if (op.status === 'closed') return { label: '💤 Nghỉ hôm nay', cls: 'status-closed', desc: 'Quán tạm nghỉ hôm nay; không phát sinh lương ca.' };
+   if (op.status === 'done') return { label: '🏁 Đã đóng ca', cls: 'status-done', desc: 'Quán đã hoàn tất giờ phục vụ hôm nay.' };
    if (e.shiftRunning) {
-     if (x.state.screen === 'DAY_RESULT') return { label: '🏁 Đã đóng ca', cls: 'status-done', desc: 'Quán đã hoàn tất giờ phục vụ hôm nay.' };
-     if (e.activeShopId === id) return { label: '👑 Bạn đang đứng bán', cls: 'status-owner', desc: 'Chủ quán đang trực tiếp bán và chế biến món tại quầy.' };
-     if (manager) return { label: `👔 Quản lý đang tự bán (${escapeHtml(manager.name)})`, cls: 'status-managed', desc: `Quản lý ${escapeHtml(manager.name)} đang tự phục vụ khách theo thực đơn.` };
-     return { label: '⏳ Chờ chủ (chưa có quản lý)', cls: 'status-waiting', desc: 'Quán vắng chủ và chưa có quản lý nên tạm dừng đón khách.' };
+     if (op.status === 'owner') return { label: '👑 Bạn đang đứng bán', cls: 'status-owner', desc: 'Chủ quán đang trực tiếp bán và chế biến món tại quầy.' };
+     if (op.status === 'managed') return { label: `👔 Quản lý đang tự bán (${escapeHtml(manager?.name||'Quản lý')})`, cls: 'status-managed', desc: `Quản lý ${escapeHtml(manager?.name||'')} đang tự phục vụ khách theo thực đơn.` };
+     return { label: '⏳ Chờ chủ (chưa có quản lý)', cls: 'status-waiting', desc: 'Cần phân công quản lý đang trực trước khi chủ rời sang quán khác.' };
    }
    if (x.ready) return { label: '✓ Đã chuẩn bị', cls: 'status-ready', desc: 'Đã hoàn tất kho và menu; sẵn sàng mở ca.' };
    if (x.state.screen === 'MENU') return { label: '📋 Cần xác nhận menu', cls: 'status-prep', desc: 'Vào chọn giá và bật/tắt món để mở ca.' };

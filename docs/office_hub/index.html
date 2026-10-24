@@ -155,301 +155,299 @@
           </div>
 
           <!-- 2.5D Isometric Virtual Office Floorplan -->
-          <div class="studio-room-card">
-            <div class="studio-room-header">
-              <div class="studio-title-block">
-                <h3>🏢 Mô Hình Văn Phòng Studio Trực Quan (Interactive Character Scene)</h3>
-                <p>Không gian làm việc thời gian thực của <b>Xóm Nhỏ Game Studio</b>. <i>Chạm vào từng nhân vật để kiểm tra chi tiết công việc hoặc gõ chuông duyệt bài!</i></p>
+          <div class="dept-floorplan-card">
+            <div class="dept-floorplan-header">
+              <div class="dept-title-block">
+                <h3>🏢 Mặt Bằng 3 Phòng Ban Studio v2.2 (Department Architecture & Conveyor)</h3>
+                <p>Mặt bằng kiến trúc phân khu có tường ngăn, cửa kính, băng chuyền dữ liệu tự động và comic speech bubbles gọn gàng.</p>
               </div>
               <div class="floorplan-legend">
-                <span class="leg-item"><span class="leg-dot ag"></span> 👩🎨 Antigravity (UI/Art)</span>
-                <span class="leg-item"><span class="leg-dot gold"></span> 👑 Giám Đốc (Dispatch)</span>
-                <span class="leg-item"><span class="leg-dot cx"></span> 👨💻 Codex (Engine Core)</span>
+                <span class="leg-item"><span class="leg-dot ag"></span> 🎨 DEPT 01: UI/Art & QA</span>
+                <span class="leg-item"><span class="leg-dot gold"></span> 👑 DEPT 00: Executive Gate</span>
+                <span class="leg-item"><span class="leg-dot cx"></span> ⚙️ DEPT 02: Engine & Server</span>
               </div>
             </div>
 
-            <div class="studio-stage" id="studio-stage">
-              <!-- Back Wall Scenery -->
-              <div class="room-wall" aria-hidden="true">
-                <!-- Whiteboard Sprint -->
-                <div class="wall-whiteboard">
-                  <div class="wb-header">
-                    <span>SPRINT v0.8 · CORE LOOP</span>
-                    <span class="wb-badge">14/14 PASS</span>
+            <div class="dept-stage" id="dept-stage">
+              <!-- Animated Data Conveyor Belt traversing all 3 rooms -->
+              <div class="data-conveyor-system" aria-label="Băng chuyền dữ liệu tự động xuyên phòng">
+                <div class="conveyor-rail"></div>
+                <div class="conveyor-parcels-track">
+                  <div class="conveyor-parcel parcel-1">
+                    <span class="parcel-icon">📦</span>
+                    <span class="parcel-tag">A1–A5 UI PASS</span>
                   </div>
-                  <div class="wb-columns">
-                    <div class="wb-col">
-                      <small>TODO (5)</small>
-                      <span class="wb-note note-yellow">A1</span>
-                      <span class="wb-note note-yellow">A2</span>
-                      <span class="wb-note note-yellow">A3</span>
-                      <span class="wb-note note-yellow">A4</span>
-                      <span class="wb-note note-yellow">A5</span>
-                    </div>
-                    <div class="wb-col">
-                      <small>REVIEW (7)</small>
-                      <span class="wb-note note-blue">C1-C6</span>
-                      <span class="wb-note note-purple">HO-02</span>
-                    </div>
-                    <div class="wb-col">
-                      <small>DONE (2)</small>
-                      <span class="wb-note note-green">HO-01</span>
-                      <span class="wb-note note-green">HO-03</span>
-                    </div>
+                  <div class="conveyor-parcel parcel-2">
+                    <span class="parcel-icon">⚡</span>
+                    <span class="parcel-tag">14/14 Tests PASS</span>
                   </div>
-                </div>
-
-                <!-- Studio Wall Decor -->
-                <div class="wall-decor">
-                  <div class="wall-clock">
-                    <span class="clock-face">09:41</span>
-                  </div>
-                  <div class="wall-shelf">
-                    <div class="shelf-books">
-                      <span class="book b1"></span>
-                      <span class="book b2"></span>
-                      <span class="book b3"></span>
-                      <span class="book b4"></span>
-                    </div>
-                  </div>
-                  <div class="potted-plant">
-                    <div class="plant-pot"></div>
-                    <div class="plant-leaves">🌿</div>
-                  </div>
-                  <div class="coffee-station">
-                    <div class="coffee-machine">
-                      <span class="machine-gauge"></span>
-                      <span class="coffee-spout"></span>
-                    </div>
-                    <div class="steam-vapors">
-                      <span class="steam s1"></span>
-                      <span class="steam s2"></span>
-                    </div>
+                  <div class="conveyor-parcel parcel-3">
+                    <span class="parcel-icon">💰</span>
+                    <span class="parcel-tag">Day 1: 127k/67k</span>
                   </div>
                 </div>
               </div>
 
-              <!-- Floor with 3 Zoned Rugs -->
-              <div class="room-floor" aria-hidden="true">
-                <div class="floor-zone zone-art"><div class="zone-label">🎨 ART & UI LAB</div></div>
-                <div class="floor-zone zone-ceo"><div class="zone-label">👑 EXECUTIVE SUITE</div></div>
-                <div class="floor-zone zone-engine"><div class="zone-label">⚙️ ENGINE & SERVER CORE</div></div>
-              </div>
-
-              <!-- Paper Plane / Handoff Flight Animation -->
-              <div class="handoff-flight-path" aria-hidden="true">
-                <div class="paper-plane" id="paper-plane">
-                  <span class="plane-body">✈️</span>
-                  <span class="plane-trail"></span>
-                  <span class="plane-payload-tag">Commit 3a86fba</span>
-                </div>
-              </div>
-
-              <!-- Character Desk 1: Antigravity (Art Director) -->
-              <div class="character-workstation ws-antigravity" id="ws-antigravity" role="button" tabindex="0" aria-label="Bấm để kiểm tra Nhân vật Antigravity">
-                <div class="station-speech-bubble bubble-ag">
-                  <div class="bubble-speaker">🎨 ANTIGRAVITY (ART DIRECTOR)</div>
-                  <div class="bubble-text">"Codex vừa chốt luật C2! 5 task UI (A1-A5) đã mở khóa, sẵn sàng triển khai!"</div>
-                  <div class="bubble-hint">👉 Bấm vào mình để xem 5 task A1-A5</div>
+              <!-- DEPARTMENT 01: UI/ART & QA LAB (Left Room) -->
+              <div class="dept-room dept-01" id="ws-antigravity" role="button" tabindex="0" aria-label="Phòng 1: Design & QA Lab">
+                <div class="dept-sign-plate sign-ag">
+                  <span class="sign-code">DEPT 01</span>
+                  <span class="sign-name">UI/ART & QA LAB</span>
+                  <span class="sign-led led-green" title="Đang trực ca"></span>
                 </div>
 
-                <div class="desk-hardware">
-                  <div class="desk-monitor monitor-palette">
-                    <div class="screen-content palette-grid">
-                      <span style="background:#f59e0b"></span><span style="background:#38bdf8"></span>
-                      <span style="background:#10b981"></span><span style="background:#ec4899"></span>
+                <!-- Compact Comic Speech Bubble (Does NOT cover room) -->
+                <div class="comic-bubble bubble-ag">
+                  <span class="bubble-tail"></span>
+                  <b>🎨 Antigravity:</b> "A1–A5 xong! 100% selector & fixture PASS!"
+                </div>
+
+                <!-- Room 1 Architecture & Furnishings -->
+                <div class="room-interior interior-ag">
+                  <!-- Wall Art & Easel -->
+                  <div class="wall-furnishing-group">
+                    <div class="moodboard-frame">
+                      <div class="mb-swatches">
+                        <span style="background:#f59e0b"></span>
+                        <span style="background:#38bdf8"></span>
+                        <span style="background:#10b981"></span>
+                        <span style="background:#ec4899"></span>
+                      </div>
+                      <small>MOODBOARD</small>
                     </div>
-                    <div class="monitor-stand"></div>
-                  </div>
-                  <div class="desk-monitor monitor-device">
-                    <div class="screen-content phone-preview">
-                      <div class="mini-phone"></div>
+                    <div class="art-easel">
+                      <div class="easel-canvas">🥖</div>
+                      <div class="easel-tripod"></div>
                     </div>
-                    <div class="monitor-stand"></div>
                   </div>
-                  <div class="drawing-tablet">
-                    <span class="tablet-glow"></span>
+
+                  <!-- Device Test Rack holding 3 glowing mobile phones -->
+                  <div class="device-rack" title="Kệ kiểm thử thiết bị">
+                    <div class="rack-title">DEVICE RACK</div>
+                    <div class="rack-slots">
+                      <div class="phone-slot p360"><small>360×640</small></div>
+                      <div class="phone-slot p390"><small>390×844</small></div>
+                      <div class="phone-slot p1200"><small>1200px</small></div>
+                    </div>
+                  </div>
+
+                  <!-- L-Shaped Workstation Desk -->
+                  <div class="desk-l-shape">
+                    <!-- Desk Progress Bar -->
+                    <div class="desk-progress-badge">
+                      <div class="p-label">Working: A1 → A5</div>
+                      <div class="p-track"><div class="p-fill" style="width:100%"></div></div>
+                      <span class="p-status">COMPLETED 100%</span>
+                    </div>
+                    <div class="desk-monitors-row">
+                      <div class="mini-screen pal-screen">🎨</div>
+                      <div class="mini-screen dev-screen">📱</div>
+                      <div class="mini-tablet"><span class="tab-glow"></span></div>
+                    </div>
+                  </div>
+
+                  <!-- Rigged Character Figure -->
+                  <div class="character-figure char-ag">
+                    <div class="char-svg-wrap">
+                      <svg class="char-svg" viewBox="0 0 100 120" width="85" height="102">
+                        <rect x="25" y="45" width="50" height="55" rx="10" fill="#1e2433" stroke="#2d3748" stroke-width="2"/>
+                        <rect x="46" y="95" width="8" height="20" fill="#111827"/>
+                        <path d="M 32 65 C 32 50, 68 50, 68 65 L 72 100 C 72 105, 28 105, 28 100 Z" fill="#b45309"/>
+                        <path d="M 40 52 Q 50 60 60 52 Q 50 66 40 52" fill="#fde68a"/>
+                        <circle cx="50" cy="38" r="18" fill="#fed7aa"/>
+                        <path d="M 32 36 C 32 20, 68 20, 68 36 C 68 45, 66 48, 64 42 C 60 28, 40 28, 36 42 Z" fill="#451a03"/>
+                        <ellipse cx="50" cy="22" rx="20" ry="10" fill="#d97706"/>
+                        <circle cx="50" cy="12" r="3" fill="#b45309"/>
+                        <circle cx="44" cy="38" r="5" fill="none" stroke="#1e293b" stroke-width="2"/>
+                        <circle cx="56" cy="38" r="5" fill="none" stroke="#1e293b" stroke-width="2"/>
+                        <line x1="49" y1="38" x2="51" y2="38" stroke="#1e293b" stroke-width="2"/>
+                        <path d="M 46 47 Q 50 51 54 47" fill="none" stroke="#9a3412" stroke-width="2" stroke-linecap="round"/>
+                        <path class="arm-drawing" d="M 32 68 Q 42 78 54 82" fill="none" stroke="#d97706" stroke-width="7" stroke-linecap="round"/>
+                        <line class="stylus-pen" x1="53" y1="80" x2="62" y2="88" stroke="#38bdf8" stroke-width="3" stroke-linecap="round"/>
+                      </svg>
+                    </div>
                   </div>
                 </div>
 
-                <div class="character-figure char-antigravity">
-                  <div class="floating-sparks">
-                    <span class="spark sp-art">🎨</span>
-                    <span class="spark sp-star">✨</span>
-                  </div>
-                  <!-- SVG Illustrated Rigged Character -->
-                  <div class="char-svg-wrap">
-                    <svg class="char-svg" viewBox="0 0 100 120" width="100" height="120">
-                      <!-- Ergonomic Chair -->
-                      <rect x="25" y="45" width="50" height="55" rx="10" fill="#1e2433" stroke="#2d3748" stroke-width="2"/>
-                      <rect x="46" y="95" width="8" height="20" fill="#111827"/>
-                      <!-- Body / Sweater -->
-                      <path d="M 32 65 C 32 50, 68 50, 68 65 L 72 100 C 72 105, 28 105, 28 100 Z" fill="#b45309"/>
-                      <!-- Scarf / Collar -->
-                      <path d="M 40 52 Q 50 60 60 52 Q 50 66 40 52" fill="#fde68a"/>
-                      <!-- Head -->
-                      <circle cx="50" cy="38" r="18" fill="#fed7aa"/>
-                      <!-- Hair -->
-                      <path d="M 32 36 C 32 20, 68 20, 68 36 C 68 45, 66 48, 64 42 C 60 28, 40 28, 36 42 Z" fill="#451a03"/>
-                      <!-- French Beret Hat -->
-                      <ellipse cx="50" cy="22" rx="20" ry="10" fill="#d97706"/>
-                      <circle cx="50" cy="12" r="3" fill="#b45309"/>
-                      <!-- Glasses -->
-                      <circle cx="44" cy="38" r="5" fill="none" stroke="#1e293b" stroke-width="2"/>
-                      <circle cx="56" cy="38" r="5" fill="none" stroke="#1e293b" stroke-width="2"/>
-                      <line x1="49" y1="38" x2="51" y2="38" stroke="#1e293b" stroke-width="2"/>
-                      <!-- Smile -->
-                      <path d="M 46 47 Q 50 51 54 47" fill="none" stroke="#9a3412" stroke-width="2" stroke-linecap="round"/>
-                      <!-- Arms & Stylus -->
-                      <path class="arm-drawing" d="M 32 68 Q 42 78 54 82" fill="none" stroke="#d97706" stroke-width="7" stroke-linecap="round"/>
-                      <line class="stylus-pen" x1="53" y1="80" x2="62" y2="88" stroke="#38bdf8" stroke-width="3" stroke-linecap="round"/>
-                    </svg>
-                  </div>
-                </div>
+                <div class="room-floor-tag tag-ag">🎨 DEPT 01 · UI / ART & QA</div>
+              </div>
 
-                <div class="station-plate plate-ag">
-                  <div class="station-name">👩🎨 Antigravity</div>
-                  <div class="station-meta">Art Director · 15 Screenshots · 5 Tasks Sẵn sàng</div>
+              <!-- Translucent Glass Dividing Wall 1 -->
+              <div class="room-dividing-wall divider-1" aria-hidden="true">
+                <div class="glass-door-portal">
+                  <div class="glass-pane"></div>
+                  <div class="door-frame-border"></div>
+                  <span class="door-sensor-light"></span>
                 </div>
               </div>
 
-              <!-- Character Desk 2: Director Desk (CEO / Lead - Giữa phòng) -->
-              <div class="character-workstation ws-director" id="ws-director" role="button" tabindex="0" aria-label="Bấm để kiểm tra Bàn Giám Đốc">
-                <div class="station-speech-bubble bubble-director">
-                  <div class="bubble-speaker">👑 GIÁM ĐỐC STUDIO (LEAD)</div>
-                  <div class="bubble-text">"Backend 3a86fba đã PASS 14/14 tests! Antigravity hãy triển khai tiếp 5 task UI A1-A5!"</div>
-                  <div class="bubble-hint">🔔 Bấm để gõ chuông duyệt bài</div>
+              <!-- DEPARTMENT 00: DIRECTOR & AUTO-DISPATCH ROOM (Center Room) -->
+              <div class="dept-room dept-00" id="ws-director" role="button" tabindex="0" aria-label="Phòng 0: Director & Auto-Dispatch Gate">
+                <div class="dept-sign-plate sign-gold">
+                  <span class="sign-code">DEPT 00</span>
+                  <span class="sign-name">DIRECTOR & AUTO-DISPATCH GATE</span>
+                  <span class="sign-led led-gold" title="Auto-Loop Active"></span>
                 </div>
 
-                <div class="desk-hardware hardware-ceo">
-                  <div class="executive-desk-mat">
+                <!-- Compact Comic Speech Bubble -->
+                <div class="comic-bubble bubble-ceo">
+                  <span class="bubble-tail"></span>
+                  <b>👑 Giám Đốc:</b> "Auto-Loop: Round 2/2 PASS! Sẵn sàng duyệt bài!"
+                </div>
+
+                <!-- Room 0 Architecture & Furnishings -->
+                <div class="room-interior interior-ceo">
+                  <!-- Executive Screen Displaying Auto-Loop Stats -->
+                  <div class="executive-wall-screen">
+                    <div class="scr-header">
+                      <span>AUTO-DISPATCH GATE v2.2</span>
+                      <span class="scr-live-dot">● ACTIVE</span>
+                    </div>
+                    <div class="scr-metrics-row">
+                      <div class="scr-stat">
+                        <small>Auto-Loop</small>
+                        <b>Round 2/2</b>
+                      </div>
+                      <div class="scr-stat">
+                        <small>Engine Tests</small>
+                        <b class="text-green">14/14 PASS</b>
+                      </div>
+                      <div class="scr-stat">
+                        <small>Baseline Day 1</small>
+                        <b class="text-gold">127k / 67k</b>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Executive Director Desk -->
+                  <div class="executive-ceo-desk">
                     <div class="desk-bell" id="desk-bell" title="Bấm chuông duyệt bài!">
                       <span class="bell-button"></span>
                       <span class="bell-dome"></span>
-                      <span class="bell-ring-wave"></span>
                     </div>
-                    <div class="ceo-mug">
-                      <span class="mug-body">☕</span>
-                      <span class="mug-steam"></span>
+                    <div class="document-trays">
+                      <div class="doc-tray tray-in" title="Hồ sơ vào">IN: 0</div>
+                      <div class="doc-tray tray-out" title="Hồ sơ đã duyệt">
+                        OUT: 14 <span class="badge-approved-mini">APPROVED</span>
+                      </div>
                     </div>
-                    <div class="approval-stamp">
-                      <span>APPROVED</span>
+                    <div class="ceo-mug">☕</div>
+                  </div>
+
+                  <!-- Rigged Character Figure -->
+                  <div class="character-figure char-ceo">
+                    <div class="char-svg-wrap">
+                      <svg class="char-svg" viewBox="0 0 100 120" width="85" height="102">
+                        <rect x="22" y="30" width="56" height="75" rx="14" fill="#311e10" stroke="#78350f" stroke-width="2.5"/>
+                        <rect x="46" y="100" width="8" height="18" fill="#1c1917"/>
+                        <path d="M 30 62 C 30 48, 70 48, 70 62 L 74 102 C 74 106, 26 106, 26 102 Z" fill="#1e1b4b"/>
+                        <polygon points="50,56 44,66 50,90 56,66" fill="#fbbf24"/>
+                        <polygon points="46,54 54,54 50,62" fill="#fff"/>
+                        <circle cx="50" cy="38" r="18" fill="#ffedd5"/>
+                        <path d="M 32 34 C 32 20, 68 20, 68 34 C 68 30, 62 24, 50 24 C 38 24, 32 30, 32 34" fill="#18181b"/>
+                        <path class="crown-icon" d="M 42 20 L 46 25 L 50 18 L 54 25 L 58 20 L 58 24 L 42 24 Z" fill="#facc15" stroke="#ca8a04" stroke-width="1"/>
+                        <circle cx="44" cy="38" r="2.5" fill="#1e293b"/>
+                        <circle cx="56" cy="38" r="2.5" fill="#1e293b"/>
+                        <path d="M 46 48 Q 50 52 54 48" fill="none" stroke="#c2410c" stroke-width="2" stroke-linecap="round"/>
+                      </svg>
                     </div>
                   </div>
                 </div>
 
-                <div class="character-figure char-director">
-                  <!-- SVG Director -->
-                  <div class="char-svg-wrap">
-                    <svg class="char-svg" viewBox="0 0 100 120" width="100" height="120">
-                      <!-- High-back Leather Chair -->
-                      <rect x="22" y="30" width="56" height="75" rx="14" fill="#311e10" stroke="#78350f" stroke-width="2.5"/>
-                      <rect x="46" y="100" width="8" height="18" fill="#1c1917"/>
-                      <!-- Blazer Suit -->
-                      <path d="M 30 62 C 30 48, 70 48, 70 62 L 74 102 C 74 106, 26 106, 26 102 Z" fill="#1e1b4b"/>
-                      <!-- Shirt & Gold Tie -->
-                      <polygon points="50,56 44,66 50,90 56,66" fill="#fbbf24"/>
-                      <polygon points="46,54 54,54 50,62" fill="#fff"/>
-                      <!-- Head -->
-                      <circle cx="50" cy="38" r="18" fill="#ffedd5"/>
-                      <!-- Hair -->
-                      <path d="M 32 34 C 32 20, 68 20, 68 34 C 68 30, 62 24, 50 24 C 38 24, 32 30, 32 34" fill="#18181b"/>
-                      <!-- Gold Crown Badge on Head -->
-                      <path class="crown-icon" d="M 42 20 L 46 25 L 50 18 L 54 25 L 58 20 L 58 24 L 42 24 Z" fill="#facc15" stroke="#ca8a04" stroke-width="1"/>
-                      <!-- Confident Eyes & Smile -->
-                      <circle cx="44" cy="38" r="2.5" fill="#1e293b"/>
-                      <circle cx="56" cy="38" r="2.5" fill="#1e293b"/>
-                      <path d="M 46 48 Q 50 52 54 48" fill="none" stroke="#c2410c" stroke-width="2" stroke-linecap="round"/>
-                    </svg>
-                  </div>
-                </div>
+                <div class="room-floor-tag tag-ceo">👑 DEPT 00 · DIRECTOR & DISPATCH GATE</div>
+              </div>
 
-                <div class="station-plate plate-director">
-                  <div class="station-name">👑 Giám Đốc Studio</div>
-                  <div class="station-meta">Điều phối Handoff · Chuông Duyệt Bài</div>
+              <!-- Translucent Glass Dividing Wall 2 -->
+              <div class="room-dividing-wall divider-2" aria-hidden="true">
+                <div class="glass-door-portal">
+                  <div class="glass-pane"></div>
+                  <div class="door-frame-border"></div>
+                  <span class="door-sensor-light"></span>
                 </div>
               </div>
 
-              <!-- Character Desk 3: Codex (Lead Engine Coder - Bên phải) -->
-              <div class="character-workstation ws-codex" id="ws-codex" role="button" tabindex="0" aria-label="Bấm để kiểm tra Nhân vật Codex">
-                <div class="station-speech-bubble bubble-cx">
-                  <div class="bubble-speaker">⚙️ CODEX (ENGINE LEAD)</div>
-                  <div class="bubble-text">"Đã chạy 14/14 test PASS! Export đầy đủ selector và fixture, sẵn sàng cho UI!"</div>
-                  <div class="bubble-hint">👉 Bấm để xem kết quả commit 3a86fba</div>
+              <!-- DEPARTMENT 02: CORE ENGINE & TEST LAB (Right Room) -->
+              <div class="dept-room dept-02" id="ws-codex" role="button" tabindex="0" aria-label="Phòng 2: Core Engine & Test Lab">
+                <div class="dept-sign-plate sign-cx">
+                  <span class="sign-code">DEPT 02</span>
+                  <span class="sign-name">CORE ENGINE & TEST LAB</span>
+                  <span class="sign-led led-cyan" title="14/14 PASS"></span>
                 </div>
 
-                <div class="desk-hardware hardware-codex">
-                  <!-- Triple Monitor Battlestation -->
-                  <div class="desk-monitor monitor-left">
-                    <div class="screen-content screen-term">
-                      <div class="code-line green">PASS 14/14</div>
-                      <div class="code-line">C1-C6 OK</div>
+                <!-- Compact Comic Speech Bubble -->
+                <div class="comic-bubble bubble-cx">
+                  <span class="bubble-tail"></span>
+                  <b>⚙️ Codex:</b> "14/14 test PASS! Baseline Day 1 chuẩn chỉ!"
+                </div>
+
+                <!-- Room 2 Architecture & Furnishings -->
+                <div class="room-interior interior-cx">
+                  <!-- 3 Tall Server Racks Array -->
+                  <div class="server-racks-row">
+                    <div class="rack-tower rk1">
+                      <div class="rk-unit"><span class="rk-led l-c"></span><span class="rk-led l-g"></span></div>
+                      <div class="rk-unit"><span class="rk-led l-g"></span><span class="rk-led l-y"></span></div>
+                      <div class="rk-fan"></div>
                     </div>
-                    <div class="monitor-stand"></div>
+                    <div class="rack-tower rk2">
+                      <div class="rk-unit"><span class="rk-led l-c"></span><span class="rk-led l-c"></span></div>
+                      <div class="rk-unit"><span class="rk-led l-g"></span><span class="rk-led l-g"></span></div>
+                      <div class="rk-fan"></div>
+                    </div>
+                    <div class="rack-tower rk3">
+                      <div class="rk-unit"><span class="rk-led l-g"></span><span class="rk-led l-c"></span></div>
+                      <div class="rk-unit"><span class="rk-led l-c"></span><span class="rk-led l-g"></span></div>
+                      <div class="rk-fan"></div>
+                    </div>
                   </div>
-                  <div class="desk-monitor monitor-center">
-                    <div class="screen-content matrix-code">
+
+                  <!-- Floor Fiber Optic Cables with glowing pulses -->
+                  <div class="floor-fiber-cables">
+                    <span class="fiber-conduit f1"></span>
+                    <span class="fiber-conduit f2"></span>
+                  </div>
+
+                  <!-- Curved Triple-Monitor Workstation -->
+                  <div class="desk-corner-curved">
+                    <div class="mon-curved mc-left">
+                      <div class="mc-term text-green">PASS 14/14</div>
+                    </div>
+                    <div class="mon-curved mc-mid">
                       <div class="scrolling-code">
-                        <span>function shopStatus()</span>
-                        <span>export isQuiet()</span>
-                        <span>currentMinuteRate()</span>
+                        <span>shopStatus()</span>
+                        <span>isQuiet()</span>
+                        <span>currentRate()</span>
                       </div>
                     </div>
-                    <div class="monitor-stand"></div>
-                  </div>
-                  <div class="desk-monitor monitor-right">
-                    <div class="screen-content telemetry-screen">
-                      <div class="telemetry-stat">Day 1: 127k</div>
-                      <div class="telemetry-bar"></div>
+                    <div class="mon-curved mc-right">
+                      <div class="mc-term text-gold">127k/67k</div>
                     </div>
-                    <div class="monitor-stand"></div>
                   </div>
-                  <!-- Server Rack Towers beside desk -->
-                  <div class="server-tower">
-                    <div class="rack-unit"><span class="rack-led l1"></span><span class="rack-led l2"></span></div>
-                    <div class="rack-unit"><span class="rack-led l3"></span><span class="rack-led l4"></span></div>
-                    <div class="rack-unit"><span class="rack-led l5"></span><span class="rack-led l6"></span></div>
+
+                  <!-- Rigged Character Figure -->
+                  <div class="character-figure char-cx">
+                    <div class="char-svg-wrap">
+                      <svg class="char-svg" viewBox="0 0 100 120" width="85" height="102">
+                        <rect x="25" y="40" width="50" height="60" rx="8" fill="#0f172a" stroke="#1e293b" stroke-width="2"/>
+                        <rect x="46" y="98" width="8" height="18" fill="#020617"/>
+                        <path d="M 30 65 C 30 50, 70 50, 70 65 L 74 100 C 74 105, 26 105, 26 100 Z" fill="#0369a1"/>
+                        <circle cx="50" cy="38" r="18" fill="#ffedd5"/>
+                        <path d="M 32 36 C 32 20, 68 20, 68 36 C 66 22, 60 16, 50 18 C 40 16, 34 22, 32 36" fill="#1e293b"/>
+                        <path d="M 28 36 C 28 16, 72 16, 72 36" fill="none" stroke="#06b6d4" stroke-width="4"/>
+                        <rect x="26" y="30" width="6" height="15" rx="3" fill="#0891b2"/>
+                        <rect x="68" y="30" width="6" height="15" rx="3" fill="#0891b2"/>
+                        <rect x="40" y="34" width="9" height="7" rx="2" fill="#38bdf8"/>
+                        <rect x="51" y="34" width="9" height="7" rx="2" fill="#38bdf8"/>
+                        <line x1="49" y1="37" x2="51" y2="37" stroke="#38bdf8" stroke-width="1.5"/>
+                        <path d="M 46 48 Q 50 51 54 48" fill="none" stroke="#075985" stroke-width="2" stroke-linecap="round"/>
+                        <path class="arm-typing-left" d="M 32 68 Q 42 74 48 82" fill="none" stroke="#0284c7" stroke-width="7" stroke-linecap="round"/>
+                        <path class="arm-typing-right" d="M 68 68 Q 58 74 52 82" fill="none" stroke="#0284c7" stroke-width="7" stroke-linecap="round"/>
+                      </svg>
+                    </div>
                   </div>
                 </div>
 
-                <div class="character-figure char-codex">
-                  <div class="floating-sparks">
-                    <span class="spark sp-code">&lt; / &gt;</span>
-                    <span class="spark sp-brace">{ }</span>
-                  </div>
-                  <!-- SVG Illustrated Rigged Character -->
-                  <div class="char-svg-wrap">
-                    <svg class="char-svg" viewBox="0 0 100 120" width="100" height="120">
-                      <!-- Ergonomic Mesh Chair -->
-                      <rect x="25" y="40" width="50" height="60" rx="8" fill="#0f172a" stroke="#1e293b" stroke-width="2"/>
-                      <rect x="46" y="98" width="8" height="18" fill="#020617"/>
-                      <!-- Cyan Hoodie Body -->
-                      <path d="M 30 65 C 30 50, 70 50, 70 65 L 74 100 C 74 105, 26 105, 26 100 Z" fill="#0369a1"/>
-                      <!-- Head -->
-                      <circle cx="50" cy="38" r="18" fill="#ffedd5"/>
-                      <!-- Spiky Coder Hair -->
-                      <path d="M 32 36 C 32 20, 68 20, 68 36 C 66 22, 60 16, 50 18 C 40 16, 34 22, 32 36" fill="#1e293b"/>
-                      <!-- Over-ear Headphones -->
-                      <path d="M 28 36 C 28 16, 72 16, 72 36" fill="none" stroke="#06b6d4" stroke-width="4"/>
-                      <rect x="26" y="30" width="6" height="15" rx="3" fill="#0891b2"/>
-                      <rect x="68" y="30" width="6" height="15" rx="3" fill="#0891b2"/>
-                      <!-- Glowing Glasses / Eyes -->
-                      <rect x="40" y="34" width="9" height="7" rx="2" fill="#38bdf8"/>
-                      <rect x="51" y="34" width="9" height="7" rx="2" fill="#38bdf8"/>
-                      <line x1="49" y1="37" x2="51" y2="37" stroke="#38bdf8" stroke-width="1.5"/>
-                      <!-- Smile -->
-                      <path d="M 46 48 Q 50 51 54 48" fill="none" stroke="#075985" stroke-width="2" stroke-linecap="round"/>
-                      <!-- Rapid Typing Arms -->
-                      <path class="arm-typing-left" d="M 32 68 Q 42 74 48 82" fill="none" stroke="#0284c7" stroke-width="7" stroke-linecap="round"/>
-                      <path class="arm-typing-right" d="M 68 68 Q 58 74 52 82" fill="none" stroke="#0284c7" stroke-width="7" stroke-linecap="round"/>
-                    </svg>
-                  </div>
-                </div>
-
-                <div class="station-plate plate-cx">
-                  <div class="station-name">👨💻 Codex</div>
-                  <div class="station-meta">Engine Lead · 14/14 Tests PASS · Commit 3a86fba</div>
-                </div>
+                <div class="room-floor-tag tag-cx">⚙️ DEPT 02 · ENGINE & TEST LAB</div>
               </div>
             </div>
           </div>
