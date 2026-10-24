@@ -1,0 +1,10 @@
+{
+  "conversation_id": "47b8d4fc-0808-455a-ab31-40cf8e3ca68d",
+  "workspace": "C:\\Users\\truonggiang.vo01\\.gemini\\antigravity\\scratch\\xom-nho",
+  "dashboard_origin": "http://127.0.0.1:8990",
+  "executable": "C:\\Users\\truonggiang.vo01\\AppData\\Local\\Programs\\antigravity\\resources\\bin\\language_server.exe",
+  "handshake_nonce": "OFFICE-LINK-20261024-1215",
+  "max_messages_per_hour": 6,
+  "transport": "agentapi send-message; reply through shared Office Hub files",
+  "credential_storage": "none; caller environment only"
+}
