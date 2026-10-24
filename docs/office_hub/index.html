@@ -4,96 +4,427 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="dark">
-  <title>Xóm Nhỏ · Office Control Center</title>
+  <title>Xóm Nhỏ Studio · Virtual Office Command Center</title>
   <link rel="stylesheet" href="style.css">
 </head>
-<body>
-  <header class="hub-header">
-    <div class="brand">
-      <span class="brand-mark" aria-hidden="true">🏮</span>
-      <div>
-        <h1>Xóm Nhỏ Studio · Office Control Center</h1>
-        <p id="hub-meta">Đang tải dữ liệu…</p>
+<body class="app-shell">
+  <!-- Top Global Command Bar -->
+  <header class="top-bar">
+    <div class="top-bar-left">
+      <div class="studio-logo" aria-hidden="true">🏮</div>
+      <div class="room-breadcrumb">
+        <span class="crumb-studio">Xóm Nhỏ Studio</span>
+        <span class="crumb-sep">/</span>
+        <span class="crumb-current" id="current-room-name">🏢 Sảnh Văn Phòng</span>
       </div>
     </div>
-    <div class="desks" aria-label="Thành viên">
-      <div class="desk desk-antigravity"><b>Antigravity</b><small>UI · Art · Kiểm tra trình duyệt</small></div>
-      <div class="desk desk-codex"><b>Codex</b><small>Engine · Logic · Test tự động</small></div>
+
+    <div class="top-bar-center">
+      <div class="sprint-progress-pill" title="Tiến độ hoàn thành Sprint">
+        <span class="pill-label">Sprint:</span>
+        <span class="pill-value" id="sprint-progress-text">0/0 (0%)</span>
+        <div class="progress-track" aria-hidden="true">
+          <div class="progress-fill" id="sprint-progress-bar" style="width: 0%"></div>
+        </div>
+      </div>
+      <div class="branch-pill" title="Nhánh Git hiện tại">
+        <span class="git-icon" aria-hidden="true">⎇</span>
+        <code id="git-branch-text">codex/core-loop-completion</code>
+      </div>
+      <div id="data-source-badge" class="source-pill src-live" title="Nguồn dữ liệu">Dữ liệu trực tiếp</div>
     </div>
-    <nav class="hub-nav" aria-label="Khu vực">
-      <a href="#board">① Bảng phân việc</a>
-      <a href="#reports">② Bàn báo cáo</a>
-      <a href="#gallery">③ Bằng chứng</a>
-    </nav>
+
+    <div class="top-bar-right">
+      <button type="button" id="btn-copy-prompt" class="btn-action-primary" title="Sao chép toàn bộ Action Items & prompt giao việc cho Codex">
+        <span class="btn-icon">📋</span>
+        <span>Copy Prompt Bàn Giao</span>
+      </button>
+    </div>
   </header>
 
-  <main>
-    <section id="board" class="zone" aria-labelledby="board-title">
-      <div class="zone-head">
-        <h2 id="board-title">① Bảng phân việc</h2>
-        <div class="filters" role="group" aria-label="Lọc theo người phụ trách">
-          <button type="button" class="chip is-active" data-owner="all" aria-pressed="true">Tất cả</button>
-          <button type="button" class="chip owner-antigravity" data-owner="Antigravity" aria-pressed="false">Antigravity</button>
-          <button type="button" class="chip owner-codex" data-owner="Codex" aria-pressed="false">Codex</button>
+  <div class="app-body">
+    <!-- Left Fixed Sidebar Navigation -->
+    <aside class="sidebar" aria-label="Điều hướng văn phòng">
+      <nav class="nav-rooms">
+        <div class="nav-section-label">KHÔNG GIAN STUDIO</div>
+        <button type="button" class="nav-item is-active" data-view="lobby" aria-current="page">
+          <span class="nav-icon">🏢</span>
+          <span class="nav-text">Sảnh Văn Phòng</span>
+          <span class="nav-shortcut">1</span>
+        </button>
+        <button type="button" class="nav-item" data-view="kanban">
+          <span class="nav-icon">📋</span>
+          <span class="nav-text">Bảng Kanban</span>
+          <span class="nav-count" id="nav-count-kanban">12</span>
+          <span class="nav-shortcut">2</span>
+        </button>
+        <button type="button" class="nav-item" data-view="reports">
+          <span class="nav-icon">📑</span>
+          <span class="nav-text">Phòng Báo Cáo</span>
+          <span class="nav-count">2</span>
+          <span class="nav-shortcut">3</span>
+        </button>
+        <button type="button" class="nav-item" data-view="qa">
+          <span class="nav-icon">📱</span>
+          <span class="nav-text">Mobile QA Lab</span>
+          <span class="nav-count" id="nav-count-qa">15</span>
+          <span class="nav-shortcut">4</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-spacer"></div>
+
+      <!-- Live Staff Desks Status Widget -->
+      <div class="sidebar-desks">
+        <div class="nav-section-label">TRẠNG THÁI CA TRỰC</div>
+        <div class="staff-card staff-ag" data-target-desk="antigravity">
+          <div class="staff-avatar">
+            <span class="avatar-icon">🎨</span>
+            <span class="live-dot pulse-ag" title="Đang trực tuyến"></span>
+          </div>
+          <div class="staff-info">
+            <div class="staff-name">Antigravity</div>
+            <div class="staff-role">UI · Art · Browser QA</div>
+            <div class="staff-status-sub">Đã nộp bài · Chờ C2</div>
+          </div>
+        </div>
+
+        <div class="staff-card staff-cx" data-target-desk="codex">
+          <div class="staff-avatar">
+            <span class="avatar-icon">⚙️</span>
+            <span class="live-dot pulse-cx" title="Đang chờ ca"></span>
+          </div>
+          <div class="staff-info">
+            <div class="staff-name">Codex</div>
+            <div class="staff-role">Engine · Logic · Tests</div>
+            <div class="staff-status-sub">6 Tasks chờ xử lý</div>
+          </div>
         </div>
       </div>
-      <div id="handoff-banner" class="handoff-banner" hidden></div>
-      <div id="kanban" class="kanban"></div>
-    </section>
 
-    <section id="reports" class="zone" aria-labelledby="reports-title">
-      <div class="zone-head">
-        <h2 id="reports-title">② Bàn báo cáo</h2>
-        <p class="zone-hint">Khung tô vàng là mục <b>Action Items</b> bàn giao giữa hai bên.</p>
+      <div class="sidebar-footer">
+        <small id="sidebar-updated-time">Cập nhật: --</small>
       </div>
-      <div class="split">
-        <article class="report-pane pane-antigravity" aria-label="Báo cáo Antigravity">
-          <header>
-            <span class="pane-owner">Antigravity · UI</span>
-            <code>reports/ANTIGRAVITY_UI_REPORT.md</code>
-            <button type="button" class="jump" data-target="report-antigravity">↓ Action Items</button>
-          </header>
-          <div id="report-antigravity" class="markdown"></div>
-        </article>
-        <article class="report-pane pane-codex" aria-label="Báo cáo Codex">
-          <header>
-            <span class="pane-owner">Codex · Backend</span>
-            <code>reports/CODEX_BACKEND_REPORT.md</code>
-            <button type="button" class="jump" data-target="report-codex">↓ Action Items</button>
-          </header>
-          <div id="report-codex" class="markdown"></div>
-        </article>
-      </div>
-    </section>
+    </aside>
 
-    <section id="gallery" class="zone" aria-labelledby="gallery-title">
-      <div class="zone-head">
-        <h2 id="gallery-title">③ Phòng trưng bày bằng chứng</h2>
-        <div class="filters" role="group" aria-label="Lọc loại bằng chứng">
-          <button type="button" class="chip is-active" data-kind="all" aria-pressed="true">Tất cả</button>
-          <button type="button" class="chip kind-fresh" data-kind="fresh" aria-pressed="false">Gameplay thật</button>
-          <button type="button" class="chip kind-fixture" data-kind="fixture" aria-pressed="false">Fixture có kiểm soát</button>
+    <!-- Main Dynamic Content Workspace -->
+    <main class="main-workspace" id="main-content">
+
+      <!-- ROOM 1: SẢNH VĂN PHÒNG (LOBBY & 2.5D FLOORPLAN) -->
+      <section id="view-lobby" class="room-view is-active" aria-label="Sảnh văn phòng">
+        <div class="lobby-container">
+          <!-- Executive KPI Bar -->
+          <div class="lobby-kpis">
+            <div class="kpi-card kpi-handoff">
+              <div class="kpi-header">
+                <span class="kpi-icon">⇄</span>
+                <span class="kpi-tag">ĐỢT BÀN GIAO HIỆN TẠI</span>
+              </div>
+              <div class="kpi-title" id="kpi-handoff-title">Operational UI Pass</div>
+              <div class="kpi-sub" id="kpi-handoff-desc">Antigravity → Codex · base c035ccf → result 7e024a6</div>
+              <div class="kpi-badge-row">
+                <span class="status-chip chip-review">Trạng thái: Đang Review</span>
+                <span class="status-chip chip-neutral" id="kpi-open-ag">Antigravity: 1 review / 3 todo</span>
+              </div>
+            </div>
+
+            <div class="kpi-card kpi-evidence">
+              <div class="kpi-header">
+                <span class="kpi-icon">📱</span>
+                <span class="kpi-tag">THIẾT BỊ & BẰNG CHỨNG</span>
+              </div>
+              <div class="kpi-metric"><span id="kpi-evidence-count">15</span>/15 <small>Screenshots</small></div>
+              <div class="kpi-sub">Đầy đủ 2 độ phân giải 360×640 & 390×844</div>
+              <div class="kpi-badge-row">
+                <span class="status-chip chip-success">✓ Gameplay thật</span>
+                <span class="status-chip chip-info">✓ Fixture kiểm soát</span>
+              </div>
+            </div>
+
+            <div class="kpi-card kpi-blocker">
+              <div class="kpi-header">
+                <span class="kpi-icon">⚠️</span>
+                <span class="kpi-tag">ĐIỂM NGHẼN CẦN THÁO GỠ</span>
+              </div>
+              <div class="kpi-title text-warn">1 Blocker phụ thuộc</div>
+              <div class="kpi-sub">C2 (Chốt luật quán vắng chủ) đang chặn A3 (Sửa UI).</div>
+              <div class="kpi-badge-row">
+                <button type="button" class="btn-chip" id="btn-goto-blockers">Xem Blocker trên Kanban →</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- 2.5D Isometric Virtual Office Floorplan -->
+          <div class="floorplan-card">
+            <div class="floorplan-header">
+              <div class="floorplan-title-block">
+                <h3>Sơ đồ Mặt Bằng Văn Phòng Ảo 2.5D</h3>
+                <p>Mặt bằng làm việc tương tác thời gian thực giữa <b>Antigravity</b>, <b>Giám Đốc Studio</b> và <b>Codex</b>.</p>
+              </div>
+              <div class="floorplan-legend">
+                <span class="leg-item"><span class="leg-dot ag"></span> Art & UI Lab</span>
+                <span class="leg-item"><span class="leg-dot stream"></span> Handoff Stream</span>
+                <span class="leg-item"><span class="leg-dot cx"></span> Engine & Logic Core</span>
+              </div>
+            </div>
+
+            <div class="isometric-stage">
+              <div class="iso-grid-bg" aria-hidden="true"></div>
+
+              <!-- Handoff Data Stream Line -->
+              <div class="handoff-stream" aria-hidden="true">
+                <div class="stream-line"></div>
+                <div class="stream-pulse"></div>
+                <div class="stream-label">Dữ liệu Bàn giao: 7e024a6</div>
+              </div>
+
+              <!-- Desk 1: Antigravity (Art & UI Lab) -->
+              <div class="iso-desk desk-ag" id="desk-antigravity">
+                <div class="speech-bubble bubble-ag">
+                  <div class="bubble-tag">🎨 ANTIGRAVITY</div>
+                  <div class="bubble-msg">"Đã bàn giao UI 4 trạng thái, cue vắng khách & 15 ảnh mobile. Đang chờ Codex gỡ C2!"</div>
+                </div>
+                <div class="podium podium-ag">
+                  <div class="desk-surface">
+                    <div class="desk-terminal">
+                      <div class="screen-glow ag"></div>
+                      <span class="terminal-text">CSS / 15 SHOTS</span>
+                    </div>
+                    <div class="avatar-badge avatar-ag">
+                      <span>🎨</span>
+                      <span class="badge-pulse pulse-ag"></span>
+                    </div>
+                  </div>
+                  <div class="podium-pedestal"></div>
+                </div>
+                <div class="desk-caption">
+                  <b>Bàn Antigravity</b>
+                  <small>Art & UI Lab · 15 Screenshots</small>
+                </div>
+              </div>
+
+              <!-- Desk 2: Director Desk (Giám Đốc / Handoff Coordinator) -->
+              <div class="iso-desk desk-director" id="desk-director">
+                <div class="speech-bubble bubble-director">
+                  <div class="bubble-tag">👑 ĐIỀU PHỐI VIÊN</div>
+                  <div class="bubble-msg">"Đợt HO-2026-10-04: Antigravity đã hoàn tất UI. Đang chuyển bóng sang Codex chạy test C1 & chốt luật C2."</div>
+                </div>
+                <div class="podium podium-director">
+                  <div class="desk-surface">
+                    <div class="desk-terminal">
+                      <div class="screen-glow gold"></div>
+                      <span class="terminal-text">DISPATCH</span>
+                    </div>
+                    <div class="avatar-badge avatar-director">
+                      <span>👑</span>
+                      <span class="badge-pulse pulse-gold"></span>
+                    </div>
+                  </div>
+                  <div class="podium-pedestal"></div>
+                </div>
+                <div class="desk-caption">
+                  <b>Bàn Giám Đốc</b>
+                  <small>Điều Phối Handoff</small>
+                </div>
+              </div>
+
+              <!-- Desk 3: Codex (Engine & Logic Core) -->
+              <div class="iso-desk desk-cx" id="desk-codex">
+                <div class="speech-bubble bubble-cx">
+                  <div class="bubble-tag">⚙️ CODEX</div>
+                  <div class="bubble-msg">"Có 6 tasks trong hàng đợi (C1-C6). Day 1 Baseline: 127k két / 67k lãi. Cần chạy bộ test!"</div>
+                </div>
+                <div class="podium podium-cx">
+                  <div class="desk-surface">
+                    <div class="desk-terminal">
+                      <div class="screen-glow cx"></div>
+                      <span class="terminal-text">ENGINE / TESTS</span>
+                    </div>
+                    <div class="avatar-badge avatar-cx">
+                      <span>⚙️</span>
+                      <span class="badge-pulse pulse-cx"></span>
+                    </div>
+                  </div>
+                  <div class="podium-pedestal"></div>
+                </div>
+                <div class="desk-caption">
+                  <b>Bàn Codex</b>
+                  <small>Engine Core · 6 Tasks Todo</small>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
-      <div id="evidence-grid" class="evidence-grid"></div>
-    </section>
-  </main>
+      </section>
 
-  <dialog id="lightbox" class="lightbox" closedby="any" aria-label="Xem ảnh lớn">
-    <figure>
-      <img id="lightbox-img" alt="">
-      <figcaption id="lightbox-caption"></figcaption>
-    </figure>
-    <div class="lightbox-controls">
-      <button type="button" data-step="-1" aria-label="Ảnh trước">←</button>
-      <a id="lightbox-open" target="_blank" rel="noopener">Mở ảnh gốc</a>
-      <button type="button" data-step="1" aria-label="Ảnh sau">→</button>
-      <form method="dialog"><button aria-label="Đóng">✕</button></form>
+      <!-- ROOM 2: BẢNG KANBAN (LINEAR TASK BOARD) -->
+      <section id="view-kanban" class="room-view" aria-label="Bảng Kanban">
+        <div class="kanban-room-head">
+          <div class="kanban-search-box">
+            <span class="search-icon" aria-hidden="true">🔍</span>
+            <input type="search" id="kanban-search" placeholder="Tìm kiếm task, mã commit, người phụ trách..." aria-label="Tìm task">
+          </div>
+
+          <div class="kanban-filters" role="group" aria-label="Bộ lọc người phụ trách">
+            <button type="button" class="btn-filter is-active" data-owner-filter="all">Tất cả (<span id="count-all-tasks">12</span>)</button>
+            <button type="button" class="btn-filter filter-ag" data-owner-filter="Antigravity">🎨 Antigravity (<span id="count-ag-tasks">4</span>)</button>
+            <button type="button" class="btn-filter filter-cx" data-owner-filter="Codex">⚙️ Codex (<span id="count-cx-tasks">8</span>)</button>
+          </div>
+        </div>
+
+        <div class="kanban-board-container">
+          <div id="linear-kanban-board" class="linear-kanban-columns">
+            <!-- Dynamically populated 4 columns with independent scrolling -->
+          </div>
+        </div>
+      </section>
+
+      <!-- ROOM 3: PHÒNG HỌP BÁO CÁO (SPLIT-VIEW EXECUTIVE REPORTS) -->
+      <section id="view-reports" class="room-view" aria-label="Phòng báo cáo">
+        <!-- Executive KPI Cards over Reports -->
+        <div class="reports-kpi-bar">
+          <div class="report-kpi-card ag-kpi">
+            <div class="kpi-role">🎨 ANTIGRAVITY EXECUTIVE SUMMARY</div>
+            <div class="kpi-stat-grid">
+              <div><b>2</b><small>Files code sửa</small></div>
+              <div><b>15</b><small>Screenshots</small></div>
+              <div><b>6</b><small>Action Items Codex</small></div>
+              <div><b class="text-green">PASS</b><small>E2E Clicks Day 1</small></div>
+            </div>
+          </div>
+
+          <div class="report-kpi-card cx-kpi">
+            <div class="kpi-role">⚙️ CODEX EXECUTIVE SUMMARY</div>
+            <div class="kpi-stat-grid">
+              <div><b>c035ccf</b><small>Base commit</small></div>
+              <div><b>127k / 67k</b><small>Baseline Day 1</small></div>
+              <div><b class="text-warn">⏳ Chờ</b><small>Chạy game/test-*.mjs</small></div>
+              <div><b>1</b><small>Blocker chờ chốt (C2)</small></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Split View 2-column Reader -->
+        <div class="reports-split-view">
+          <article class="report-deck deck-ag" aria-label="Báo cáo Antigravity">
+            <header class="deck-header">
+              <div class="deck-title-group">
+                <span class="owner-pill pill-ag">Antigravity · UI</span>
+                <code>reports/ANTIGRAVITY_UI_REPORT.md</code>
+              </div>
+              <button type="button" class="btn-jump-action" data-jump-to="report-ag-actions">
+                <span>↓ Nhảy tới Action Items</span>
+              </button>
+            </header>
+            <div id="deck-content-ag" class="deck-markdown"></div>
+          </article>
+
+          <article class="report-deck deck-cx" aria-label="Báo cáo Codex">
+            <header class="deck-header">
+              <div class="deck-title-group">
+                <span class="owner-pill pill-cx">Codex · Backend</span>
+                <code>reports/CODEX_BACKEND_REPORT.md</code>
+              </div>
+              <span class="badge-waiting-fill">Template · Chờ Codex điền</span>
+            </header>
+            <div id="deck-content-cx" class="deck-markdown"></div>
+          </article>
+        </div>
+      </section>
+
+      <!-- ROOM 4: MOBILE QA DEVICE LAB (PHONE MOCKUPS & COMPARISON) -->
+      <section id="view-qa" class="room-view" aria-label="Phòng Test Thiết Bị">
+        <div class="qa-toolbar">
+          <div class="qa-mode-tabs" role="tablist">
+            <button type="button" class="qa-tab is-active" id="tab-mode-grid" role="tab" aria-selected="true">
+              <span class="tab-icon">📱</span>
+              <span>Lưới Thiết Bị (15 Phones)</span>
+            </button>
+            <button type="button" class="qa-tab" id="tab-mode-compare" role="tab" aria-selected="false">
+              <span class="tab-icon">⚖️</span>
+              <span>So Sánh 2 Màn Hình (Compare Mode)</span>
+            </button>
+          </div>
+
+          <div class="qa-filters" id="qa-grid-filters">
+            <span class="filter-label">Lọc:</span>
+            <button type="button" class="chip is-active" data-qa-kind="all">Tất cả (15)</button>
+            <button type="button" class="chip chip-fresh" data-qa-kind="fresh">Gameplay thật (3)</button>
+            <button type="button" class="chip chip-fixture" data-qa-kind="fixture">Fixture có kiểm soát (12)</button>
+          </div>
+        </div>
+
+        <!-- Mode A: Device Grid (Phone Mockups) -->
+        <div id="qa-grid-container" class="qa-content-container">
+          <div id="phone-devices-grid" class="phone-devices-grid">
+            <!-- Dynamically populated phone mockups -->
+          </div>
+        </div>
+
+        <!-- Mode B: Compare 2 Screens Mode -->
+        <div id="qa-compare-container" class="qa-content-container" style="display: none;">
+          <div class="compare-preset-bar">
+            <span class="preset-label">Mẫu so sánh nhanh:</span>
+            <button type="button" class="btn-preset is-active" data-preset="empire_360_vs_390">Tổng kết đa quán: 360×640 vs 390×844</button>
+            <button type="button" class="btn-preset" data-preset="regular_360_vs_390">Khách quen: 360×640 vs 390×844</button>
+            <button type="button" class="btn-preset" data-preset="map_360_vs_390">Bản đồ (Chủ bán): 360×640 vs 390×844</button>
+            <button type="button" class="btn-preset" data-preset="day1_fresh_vs_result">Day 1: Bếp nấu vs Kết quả</button>
+          </div>
+
+          <div class="compare-selector-bar">
+            <div class="selector-slot slot-left">
+              <label for="select-slot-a">Màn hình A (Trái):</label>
+              <select id="select-slot-a" class="device-select"></select>
+            </div>
+            <div class="compare-vs-badge">VS</div>
+            <div class="selector-slot slot-right">
+              <label for="select-slot-b">Màn hình B (Phải):</label>
+              <select id="select-slot-b" class="device-select"></select>
+            </div>
+          </div>
+
+          <div class="compare-stage">
+            <div class="compare-device-wrapper" id="compare-device-a">
+              <!-- Rendered Phone A -->
+            </div>
+            <div class="compare-divider-rule">
+              <div class="diff-indicator">ĐỐI CHIẾU VIEWPORT</div>
+            </div>
+            <div class="compare-device-wrapper" id="compare-device-b">
+              <!-- Rendered Phone B -->
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- Lightbox Modal for Zooming -->
+  <dialog id="qa-lightbox" class="qa-lightbox" aria-label="Xem chi tiết ảnh thiết bị">
+    <div class="lightbox-shell">
+      <header class="lightbox-header">
+        <div id="lightbox-caption" class="lightbox-title">Chi tiết ảnh</div>
+        <div class="lightbox-actions">
+          <a id="lightbox-raw-link" target="_blank" rel="noopener" class="btn-lightbox-link">Mở ảnh gốc ↗</a>
+          <form method="dialog"><button type="submit" class="btn-lightbox-close" aria-label="Đóng">✕</button></form>
+        </div>
+      </header>
+      <div class="lightbox-body">
+        <button type="button" class="lightbox-nav-btn prev" id="btn-lightbox-prev" aria-label="Ảnh trước">‹</button>
+        <div class="lightbox-img-frame">
+          <img id="lightbox-large-img" alt="">
+        </div>
+        <button type="button" class="lightbox-nav-btn next" id="btn-lightbox-next" aria-label="Ảnh sau">›</button>
+      </div>
     </div>
   </dialog>
 
+  <!-- Notification Toast -->
+  <div id="studio-toast" class="studio-toast" role="status" aria-live="polite"></div>
+
+  <!-- Classic scripts for offline file:// support -->
   <script src="data.bundle.js"></script>
-  <!-- Classic script on purpose: module scripts are blocked when opened via file://. -->
   <script src="app.js"></script>
 </body>
 </html>
