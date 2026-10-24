@@ -84,6 +84,23 @@ Không chạy lại bộ game ở ca này vì không sửa logic game. Bảng 14
 - Cổng 8990 không tự chuyển sang nhánh mới. Dashboard phải được phục vụ từ checkout controller (hoặc đồng bộ nhánh mới) để có panel Điều phối. Chạy build_bundle.py lấy snapshot offline; dữ liệu live được tải lại mỗi 10 giây.
 - Hướng dẫn: `handoff/README.md`; bằng chứng dry-run: `handoff/dry-run.json`, `handoff/orchestrator.log`. Không có cuộc trao đổi trực tiếp nào với Antigravity trong đợt dry-run.
 
+## 6. Kết nối trực tiếp đã xác minh — 2026-10-24
+
+| Mục | Kết quả | Bằng chứng |
+|---|---|---|
+| Commit | 3f77de9b2257308711426d3750404d91d930e90c | direct_link.py và bằng chứng |
+| Repo đang phục vụ | .gemini/antigravity/scratch/xom-nho | Tiến trình http.server 8990 |
+| Codex → Antigravity | send-message thành công | Hội thoại 47b8d4fc-0808-455a-ab31-40cf8e3ca68d |
+| Antigravity → Codex | ACK đúng nonce | handoff/direct-evidence/ANTIGRAVITY_ACK.md |
+| Vòng về | ROUNDTRIP-CONFIRMED | OFFICE-LINK-20261024-1215; HTTP và filesystem khớp |
+| Báo cáo live | Hai phòng đã cập nhật | Cổng 8990, báo cáo và bundle HTTP 200 |
+| Helper | 5/5 unittest PASS | Token redaction, STOP, quota, loopback, ACK |
+| Bảo mật | Người dùng đã cho phép | Token chỉ trong bộ nhớ, không lưu |
+| Phạm vi | Gửi trực tiếp, nhận file chung | Theo yêu cầu; chưa bật daemon hoặc nối vòng queue |
+| Model | Phiên GUI quyết định | send-message không chọn được Light/Medium |
+
+Kết quả mới thay giới hạn transport ở dry-run trước. CLI agy vẫn chưa có; agentapi đã xác minh bằng phản hồi thật.
+
 ## Action Items for Antigravity (UI/Art)
 
 | # | Ưu tiên | Đầu việc | Vị trí liên quan | Ghi chú |

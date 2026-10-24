@@ -3,7 +3,7 @@
   "project": "Xóm Nhỏ — Office Control Center",
   "branch": "codex/core-loop-completion",
   "repository": "https://github.com/vohazard1810/xom-nho",
-  "updatedAt": "2026-10-24T12:06:00+07:00",
+  "updatedAt": "2026-10-24T05:18:50.400Z",
   "updatedBy": "Codex",
   "statuses": [
     "Todo",
@@ -199,9 +199,9 @@
       "priority": "High",
       "commit": "7a34dc939bcfeaf078aa16c89e937ce3c61ce06e",
       "report": "docs/office_hub/reports/CODEX_BACKEND_REPORT.md",
-      "updatedAt": "2026-10-24T12:06:00+07:00",
+      "updatedAt": "2026-10-24T05:18:50.400Z",
       "updatedBy": "Codex",
-      "notes": "9 bài tích hợp + 1 bài hợp đồng CLI PASS. Dry-run 0 model calls. agy chưa tìm thấy; manual, chưa gửi task thật."
+      "notes": "Direct agentapi link verified by real roundtrip ACK at localhost:8990; helper 5/5 PASS; no always-on daemon."
     },
     {
       "id": "A6",

@@ -1,5 +1,7 @@
 # Local Codex ↔ Antigravity orchestrator
 
+**Cập nhật:** kênh nhắn trực tiếp vào phiên Antigravity đang mở đã được xác minh. Xem [DIRECT_LINK_README.md](DIRECT_LINK_README.md). Adapter queue dưới đây vẫn độc lập; chưa bật daemon.
+
 Node 20+ và Git; không có dependency npm. Chạy từ root repo.
 
 ```powershell
