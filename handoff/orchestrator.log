@@ -1,0 +1,9 @@
+{"time":"2026-10-24T04:59:25.495Z","event":"dry_run","tasks":["office-A1","office-A2","office-A3","office-A4","office-A5"],"calls":0}
+{"time":"2026-10-24T05:03:25.791Z","event":"cli_probe","agent":"Codex","command":"C:\\Users\\truonggiang.vo01\\AppData\\Local\\OpenAI\\Codex\\bin\\37f54d68e5533a51\\codex.exe","headless":true,"mode":"headless","modelCall":false}
+{"time":"2026-10-24T05:03:25.792Z","event":"cli_probe","agent":"Antigravity","command":null,"headless":false,"mode":"manual","modelCall":false}
+{"time":"2026-10-24T05:03:25.793Z","event":"cli_probe","agent":"Antigravity agentapi","command":"C:\\Users\\truonggiang.vo01\\AppData\\Local\\Programs\\antigravity\\resources\\bin\\language_server.exe","mode":"unsupported","modelCall":false}
+{"time":"2026-10-24T05:03:26.357Z","event":"dry_run","tasks":["office-A1","office-A2","office-A3","office-A4","office-A5"],"calls":0}
+{"time":"2026-10-24T05:05:39.352Z","event":"cli_probe","agent":"Codex","command":"C:\\Users\\truonggiang.vo01\\AppData\\Local\\OpenAI\\Codex\\bin\\37f54d68e5533a51\\codex.exe","headless":true,"mode":"headless","modelCall":false}
+{"time":"2026-10-24T05:05:39.353Z","event":"cli_probe","agent":"Antigravity","command":null,"headless":false,"mode":"manual","modelCall":false}
+{"time":"2026-10-24T05:05:39.353Z","event":"cli_probe","agent":"Antigravity agentapi","command":"C:\\Users\\truonggiang.vo01\\AppData\\Local\\Programs\\antigravity\\resources\\bin\\language_server.exe","mode":"unsupported","modelCall":false}
+{"time":"2026-10-24T05:05:39.880Z","event":"dry_run","tasks":["office-A1","office-A2","office-A3","office-A4","office-A5"],"calls":0}

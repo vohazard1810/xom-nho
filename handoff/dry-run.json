@@ -1,0 +1,118 @@
+{
+  "time": "2026-10-24T05:05:39.880Z",
+  "dryRun": true,
+  "stopped": false,
+  "calls": 0,
+  "queueWritten": false,
+  "worktreesCreated": false,
+  "capabilities": {
+    "time": "2026-10-24T05:05:38.679Z",
+    "agents": {
+      "Codex": {
+        "command": "C:\\Users\\truonggiang.vo01\\AppData\\Local\\OpenAI\\Codex\\bin\\37f54d68e5533a51\\codex.exe",
+        "headless": true,
+        "mode": "headless",
+        "models": {
+          "Light": "gpt-6-luna",
+          "Medium": "gpt-6.1-sol"
+        },
+        "authentication": "not tested (dry-run never calls a model)",
+        "reason": "Headless flags found; authentication not yet verified"
+      },
+      "Antigravity": {
+        "command": null,
+        "headless": false,
+        "mode": "manual",
+        "models": {
+          "Light": null,
+          "Medium": null
+        },
+        "authentication": "not tested (dry-run never calls a model)",
+        "reason": "CLI executable not found"
+      }
+    },
+    "antigravityInternal": {
+      "path": "C:\\Users\\truonggiang.vo01\\AppData\\Local\\Programs\\antigravity\\resources\\bin\\language_server.exe",
+      "help": "Usage: agentapi <command> [args]\n\nAvailable Commands:\n  get-conversation-metadata <conversation_id>\n  new-conversation [--model=<flash_lite|flash|pro>] [--title=<title>] [--profile=<profile>] <prompt>\n  send-message [--title=<title>] <recipient_id> <content>\n",
+      "supportedAdapter": false,
+      "reason": "Conversation messaging is not a verified synchronous workspace execution protocol; not used automatically."
+    }
+  },
+  "plans": [
+    {
+      "task": "office-A1",
+      "recipient": "Antigravity",
+      "status": "Đã gửi",
+      "mode": "manual",
+      "tier": "Medium",
+      "model": null,
+      "branch": "agents/antigravity",
+      "tests": [
+        "game"
+      ],
+      "reviewer": "Codex / Light",
+      "maxReviewRounds": 3,
+      "invokesModel": false
+    },
+    {
+      "task": "office-A2",
+      "recipient": "Antigravity",
+      "status": "Đã gửi",
+      "mode": "manual",
+      "tier": "Medium",
+      "model": null,
+      "branch": "agents/antigravity",
+      "tests": [
+        "game"
+      ],
+      "reviewer": "Codex / Light",
+      "maxReviewRounds": 3,
+      "invokesModel": false
+    },
+    {
+      "task": "office-A3",
+      "recipient": "Antigravity",
+      "status": "Đã gửi",
+      "mode": "manual",
+      "tier": "Medium",
+      "model": null,
+      "branch": "agents/antigravity",
+      "tests": [
+        "game"
+      ],
+      "reviewer": "Codex / Light",
+      "maxReviewRounds": 3,
+      "invokesModel": false
+    },
+    {
+      "task": "office-A4",
+      "recipient": "Antigravity",
+      "status": "Đã gửi",
+      "mode": "manual",
+      "tier": "Medium",
+      "model": null,
+      "branch": "agents/antigravity",
+      "tests": [
+        "game"
+      ],
+      "reviewer": "Codex / Light",
+      "maxReviewRounds": 3,
+      "invokesModel": false
+    },
+    {
+      "task": "office-A5",
+      "recipient": "Antigravity",
+      "status": "Đã gửi",
+      "mode": "manual",
+      "tier": "Medium",
+      "model": null,
+      "branch": "agents/antigravity",
+      "tests": [
+        "game"
+      ],
+      "reviewer": "Codex / Light",
+      "maxReviewRounds": 3,
+      "invokesModel": false
+    }
+  ]
+}

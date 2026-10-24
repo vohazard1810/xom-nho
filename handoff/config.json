@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "baseRef": "codex/local-orchestrator",
+  "remote": "origin",
+  "fetch": false,
+  "maxCallsPerHour": 6,
+  "callTimeoutSeconds": 1200,
+  "pollSeconds": 15,
+  "agents": {
+    "Codex": {
+      "command": "codex",
+      "branch": "agents/codex",
+      "models": {"Light": "gpt-6-luna", "Medium": "gpt-6.1-sol"}
+    },
+    "Antigravity": {
+      "command": "agy",
+      "branch": "agents/antigravity",
+      "models": {"Light": null, "Medium": null}
+    }
+  },
+  "tests": {
+    "game": ["node", "handoff/run-game-tests.mjs"],
+    "orchestrator": ["node", "--test", "handoff/test-orchestrator.mjs"]
+  }
+}

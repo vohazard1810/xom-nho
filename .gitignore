@@ -2,3 +2,6 @@
 /*.png
 __pycache__/
 docs/mobile_gate_evidence/video/
+handoff/.runtime/
+handoff/STOP
+/STOP

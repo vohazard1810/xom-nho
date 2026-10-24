@@ -56,3 +56,12 @@ python docs/office_hub/build_bundle.py
 ```
 
 Lệnh này cập nhật `evidence.json` và `data.bundle.js`, để `index.html` mở trực tiếp bằng `file://` vẫn có dữ liệu. Nếu chạy qua HTTP (ví dụ `python -m http.server` tại gốc repo rồi mở `/docs/office_hub/`), dashboard đọc file trực tiếp và luôn hiển thị bản mới nhất.
+
+## 6. Local orchestrator
+
+Khi làm task trong `handoff/queue.json`, quy ước nhánh ở mục 4 được thay bằng:
+controller `codex/local-orchestrator`, Codex `agents/codex`, Antigravity `agents/antigravity`.
+Không push/merge `main`. Worker không tự sửa queue, config, log hay bộ kiểm chứng trong `handoff/`;
+chỉ append ACK vào `handoff/ACK.md` trên nhánh của mình. Đọc `handoff/README.md` và outbox
+trước khi nhận việc. `STOP` ở gốc controller hoặc `handoff/STOP` dừng bộ điều phối.
+Office Hub vẫn là nơi báo cáo sản phẩm; queue/ACK/log là bằng chứng vận hành, không thay thế báo cáo.
