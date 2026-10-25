@@ -3,7 +3,7 @@
   "project": "Xóm Nhỏ — Office Control Center",
   "branch": "codex/core-loop-completion",
   "repository": "https://github.com/vohazard1810/xom-nho",
-  "updatedAt": "2026-10-25T03:02:46.702613+00:00",
+  "updatedAt": "2026-10-25T03:41:11.376252+00:00",
   "updatedBy": "Codex",
   "statuses": [
     "Todo",
@@ -20,7 +20,8 @@
     "title": "Ba cải tiến quản lý quán trong game",
     "from": "Codex",
     "to": "Antigravity",
-    "source": "docs/office_hub/reports/GAME_THREE_SCOPE.md"
+    "source": "docs/office_hub/reports/GAME_THREE_FINAL_REPORT.md",
+    "resultCommit": "24fc321"
   },
   "tasks": [
     {
@@ -271,36 +272,45 @@
       "title": "Xem lãi gộp ước tính và cảnh báo giá bán dưới vốn",
       "owner": "Antigravity",
       "area": "Game",
-      "status": "Review",
-      "report": "docs/office_hub/reports/GAME_THREE_SCOPE.md",
-      "updatedAt": "2026-10-25T03:17:46.459159+00:00",
+      "status": "Done",
+      "report": "docs/office_hub/reports/GAME_THREE_FINAL_REPORT.md",
+      "updatedAt": "2026-10-25T03:41:11.376252+00:00",
       "updatedBy": "Codex",
-      "notes": "R1 cần sửa câu chữ và ảnh fixture; xem GAME_THREE_REVIEW_R1.md; logic/UI integration PASS.",
-      "reviewRound": 1
+      "notes": "Codex duyệt theo ủy quyền; GAME_THREE_ACCEPTANCE.json;18/18 PASS; ảnh360/390 đạt.",
+      "reviewRound": 2,
+      "collaborators": [
+        "Codex"
+      ]
     },
     {
       "id": "A-G4",
       "title": "Phân biệt hàng tươi và tiền hàng dùng trong ngày ở chợ",
       "owner": "Antigravity",
       "area": "Game",
-      "status": "Review",
-      "report": "docs/office_hub/reports/GAME_THREE_SCOPE.md",
-      "updatedAt": "2026-10-25T03:17:46.459159+00:00",
+      "status": "Done",
+      "report": "docs/office_hub/reports/GAME_THREE_FINAL_REPORT.md",
+      "updatedAt": "2026-10-25T03:41:11.376252+00:00",
       "updatedBy": "Codex",
-      "notes": "R1 cần sửa câu chữ và ảnh fixture; xem GAME_THREE_REVIEW_R1.md; logic/UI integration PASS.",
-      "reviewRound": 1
+      "notes": "Codex duyệt theo ủy quyền; GAME_THREE_ACCEPTANCE.json;18/18 PASS; ảnh360/390 đạt.",
+      "reviewRound": 2,
+      "collaborators": [
+        "Codex"
+      ]
     },
     {
       "id": "A-G5",
       "title": "Tổng kết nhu cầu bị lỡ theo món và nguyên nhân",
       "owner": "Antigravity",
       "area": "Game",
-      "status": "Review",
-      "report": "docs/office_hub/reports/GAME_THREE_SCOPE.md",
-      "updatedAt": "2026-10-25T03:17:46.459159+00:00",
+      "status": "Done",
+      "report": "docs/office_hub/reports/GAME_THREE_FINAL_REPORT.md",
+      "updatedAt": "2026-10-25T03:41:11.376252+00:00",
       "updatedBy": "Codex",
-      "notes": "R1 cần sửa câu chữ và ảnh fixture; xem GAME_THREE_REVIEW_R1.md; logic/UI integration PASS.",
-      "reviewRound": 1
+      "notes": "Codex duyệt theo ủy quyền; GAME_THREE_ACCEPTANCE.json;18/18 PASS; ảnh360/390 đạt.",
+      "reviewRound": 2,
+      "collaborators": [
+        "Codex"
+      ]
     }
   ]
 }

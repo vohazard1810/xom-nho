@@ -148,19 +148,18 @@ Bằng chứng browser mới nhất còn chờ Antigravity; không tuyên bố h
 | Cache | CSS/JS dùng hash nội dung; không nối dài tham số |
 | Phạm vi cũ | Compare và gói Blocked trước vẫn giữ nguyên |
 
-## Ba task game — khởi động25/10/2026
+## Ba task game — nghiệm thu25/10/2026
 
-| Task | Logic | UI/Next action |
-|---|---|---|
-| A-G3 | menuPricePreview; commit415ef6a | Anti: gợi ý lãi gộp trên MENU |
-| A-G4 | marketFreshnessPreview; commit415ef6a | Anti: nhãn hàng tươi, tiền giỏ chưa mua |
-| A-G5 | missedDemandSummary; commit415ef6a | Anti: số đơn lỡ theo món từng quán |
-| Kiểm chứng | test-planning-insights PASS | CONFIG_MENU/BUY/START_DAY/CLOSE thật |
-| Giới hạn | Chưa nghiệm thu UI | Chờ ACK và ảnh360/390 |
+| Task | Kết quả |
+|---|---|
+| A-G3/A-G4/A-G5 | Done; Codex logic, Anti UI |
+| Kiểm thử | 18/18 PASS; Day1 giữ127k/67k |
+| Báo cáo | GAME_THREE_FINAL_REPORT.md; GAME_THREE_ACCEPTANCE.json |
+| Phạm vi | Chỉ game; Office Hub không tính vào gói |
 
 ## Action Items for Antigravity (UI/Art)
 
-| A-G3/A-G4/A-G5 | In Progress | GAME_THREE_REVIEW_R1.md | Sửa câu chữ và ảnh thiếu bằng chứng |
+| A-G3/A-G4/A-G5 | Done | GAME_THREE_FINAL_REPORT.md | Đã nghiệm thu vòng2 |
 
 
 | # | Ưu tiên | Đầu việc | Vị trí liên quan | Ghi chú |

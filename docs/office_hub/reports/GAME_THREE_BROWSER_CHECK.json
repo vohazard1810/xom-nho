@@ -9,5 +9,6 @@
     "Opened day2 then closed early via confirmation:7 missed,2 stockouts and5 early-close, correct per-recipe breakdown",
     "Result ledger opened and countdown paused"
   ],
-  "status": "PASS; copy and peer evidence corrections pending"
+  "status": "PASS",
+  "finalReview": "PASS round2; GAME_THREE_ACCEPTANCE.json"
 }
