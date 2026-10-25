@@ -65,3 +65,7 @@ Không push/merge `main`. Worker không tự sửa queue, config, log hay bộ k
 chỉ append ACK vào `handoff/ACK.md` trên nhánh của mình. Đọc `handoff/README.md` và outbox
 trước khi nhận việc. `STOP` ở gốc controller hoặc `handoff/STOP` dừng bộ điều phối.
 Office Hub vẫn là nơi báo cáo sản phẩm; queue/ACK/log là bằng chứng vận hành, không thay thế báo cáo.
+
+## Quy ước bổ sung từ chủ dự án
+
+Đọc `handoff/ART_AND_REWORK_POLICY.md`: đồng bộ asset game, dùng công cụ tạo ảnh của Antigravity và hướng dẫn khắc phục cụ thể sau lỗi lặp; giữ giới hạn ba vòng review.
