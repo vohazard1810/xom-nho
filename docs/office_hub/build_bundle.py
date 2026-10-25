@@ -65,6 +65,31 @@ def refresh_asset_versions(hub: Path) -> None:
         index.write_text(updated, encoding='utf-8')
 
 
+def build_latest(hub: Path) -> dict | None:
+    candidates = []
+    for path in (hub / 'reports').glob('*_ACCEPTANCE.json'):
+        record = json.loads(path.read_text(encoding='utf-8'))
+        if record.get('verdict') != 'PASS' or not record.get('reports') or not record.get('testReceipt'):
+            continue
+        # References must remain inside this Office Hub, even for offline bundles.
+        refs = list(record['reports'].values()) + [record['testReceipt']]
+        if any(not (hub / ref).resolve().is_relative_to(hub.resolve()) for ref in refs):
+            continue
+        stamp = record.get('at') or record.get('time')
+        if stamp:
+            candidates.append((datetime.fromisoformat(stamp.replace('Z', '+00:00')), record))
+    if not candidates:
+        return None
+    record = max(candidates, key=lambda item: item[0])[1]
+    tests = json.loads((hub / record['testReceipt']).read_text(encoding='utf-8'))
+    return {'nonce': record['nonce'], 'at': record.get('at') or record.get('time'),
+            'commit': record.get('codeCommit'), 'reviewRound': record.get('reviewRound'),
+            'tasks': record.get('tasks', {}), 'reports': record['reports'],
+            'tests': {'passed': tests.get('passedFiles'), 'total': tests.get('totalFiles'),
+                      'valid': tests.get('exitCode') == 0 and tests.get('sourceUnchanged') is True},
+            'markdown': {key: (hub / value).read_text(encoding='utf-8') for key, value in record['reports'].items()}}
+
+
 def main() -> None:
     evidence = []
     for folder in EVIDENCE_DIRS:
@@ -81,6 +106,8 @@ def main() -> None:
         "evidence": {"folders": EVIDENCE_DIRS, "items": evidence},
         "reports": {k: (HUB / v).read_text(encoding="utf-8") for k, v in REPORTS.items()},
     }
+    bundle["latest"] = build_latest(HUB)
+    (HUB / "latest.json").write_text(json.dumps(bundle["latest"], ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     handoff = DOCS.parent / "handoff"
     bundle["orchestrator"] = {
         key: json.loads((handoff / filename).read_text(encoding="utf-8"))

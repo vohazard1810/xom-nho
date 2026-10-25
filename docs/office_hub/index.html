@@ -33,7 +33,7 @@
       </div>
       <div class="branch-pill commit-pill" title="Mã Git commit hiện tại (7 ký tự)">
         <span class="git-icon" aria-hidden="true">📦</span>
-        <code id="git-commit-text">67386c6</code>
+        <code id="git-commit-text">—</code>
         <button type="button" class="btn-copy-mini" id="btn-copy-commit" title="Sao chép commit hash">📋</button>
       </div>
       <div class="invariant-pill" id="invariant-badge" title="Mục I/I2: Trạng thái chỉ đổi khi có commit hoặc ACK trong repo">
@@ -1055,12 +1055,11 @@
           <div class="banner-body">
             <h4 class="banner-title">Cảnh Báo Blocker: <span id="banner-blocker-reason">Review không hợp lệ hoặc sai snapshot</span></h4>
             <p class="banner-desc">
-              <b>Nguyên nhân:</b> Bot Codex CLI chạm hạn mức quota API OpenAI lúc 06:43 UTC (3:09 PM reset).<br>
-              <b>Thực tế kiểm định:</b> Toàn bộ 15 bài test engine và 22 ảnh kiểm chứng UI đều đã <b>ĐẠT (PASS 100%)</b>.<br>
-              <b>Hướng khắc phục:</b> Bạn có thể gỡ cờ Blocker kỹ thuật này để phê duyệt đợt nộp và chuyển sang làm tính năng mới.
+              Đây là kết quả kiểm duyệt của yêu cầu Office trước đây. Không suy ra lỗi hạn mức khi chưa có bằng chứng.<br>
+              Gói mới nhất và tiến độ hiện tại được hiển thị riêng bên dưới. Lịch sử bị chặn vẫn được giữ nguyên.
             </p>
             <div class="banner-actions">
-              <button type="button" class="btn-banner-action" id="btn-banner-unblock">🔓 Gỡ Cờ Blocker & Về Sảnh Duyệt →</button>
+              <button type="button" class="btn-banner-action" id="btn-banner-unblock">Xem yêu cầu Office trong lịch sử →</button>
               <button type="button" class="btn-banner-action btn-banner-retry is-hidden" id="btn-banner-retry-review" title="Yêu cầu hệ thống kiểm chứng lại bản hiện tại">🔄 Thử lại kiểm chứng</button>
             </div>
           </div>
@@ -1070,20 +1069,14 @@
           <div class="report-kpi-card ag-kpi">
             <div class="kpi-role">🎨 ANTIGRAVITY EXECUTIVE SUMMARY</div>
             <div class="kpi-stat-grid">
-              <div><b>2</b><small>Files code sửa</small></div>
-              <div><b>22</b><small>Screenshots</small></div>
-              <div><b>6</b><small>Action Items Codex</small></div>
-              <div><b class="text-green">PASS</b><small>E2E Clicks Day 1</small></div>
+              <div><b>Đang nạp</b><small>Chờ dữ liệu báo cáo</small></div>
             </div>
           </div>
 
           <div class="report-kpi-card cx-kpi">
             <div class="kpi-role">⚙️ CODEX EXECUTIVE SUMMARY</div>
             <div class="kpi-stat-grid">
-              <div><b>3a86fba</b><small>Commit triển khai</small></div>
-              <div><b>127k / 67k</b><small>Baseline Day 1</small></div>
-              <div><b class="text-green">PASS (6/6)</b><small>Test game/*.mjs</small></div>
-              <div><b class="text-green">0</b><small>Blocker (C2 đã chốt)</small></div>
+              <div><b>Đang nạp</b><small>Chờ dữ liệu báo cáo</small></div>
             </div>
           </div>
         </div>
@@ -1385,7 +1378,7 @@
 
   <!-- Classic scripts for offline file:// support -->
   <script src="data.bundle.js"></script>
-  <script src="app.js?v=1dd426ef95de"></script>
+  <script src="app.js?v=dec5f1886a7e"></script>
   <!-- Markdown Report Viewer Modal -->
   <div id="report-modal" class="modal-backdrop" aria-hidden="true">
     <div class="modal-dialog">

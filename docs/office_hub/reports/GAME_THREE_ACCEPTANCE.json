@@ -71,5 +71,10 @@
     "index.html": "96432d8db8277d4b38ff222e799e69eda84270008013914a1b41acc1e6d09ca5"
   },
   "scope": "Game planning helpers only. No Office Hub fixes in this package.",
-  "limits": "Peer mobile screenshots are controlled fixtures. Independent browser check used actual UI controls on an isolated existing test save; not a full Day1 browser playthrough."
+  "limits": "Peer mobile screenshots are controlled fixtures. Independent browser check used actual UI controls on an isolated existing test save; not a full Day1 browser playthrough.",
+  "reports": {
+    "codex": "reports/GAME_THREE_FINAL_REPORT.md",
+    "antigravity": "reports/GAME_THREE_ACK.md"
+  },
+  "testReceipt": "reports/GAME_THREE_TEST_RECEIPT.json"
 }

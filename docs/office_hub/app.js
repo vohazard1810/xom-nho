@@ -8,6 +8,7 @@
 
   const SOURCES = {
     tasks: 'tasks.json',
+    latest: 'latest.json',
     evidence: 'evidence.json',
     antigravity: 'reports/ANTIGRAVITY_UI_REPORT.md',
     codex: 'reports/CODEX_BACKEND_REPORT.md',
@@ -28,6 +29,8 @@
 
   // Global State
   const state = {
+    latest: null,
+    syncBusy: false,
     tasks: null,
     tasksRawText: '',
     evidence: [],
@@ -61,6 +64,7 @@
   async function loadAll() {
     const bundle = window.OFFICE_HUB_BUNDLE || null;
     const fromBundle = {
+      latest: bundle?.latest,
       tasks: bundle?.tasks,
       evidence: bundle?.evidence,
       antigravity: bundle?.reports?.antigravity,
@@ -69,7 +73,7 @@
     const keys = Object.keys(SOURCES);
     const canFetch = location.protocol !== 'file:' || !bundle;
     const settled = canFetch
-      ? await Promise.allSettled(keys.map((k) => loadOne(k, k === 'tasks' || k === 'evidence')))
+      ? await Promise.allSettled(keys.map((k) => loadOne(k, k === 'tasks' || k === 'evidence' || k === 'latest')))
       : keys.map(() => ({ status: 'rejected' }));
 
     const data = {};
@@ -77,9 +81,22 @@
     settled.forEach((r, i) => {
       const k = keys[i];
       if (r.status === 'fulfilled') data[k] = r.value;
-      else if (fromBundle[k] != null) { data[k] = fromBundle[k]; usedBundle++; }
+      else if (location.protocol === 'file:' && fromBundle[k] != null) { data[k] = fromBundle[k]; usedBundle++; }
       else data[k] = null;
     });
+    if (canFetch && data.latest) {
+      const entries = Object.entries(data.latest.reports || {}).filter(([, url]) => /^reports\/[A-Za-z0-9_.-]+\.md$/.test(url));
+      const reports = await Promise.allSettled(entries.map(async ([, url]) => {
+        const response = await fetch(url, { cache: 'no-store' });
+        if (!response.ok) throw new Error('Report unavailable');
+        return response.text();
+      }));
+      data.latest.markdown = { ...data.latest.markdown };
+      entries.forEach(([key], index) => {
+        if (reports[index].status === 'fulfilled') data.latest.markdown[key] = reports[index].value;
+        else if (state.latest?.nonce === data.latest.nonce) data.latest.markdown[key] = state.latest.markdown?.[key];
+      });
+    }
     return { data, usedBundle, bundleTime: bundle?.generatedAt };
   }
 
@@ -218,6 +235,7 @@
   function switchRoom(roomKey) {
     if (!ROOM_NAMES[roomKey]) return;
     state.currentView = roomKey;
+    if (window.history?.replaceState) window.history.replaceState(null, "", "#" + roomKey);
 
     $$('.nav-item').forEach((item) => {
       item.classList.toggle('is-active', item.dataset.view === roomKey);
@@ -722,46 +740,77 @@ Yêu cầu tiếp theo cho Codex:
   }
 
   async function pollTasks() {
-    if (location.protocol === 'file:') return;
-    try {
-      const res = await fetch(SOURCES.tasks, { cache: 'no-store' });
-      if (!res.ok) return;
-      const rawText = await res.text();
-      if (rawText !== state.tasksRawText) {
-        state.tasksRawText = rawText;
-        state.tasks = JSON.parse(rawText);
-        state.lastSyncTime = Date.now();
-        updateSyncTicker();
-        updateDynamicMetrics();
-        renderKanban();
-        console.log('[OfficeHub] Auto-synced tasks.json (changes detected)');
-      } else {
-        state.lastSyncTime = Date.now();
-        updateSyncTicker();
-      }
-    } catch (err) {
-      console.warn('[OfficeHub] Poll failed:', err);
-    }
+    if (location.protocol !== 'file:') await refreshData(true);
   }
 
-  async function manualRefresh() {
+  function renderLatestPackage({ reports = true } = {}) {
+    const latest = state.latest;
+    if (!latest) return;
+    if (reports) renderReports(latest.markdown?.antigravity, latest.markdown?.codex);
+    const count = Object.keys(latest.tasks || {}).length;
+    const tests = latest.tests;
+    const testLabel = tests?.valid ? `${tests.passed}/${tests.total} PASS` : 'Chưa có kiểm chứng';
+    const grid = $('.report-kpi-card.cx-kpi .kpi-stat-grid');
+    if (grid) grid.innerHTML = `<div><b>${esc((latest.commit || '').slice(0, 7))}</b><small>Commit gói đã duyệt</small></div><div><b>${esc(testLabel)}</b><small>Kiểm thử lúc nghiệm thu</small></div><div><b>${count}</b><small>Task đã duyệt</small></div><div><b>Vòng ${esc(latest.reviewRound)}</b><small>${esc(latest.nonce)}</small></div>`;
+    const agGrid = $('.report-kpi-card.ag-kpi .kpi-stat-grid');
+    if (agGrid) agGrid.innerHTML = `<div><b>${count}</b><small>Task phối hợp đã duyệt</small></div><div><b>Done</b><small>${esc(latest.nonce)}</small></div><div><b>${esc(formatVnTime(latest.at))}</b><small>Nghiệm thu</small></div><div><b>Fixture</b><small>Ảnh mobile có kiểm soát</small></div>`;
+    for (const [key, selector] of [['antigravity', '.deck-ag'], ['codex', '.deck-cx']]) {
+      const deck = $(selector);
+      const code = deck && $('code', deck);
+      if (code) code.textContent = latest.reports?.[key] || '';
+    }
+    const badge = $('.deck-cx .badge-waiting-fill');
+    if (badge) badge.textContent = `Đã duyệt · ${latest.nonce}`;
+    const bar = $('#bar-engine-tests');
+    if (bar) bar.textContent = testLabel;
+    const commit = $('#git-commit-text');
+    if (commit && latest.commit) { commit.textContent = latest.commit.slice(0, 7); commit.title = 'Commit gói đã duyệt gần nhất'; }
+    const updated = $('#sidebar-updated-time');
+    if (updated && state.tasks?.updatedAt) updated.textContent = 'Cập nhật: ' + formatVnTime(state.tasks.updatedAt, true);
+    const sidebar = $('#sidebar-cx-status');
+    if (sidebar) sidebar.textContent = sidebar.textContent.replace(/Lịch sử:.*$/, 'Lần nghiệm thu gần nhất: ' + testLabel);
+  }
+
+  async function manualRefresh() { return refreshData(false); }
+
+  async function refreshData(quiet = false) {
+    if (state.syncBusy) return;
+    state.syncBusy = true;
     const btn = $('#btn-manual-refresh');
     if (btn) btn.classList.add('is-spinning');
     try {
       const { data, usedBundle, bundleTime } = await loadAll();
+      if (!data.tasks) throw new Error("Không đọc được tasks.json; giữ dữ liệu lần đồng bộ thành công trước.");
+      if (state.tasks?.updatedAt && data.tasks.updatedAt && Date.parse(data.tasks.updatedAt) < Date.parse(state.tasks.updatedAt)) return;
+      const fingerprint = JSON.stringify(data);
+      const liveBadge = $('#data-source-badge');
+      if (liveBadge) liveBadge.textContent = usedBundle ? 'Bản offline' : 'Dữ liệu trực tiếp';
+      if (state.contentFingerprint === fingerprint) {
+        state.lastSyncTime = Date.now(); updateSyncTicker();
+        if (!quiet) showToast('Dữ liệu đang là bản mới nhất trên server.');
+        return;
+      }
+      state.contentFingerprint = fingerprint;
+      const sourceBadge = $('#data-source-badge');
+      if (sourceBadge) sourceBadge.textContent = usedBundle ? 'Bản offline' : 'Dữ liệu trực tiếp';
       state.tasks = data.tasks;
+      if (data.latest && (!state.latest || Date.parse(data.latest.at) >= Date.parse(state.latest.at))) state.latest = data.latest;
       state.tasksRawText = JSON.stringify(data.tasks);
       state.evidence = data.evidence?.items || [];
       state.lastSyncTime = Date.now();
       updateSyncTicker();
       updateDynamicMetrics();
       renderKanban();
-      renderReports(data.antigravity, data.codex);
+      if (state.latest) renderLatestPackage();
+      else renderReports(data.antigravity, data.codex);
       renderQALab();
-      showToast('🔄 Đã cập nhật dữ liệu mới nhất từ server!');
+      if (!quiet) showToast(usedBundle ? 'Đang xem bản offline đã đóng gói.' : 'Đã đồng bộ dữ liệu từ server.');
     } catch (err) {
-      showToast('⚠️ Lỗi tải dữ liệu: ' + err.message);
+      if (!quiet) showToast('Chưa đồng bộ được: ' + err.message);
+      const badge = $('#data-source-badge');
+      if (badge) badge.textContent = 'Mất kết nối · giữ dữ liệu đã đọc';
     } finally {
+      state.syncBusy = false;
       if (btn) setTimeout(() => btn.classList.remove('is-spinning'), 400);
     }
   }
@@ -809,7 +858,9 @@ Yêu cầu tiếp theo cho Codex:
       state.apiRevision = data.revision;
       state.csrfToken = data.csrfToken;
       state.apiState = data;
+      await refreshData(true);
       renderOfficeApiState(data, 'online');
+      renderLatestPackage({ reports: false });
       return data;
     } catch (err) {
       state.apiAvailable = false;
@@ -1279,7 +1330,7 @@ Yêu cầu tiếp theo cho Codex:
       const errActor = blockedReq?.errorActor || 'Hệ thống';
       const errMsg = blockedReq?.error || sub.error || data.agents?.Antigravity?.detail || 'Review không hợp lệ hoặc sai snapshot';
       const fullErr = `Lỗi (${errActor}): ${errMsg}`;
-      if (bannerReason) bannerReason.textContent = fullErr;
+      if (bannerReason) bannerReason.textContent = state.latest ? `Lịch sử Office · yêu cầu ${blockedReq?.id || 'cũ'} · vòng ${currentRound}/${maxRounds}. Không phải trạng thái gói ${state.latest.nonce}.` : fullErr;
       const resDesc = $('#blocker-res-desc');
       if (resDesc && blockedReq?.error) {
         resDesc.innerHTML = `<b>Nguyên nhân (${esc(errActor)}):</b> ${esc(blockedReq.error)}<br><b>Vòng review:</b> ${currentRound}/${maxRounds}<br><b>Hành động:</b> Giám Đốc có thể bấm "Thử lại kiểm chứng" để hệ thống kiểm chứng lại bản hiện tại.`;
@@ -1537,46 +1588,14 @@ Yêu cầu tiếp theo cho Codex:
     // Handle Unblock Action (both in history dialog and report banner)
     const handleUnblockAction = (e) => {
       e.stopPropagation();
-      state.isManualUnblocked = true;
       const dlg = $('#modal-exchange-history');
-      if (dlg && dlg.open) dlg.close();
-      switchRoom('lobby');
-      
-      const trayMini = $('.approval-tray-mini');
-      const bellEl = $('#desk-bell');
-      if (trayMini) trayMini.classList.remove('is-blocked-alert');
-      if (bellEl) bellEl.classList.remove('is-blocked-alert');
-      
-      const btnApprove = $('#btn-director-approve');
-      if (btnApprove) btnApprove.disabled = false;
-      
-      const statusBadge = $('#dir-submission-status');
-      if (statusBadge) {
-        statusBadge.textContent = 'CHỜ PHÊ DUYỆT';
-        statusBadge.className = 'dir-sub-badge badge-pending';
-      }
-      
-      const approveHintEl = $('#dir-approve-hint');
-      if (approveHintEl) {
-        approveHintEl.classList.add('hint-ready');
-        approveHintEl.textContent = '✅ Đã gỡ Blocker: 15/15 test game & 22 ảnh QA đạt 100%. Bạn có thể phê duyệt ngay.';
-      }
-
-      const ceoBubbleText = $('#bubble-ceo .bubble-text');
-      if (ceoBubbleText) {
-        ceoBubbleText.innerHTML = '<b>👑 Giám Đốc:</b> "Đã gỡ cờ Blocker kỹ thuật. Sẵn sàng phê duyệt đợt nộp."';
-      }
-
-      const boxRes = $('#box-blocker-resolution');
-      const reportBanner = $('#report-blocker-banner');
-      if (boxRes) boxRes.classList.add('is-hidden');
-      if (reportBanner) reportBanner.classList.add('is-hidden');
-
-      showToast('🔓 Đã gỡ cờ Blocker thành công! Giám Đốc có thể bấm Phê Duyệt ngay bây giờ.');
+      if (dlg && !dlg.open) dlg.showModal();
+      // Viewing history must never manufacture a successful approval locally.
+      if (state.apiState) renderOfficeApiState(state.apiState, 'online');
     };
 
     const btnUnblock = $('#btn-unblock-submission');
-    if (btnUnblock) btnUnblock.addEventListener('click', handleUnblockAction);
+    if (btnUnblock) { btnUnblock.textContent = 'Xem lịch sử yêu cầu'; btnUnblock.addEventListener('click', handleUnblockAction); }
 
     const btnBannerUnblock = $('#btn-banner-unblock');
     if (btnBannerUnblock) btnBannerUnblock.addEventListener('click', handleUnblockAction);
@@ -2070,6 +2089,7 @@ Yêu cầu tiếp theo cho Codex:
     bindEvents();
     const { data, usedBundle, bundleTime } = await loadAll();
 
+    state.latest = data.latest;
     state.tasks = data.tasks;
     state.tasksRawText = JSON.stringify(data.tasks);
     state.evidence = data.evidence?.items || [];
@@ -2093,7 +2113,7 @@ Yêu cầu tiếp theo cho Codex:
       const titleEl = $('#kpi-handoff-title');
       const descEl = $('#kpi-handoff-desc');
       if (titleEl) titleEl.textContent = `${h.title}`;
-      if (descEl) descEl.textContent = `${h.from} → ${h.to} · base ${h.baseCommit.slice(0, 7)} → result ${h.resultCommit.slice(0, 7)}`;
+      if (descEl) descEl.textContent = `${h.from} → ${h.to} · base ${(h.baseCommit || '').slice(0, 7)} → result ${(h.resultCommit || '').slice(0, 7)}`;
     }
 
     // Git Branch & Status
@@ -2117,8 +2137,12 @@ Yêu cầu tiếp theo cho Codex:
 
     // Render Rooms
     renderKanban();
-    renderReports(data.antigravity, data.codex);
+    if (state.latest) renderLatestPackage();
+    else renderReports(data.antigravity, data.codex);
     renderQALab();
+
+    const initialRoom = location.hash?.slice(1);
+    switchRoom(ROOM_NAMES[initialRoom] ? initialRoom : 'lobby');
 
     // Start Auto-Polling (5 seconds) and Ticker update (1 second)
     if (location.protocol !== 'file:') {

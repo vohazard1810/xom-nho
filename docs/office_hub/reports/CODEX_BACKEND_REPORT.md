@@ -157,6 +157,14 @@ Bằng chứng browser mới nhất còn chờ Antigravity; không tuyên bố h
 | Báo cáo | GAME_THREE_FINAL_REPORT.md; GAME_THREE_ACCEPTANCE.json |
 | Phạm vi | Chỉ game; Office Hub không tính vào gói |
 
+## Đồng bộ realtime —25/10/2026
+
+| Mục | Kết quả |
+|---|---|
+| Đã sửa | Refresh/poll báo cáo, giữ dữ liệu tốt, tách lịch sử Office |
+| Kiểm tra | Node6/6; Python4/4; browser Làm mới/API không lùi báo cáo |
+| Chi tiết | [Báo cáo đồng bộ](REALTIME_SYNC_FIX_REPORT.md) |
+
 ## Action Items for Antigravity (UI/Art)
 
 | A-G3/A-G4/A-G5 | Done | GAME_THREE_FINAL_REPORT.md | Đã nghiệm thu vòng2 |
