@@ -2754,3 +2754,361 @@ button:focus-visible, [role=button]:focus-visible { outline: 3px solid #0e7490; 
 .rec-bullet { color:#d97706; font-weight:900; }
 
 
+
+/* ─────────────────────────────────────────────────────────────
+   A-G1 & A-G2: SHOP INSIGHTS UI (READINESS & SALES BREAKDOWN)
+   ───────────────────────────────────────────────────────────── */
+
+/* Panel ước tính công suất món (MARKET & MENU) */
+.readiness-panel {
+  background: #ffffff;
+  border: 1.5px solid #d1d5db;
+  border-radius: 12px;
+  margin: 10px 0 14px 0;
+  overflow: hidden;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.readiness-panel[open] {
+  border-color: #3b82f6;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.08);
+}
+
+.readiness-summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 12px;
+  background: #f8fafc;
+  cursor: pointer;
+  user-select: none;
+  font-size: 13px;
+  font-weight: 600;
+  color: #1e293b;
+  list-style: none;
+}
+
+.readiness-summary::-webkit-details-marker {
+  display: none;
+}
+
+.readiness-summary-left {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.readiness-summary-icon {
+  font-size: 15px;
+}
+
+.readiness-source-badge {
+  font-size: 11px;
+  font-weight: 500;
+  padding: 2px 6px;
+  background: #e2e8f0;
+  color: #475569;
+  border-radius: 4px;
+}
+
+.readiness-summary-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.readiness-count-chip {
+  font-size: 11.5px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 9999px;
+  white-space: nowrap;
+}
+
+.chip-ready {
+  background: #dcfce7;
+  color: #15803d;
+  border: 1px solid #bbf7d0;
+}
+
+.chip-zero {
+  background: #fee2e2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+}
+
+.readiness-toggle-arrow {
+  font-size: 13px;
+  color: #64748b;
+  transition: transform 0.2s ease;
+}
+
+.readiness-panel[open] > .readiness-summary .readiness-toggle-arrow {
+  transform: rotate(180deg);
+}
+
+.readiness-body {
+  padding: 12px;
+  background: #ffffff;
+  border-top: 1px solid #f1f5f9;
+}
+
+.readiness-empty {
+  font-size: 12.5px;
+  color: #64748b;
+  font-style: italic;
+  padding: 8px 0;
+  text-align: center;
+}
+
+.readiness-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+}
+
+@media (min-width: 480px) {
+  .readiness-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.readiness-card {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-left-width: 4px;
+  border-radius: 8px;
+  padding: 8px 10px;
+}
+
+.readiness-card.card-ready {
+  border-left-color: #22c55e;
+}
+
+.readiness-card.card-shortage {
+  border-left-color: #f59e0b;
+}
+
+.readiness-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.readiness-card-header strong {
+  font-size: 13px;
+  color: #0f172a;
+}
+
+.readiness-badge {
+  font-size: 11.5px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 6px;
+  white-space: nowrap;
+}
+
+.readiness-badge.badge-ok {
+  background: #dcfce7;
+  color: #16a34a;
+  border: 1px solid #86efac;
+}
+
+.readiness-badge.badge-zero {
+  background: #fee2e2;
+  color: #dc2626;
+  border: 1px solid #fca5a5;
+}
+
+.shortage-notice {
+  font-size: 11.5px;
+  color: #92400e;
+  background: #fffbeb;
+  border: 1px dashed #fcd34d;
+  border-radius: 5px;
+  padding: 4px 6px;
+  margin: 4px 0;
+  line-height: 1.35;
+}
+
+.shortage-label {
+  font-weight: 600;
+  margin-right: 4px;
+}
+
+.shortage-items {
+  font-weight: 500;
+}
+
+.readiness-ok-notice {
+  font-size: 11.5px;
+  color: #16a34a;
+  font-weight: 500;
+  margin: 4px 0;
+}
+
+.unit-cost-hint {
+  font-size: 11px;
+  color: #64748b;
+  margin-top: 2px;
+}
+
+.readiness-disclaimer {
+  margin-top: 10px;
+  padding: 8px 10px;
+  background: #f8fafc;
+  border-radius: 6px;
+  font-size: 11px;
+  color: #64748b;
+  line-height: 1.45;
+  border: 1px solid #f1f5f9;
+}
+
+.readiness-disclaimer p {
+  margin: 3px 0;
+}
+
+/* Ruy băng Món bán chạy nhất (.best-seller-ribbon) */
+.best-seller-ribbon {
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  border: 1.5px solid #f59e0b;
+  color: #78350f;
+  border-radius: 10px;
+  padding: 9px 12px;
+  font-size: 13px;
+  margin: 10px 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 2px 6px rgba(245, 158, 11, 0.12);
+}
+
+.best-seller-ribbon.ribbon-empty {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+  color: #64748b;
+  font-style: italic;
+  font-weight: normal;
+  box-shadow: none;
+}
+
+/* Bảng thống kê doanh số từng món (.recipe-sales-breakdown) */
+.compact-ledger > .recipe-sales-breakdown,
+.recipe-sales-breakdown {
+  display: block !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  box-sizing: border-box !important;
+  border-bottom: none !important;
+  margin-top: 14px;
+  padding-top: 10px;
+  border-top: 1px dashed #cbd5e1;
+}
+
+.compact-ledger > .recipe-sales-breakdown > *,
+.recipe-sales-breakdown > * {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.table-scroll-hint {
+  display: block;
+  font-size: 10.5px;
+  color: #64748b;
+  margin: 3px 0 6px 0;
+  font-weight: 500;
+}
+
+.recipe-sales-breakdown h3 {
+  font-size: 13.5px;
+  color: #1e293b;
+  margin: 8px 0 6px 0;
+}
+
+.sales-empty-note {
+  font-size: 12px;
+  color: #64748b;
+  font-style: italic;
+  margin: 6px 0;
+}
+
+.recipe-sales-table-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  margin: 8px 0;
+  background: #ffffff;
+}
+
+.recipe-sales-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11px;
+  text-align: left;
+}
+
+.recipe-sales-table th {
+  background: #f1f5f9;
+  color: #334155;
+  font-weight: 700;
+  padding: 6px 4px;
+  border-bottom: 2px solid #cbd5e1;
+  font-size: 10.5px;
+  white-space: nowrap;
+}
+
+.recipe-sales-table td {
+  padding: 5px 4px;
+  border-bottom: 1px solid #f1f5f9;
+  color: #1e293b;
+  font-size: 11px;
+}
+
+.recipe-sales-table .th-num,
+.recipe-sales-table .td-num {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.recipe-sales-table tr.row-best-seller {
+  background: #fffbeb;
+}
+
+.recipe-sales-table .best-star {
+  color: #d97706;
+}
+
+.recipe-sales-table tr.totals-row {
+  background: #f1f5f9;
+  border-top: 2px solid #cbd5e1;
+  font-weight: bold;
+}
+
+.sales-extra-row {
+  display: flex;
+  gap: 12px;
+  font-size: 11.5px;
+  color: #475569;
+  font-weight: 500;
+  margin: 6px 0;
+}
+
+.sales-disclaimer-notes {
+  font-size: 10.5px;
+  color: #64748b;
+  background: #f8fafc;
+  border: 1px solid #f1f5f9;
+  padding: 7px 9px;
+  border-radius: 6px;
+  margin: 8px 0;
+  line-height: 1.45;
+}
+
+.sales-disclaimer-notes p {
+  margin: 3px 0;
+}

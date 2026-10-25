@@ -1,0 +1,20 @@
+{
+  "nonce": "GAME-FOUR-20261024",
+  "reviewRound": 1,
+  "actor": "Codex",
+  "role": "Delegated Assistant Director",
+  "time": "2026-10-24T10:37:59.458299+00:00",
+  "tasks": {
+    "C-G1": "Done",
+    "C-G2": "Done",
+    "A-G1": "Done",
+    "A-G2": "Review"
+  },
+  "tests": "Full16/16 live PASS; actual zero/one-order UI integration PASS",
+  "finding": "A-G2 CSS specificity conflict .compact-ledger>div; mobile table unreadable; require component-scoped block layout.",
+  "sourceHashes": {
+    "main.mjs": "30e3b5f46c07eeee49f7748901780b8269b109c692d21e21063f1205f8c32e36",
+    "style.css": "f32da94239cb1ad2802615b5a0fbfa98e974017f3ab5a47b850d98d3746b1394",
+    "shop-insights.mjs": "5d67b442b09ce977b46fa250f28133d24f11511859f4254dcd6f90208153e399"
+  }
+}

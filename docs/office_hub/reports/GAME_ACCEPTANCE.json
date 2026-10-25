@@ -1,0 +1,63 @@
+{
+  "nonce": "GAME-FOUR-20261024",
+  "reviewRound": 2,
+  "actor": "Codex",
+  "role": "Assistant Director under owner delegation",
+  "time": "2026-10-25T02:29:10.727091+00:00",
+  "verdict": "PASS",
+  "tasks": {
+    "C-G1": "Done",
+    "C-G2": "Done",
+    "A-G1": "Done",
+    "A-G2": "Done"
+  },
+  "liveSourceHashes": {
+    "balance-sim.mjs": "70f3acfd94af2c466c2d362612564e6267b4307f1e77fc1537dcd7f26a07ee79",
+    "customer-population.mjs": "da2c8c3a87d07068d96e41104136921acdd8abc2f5d445774ef17585a5894ff6",
+    "day-content.mjs": "c4bae4af91033bcff84594f3733f237604d2ab036f3117a5aaca06e7b7863d50",
+    "day1-core.mjs": "ee0538af99af6d2c1c0db7e8879117603036d253a1e98b03ecd1782de96e46ca",
+    "empire-engine.mjs": "8a3a450cf56d42e6d7098b2a5fa96a594fda4be69de867bffe491b84082b8ea9",
+    "fixtures.mjs": "19f5828949a767b300cf4db56d8cb72a00e60c3d1bfb17d49dbea4b8f52b75a5",
+    "index.html": "9f9607b3f463c4557ccf979ab97e0b63f7d13cbb310b6f6dac9ee7402fbbeea3",
+    "main.mjs": "30e3b5f46c07eeee49f7748901780b8269b109c692d21e21063f1205f8c32e36",
+    "scenery.mjs": "1994b62259fad3e9f0e7a4359f08a48df1b448f3918523bd24a839b9510951be",
+    "shift-engine.mjs": "77f3901f3ddb159c72338475126ce2c65e241b9275565a3a4cab0b72577e3f89",
+    "shop-insights.mjs": "5d67b442b09ce977b46fa250f28133d24f11511859f4254dcd6f90208153e399",
+    "style.css": "ce43365664b0a8411fc9a342a6fcc0294ccd88a450c153bfdf81fa5203a74264",
+    "test-balance.mjs": "f632e12ef00efa625bfa13c0490f22e9c1b400191a379ede5c83a26fe1114cd7",
+    "test-core-loop.mjs": "e67249cc556f97ac9786094d1e91788e4861a92130501e9ef7050a12f4a2ceae",
+    "test-customer-population.mjs": "37cd4b259a46cc32f21df44b7986b79f2cccf20032bfbbf9b6a187163b9057c1",
+    "test-day1.mjs": "ce26d79e1a5fb547fbedf75bc54025c9f7aa846407d252f71ff3570c0b3652a9",
+    "test-empire.mjs": "f6f2b7e24b3e62388bddacc3d769f1efe49040f4d302fe89b86e25bc46c4a2ee",
+    "test-endless.mjs": "a56bf7aedf069ca68e35a96534ca4ac76f41d4f8375a3d534072b3810e14bf53",
+    "test-multiday.mjs": "95073e377332a2b4995082705a17eae53ffdc32281d16a5fce972ff3283e53b7",
+    "test-n1-n2-n3-features.mjs": "9c54bce7ec1f2232b4206a32fccba5dce42f968a3c69e9c81b631edd37028a35",
+    "test-office-hub.mjs": "afe9fbbcbb87946d6b125674eda0532f2ecfc9956542ed7fae92a2661f8cc7e2",
+    "test-operational-e2e.mjs": "d0609e7b8eb693aa7192413ce049616ef5d5362270e27c53256de223d6e7db85",
+    "test-progression.mjs": "98d12f2c6126dafd36a7cbd8e01d8ebb4d182ce5ca439ddc8252bc45f9fba0aa",
+    "test-shift.mjs": "5808f5aea4f652be4558ceb11f5c81a95ae5012c13557d239ceda2a5f0e32b98",
+    "test-shop-insights.mjs": "caf03f189d00223177fc2e1743ed7b43a85e16a2d7d800c667279455d7cd9ba3",
+    "test-staff-performance.mjs": "7587d67bd4e407c2535269614a64215d7cb05a9c868a8404bd7c529dc9e1eb48",
+    "test-ui-timers.mjs": "2ff222f6d98fe3c4478c61f3b0ec143e06112af537bdb3ba978ecdf9dd411f79",
+    "test-ui.mjs": "d8eec7565aa389e70349e8bf4e8afde4597ce64eb84702a5107bd3d3158d982b"
+  },
+  "tests": "16/16 actual Node subprocess files PASS; source unchanged",
+  "visualReview": "360/390 readiness and populated/consistent-zero empire result; final scoped CSS override accepted",
+  "preservation": {
+    "renderShop": true,
+    "renderMapPanel": true,
+    "renderEmpirePanels": true,
+    "existingCssPreserved": true
+  },
+  "scopeNote": "Game only. Prior Office Hub package remains separate and is not approved by this receipt.",
+  "evidenceHashes": {
+    "evidence_a_g1_market_360x640.png": "f8b5e9315ba9feba0e731df7e650db846d19401eb8b3deee79392da60eb1907d",
+    "evidence_a_g1_market_390x844.png": "3068ee9b5a7bf9b55fc48cab7aa1233e91a34120dd21ab6fac23b9e08f7c9eed",
+    "evidence_a_g1_menu_360x640.png": "7ae2c1f0a500aa6596f93fb328e02aca937387f342ead5ba454c808ca9b154f9",
+    "evidence_a_g1_menu_390x844.png": "f86ee558681478a948a794a267042bf9f3bccfea7268b12ae3d7cd6c24749fed",
+    "evidence_a_g2_day_result_360x640.png": "00f2754b230525aaa83838594b9a8a4cd22e5aff7e5f3c9b23b4c1f8ce231d5b",
+    "evidence_a_g2_day_result_390x844.png": "b43f86671f0dc19cf4edfb090a4846f905288bed64d2f375bf90ad18e10ee6ec",
+    "evidence_a_g2_empty_sales_390x844.png": "359998e60229c92b7d5388fea25d945057b59dad6e0c2d8b06954ad437510d09"
+  },
+  "authoritySha256": "3467dec263cf7d394e12084f5a3277a00890bfd8f82f923655cea656e5b8e0a4"
+}

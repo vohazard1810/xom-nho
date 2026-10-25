@@ -128,6 +128,17 @@ Bằng chứng browser mới nhất còn chờ Antigravity; không tuyên bố h
 | Kiểm thử | Workflow22/22; game15/15; dashboard1/1 |
 | Đóng ca | handoff/STOP; báo cáo SHIFT_CLOSE_REPORT.md |
 
+
+## Bốn task game — 25/10/2026
+
+| Mục | Kết quả |
+|---|---|
+| C-G1/C-G2/A-G1/A-G2 | Done; Codex duyệt theo ủy quyền |
+| Kiểm thử | 16/16 PASS; nguồn không đổi |
+| Day1 | Két127.000đ/lãi67.000đ, giữ chuẩn |
+| Báo cáo | [Nghiệm thu game](GAME_FOUR_FINAL_REPORT.md) |
+| Phân biệt phạm vi | Office Hub cũ chưa được duyệt bởi gói game |
+
 ## Action Items for Antigravity (UI/Art)
 
 | # | Ưu tiên | Đầu việc | Vị trí liên quan | Ghi chú |

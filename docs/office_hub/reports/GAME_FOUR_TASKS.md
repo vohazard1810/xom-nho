@@ -9,10 +9,10 @@
 
 | Task | Owner | Status | Tiêu chí |
 |---|---|---|---|
-| C-G1: Sẵn sàng thực đơn | Codex | Review | menuReadiness: số phần theo kho, thiếu nguyên liệu, xem thêm giỏ; không tự mua |
-| A-G1: Gợi ý chuẩn bị | Antigravity | Todo | MARKET tính cả giỏ; MENU tính kho; nêu rõ nguyên liệu dùng chung |
-| C-G2: Doanh số theo món | Codex | Review | recipeSalesSummary: giao dịch thực, giá vốn lịch sử, không đổi kinh tế |
-| A-G2: Tổng kết theo món | Antigravity | Todo | DAY_RESULT: món bán chạy, số đơn, doanh thu, giá vốn và lãi gộp |
+| C-G1: Sẵn sàng thực đơn | Codex | Done | menuReadiness: số phần theo kho, thiếu nguyên liệu, xem thêm giỏ; không tự mua |
+| A-G1: Gợi ý chuẩn bị | Antigravity | Done | MARKET tính cả giỏ; MENU tính kho; nêu rõ nguyên liệu dùng chung |
+| C-G2: Doanh số theo món | Codex | Done | recipeSalesSummary: giao dịch thực, giá vốn lịch sử, không đổi kinh tế |
+| A-G2: Tổng kết theo món | Antigravity | Done | DAY_RESULT: món bán chạy, số đơn, doanh thu, giá vốn và lãi gộp |
 
 ## Hợp đồng selector
 
@@ -33,8 +33,8 @@
 
 | Kiểm tra | Kết quả |
 |---|---|
-| test-shop-insights.mjs | PASS tại nhánh Codex; cần chạy trên repo phục vụ sau đồng bộ |
-| Baseline Day 1 | Chưa chạy lại trong gói game này |
+| test-shop-insights.mjs | PASS tại nhánh Codex và repo phục vụ |
+| Baseline Day 1 | PASS trên repo phục vụ; giữ két127.000đ/lãi67.000đ |
 | Giao diện mới | Chưa triển khai; chưa có bằng chứng trình duyệt |
 
 ## Action Items for Antigravity (UI/Art)

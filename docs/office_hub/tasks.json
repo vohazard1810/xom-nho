@@ -217,6 +217,56 @@
       "updatedAt": "2026-10-24T12:06:00+07:00",
       "updatedBy": "Codex",
       "notes": "Không tự động kích hoạt GUI. Xem hướng dẫn manual và phương án agy trong handoff/README.md."
+    },
+    {
+      "id": "C-G1",
+      "title": "Tính số phần và nguyên liệu thiếu trước mở ca",
+      "owner": "Codex",
+      "status": "Done",
+      "area": "Game",
+      "priority": "Medium",
+      "report": "docs/office_hub/reports/GAME_FOUR_FINAL_REPORT.md",
+      "updatedAt": "2026-10-25T02:29:10.727091+00:00",
+      "updatedBy": "Codex",
+      "notes": "GAME_ACCEPTANCE.json: Codex duyệt theo ủy quyền; 16/16 PASS; ảnh360/390 đạt.",
+      "commit": "c33e98e"
+    },
+    {
+      "id": "C-G2",
+      "title": "Thống kê doanh số và giá vốn từng món cuối ca",
+      "owner": "Codex",
+      "status": "Done",
+      "area": "Game",
+      "priority": "Medium",
+      "report": "docs/office_hub/reports/GAME_FOUR_FINAL_REPORT.md",
+      "updatedAt": "2026-10-25T02:29:10.727091+00:00",
+      "updatedBy": "Codex",
+      "notes": "GAME_ACCEPTANCE.json: Codex duyệt theo ủy quyền; 16/16 PASS; ảnh360/390 đạt.",
+      "commit": "c33e98e"
+    },
+    {
+      "id": "A-G1",
+      "title": "Gợi ý chuẩn bị nguyên liệu trên màn chợ và thực đơn",
+      "owner": "Antigravity",
+      "status": "Done",
+      "area": "Game",
+      "priority": "Medium",
+      "report": "docs/office_hub/reports/GAME_FOUR_FINAL_REPORT.md",
+      "updatedAt": "2026-10-25T02:29:10.727091+00:00",
+      "updatedBy": "Codex",
+      "notes": "GAME_ACCEPTANCE.json: Codex duyệt theo ủy quyền; 16/16 PASS; ảnh360/390 đạt."
+    },
+    {
+      "id": "A-G2",
+      "title": "Hiển thị món bán chạy và bảng doanh số cuối ca",
+      "owner": "Antigravity",
+      "status": "Done",
+      "area": "Game",
+      "priority": "Medium",
+      "report": "docs/office_hub/reports/GAME_FOUR_FINAL_REPORT.md",
+      "updatedAt": "2026-10-25T02:29:10.727091+00:00",
+      "updatedBy": "Codex",
+      "notes": "GAME_ACCEPTANCE.json: Codex duyệt theo ủy quyền; 16/16 PASS; ảnh360/390 đạt."
     }
   ]
 }
