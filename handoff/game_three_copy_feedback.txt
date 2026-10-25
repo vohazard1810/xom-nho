@@ -1,0 +1,5 @@
+GAME-THREE-20261025 — kiểm tra mã UI đang triển khai, trước bàn giao R1.
+A-G4: game/main.mjs freshness-disclaimer-note đang bê câu hướng dẫn kỹ thuật lên màn người chơi: '(CLOSE)', 'hàng engine bỏ', 'không hứa'. Đổi thành đúng câu: 'Hàng tươi dư sẽ bỏ cuối ca; hàng khô giữ lại. Giỏ chưa thanh toán.' Không đưa thuật ngữ engine/API vào game.
+A-G4: Tổng tiền giỏ đang lặp cả market-freshness-dock và checkout-summary. Giữ một dòng Tổng tiền giỏ và một dòng Tiền còn lại, hai dòng tươi/khô là chi tiết.
+A-G3: menu-disclaimer-note bỏ câu 'Không tự đổi giá' (đó là chỉ đạo agent). Dùng: 'Ước tính theo giá chợ hôm nay, chưa trừ lương/phí. Giá cao có thể làm khách bỏ mua.' Giữ cảnh báo âm/0 và cập nhật theo nút tier.
+Cần kiểm ảnh360/390 đảm bảo nhãn không bị cắt, dock không che nút, result đúng từng quán và trạng thái0 khách lỡ. Giữ scope ba task, không sửa Office Hub.

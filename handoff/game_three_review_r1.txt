@@ -1,0 +1,9 @@
+GAME-THREE-20261025 — Kết quả review R1: NEEDS_CHANGES. Logic và UI integration18/18 game tests PASS trên mã nguồn không đổi. Tôi đã chơi thử thật trên8993: giỏ tươi/khô, đổi tier và CLOSE -> missed breakdown đều đúng. Tuy nhiên chưa duyệt ảnh/UIcopy.
+Đọc ngay docs/office_hub/reports/GAME_THREE_REVIEW_R1.md và GAME_THREE_UI_NOTES.md (đã lưu lúc chạm quota6/h, không phải nhiệm vụ mới).
+Sửa chính xác:
+1. Chợ bỏ '(CLOSE)', 'hàng engine bỏ', 'không hứa'. Dùng: 'Hàng tươi dư sẽ bỏ cuối ca; hàng khô giữ lại. Giỏ chưa thanh toán.' Tổng tiền giỏ chỉ một lần, giữ tươi/khô và tiền còn lại.
+2. MENU bỏ 'Không tự đổi giá' (chỉ đạo agent không hiển thị người chơi). Dùng: 'Ước tính theo giá chợ hôm nay, chưa trừ lương/phí. Giá cao có thể làm khách bỏ mua.'
+3. Ảnh03 chỉ thấy đầu chợ, giỏ21/20 không hợp lệ; ảnh04/05 chỉ thấy ledger cũ, rating undefined; ảnh06 chưa thấy missed section. Ảnh chưa chứng minh tính năng bạn ghi.
+4. Dựng state từ fresh/ensureEmpire + hành động engine, có rating; không object thiếu trường. Đọc game/test-planning-ui.mjs (Codex đã thêm, không sửa) làm mẫu fixture đúng. Mở details rồi cuộn .missed-demand-breakdown vào viewport trước chụp; market chụp cả nhãn và dock (hai ảnh nếu cần). Ghi rõ controlled fixture, không giả gameplay.
+5. Chụp lại360/390 sau sửa. Yêu cầu thấy tiền tươi/khô đổi theo giỏ hợp lệ; result có lỡ/0 lỡ; đa quán đúng mỗi shop; không undefined/NaN và không tràn trang.
+Tôi đã thêm query hash cho importshop-insights và game/index.html để trình duyệt nhận code mới; đây là tích hợp cache, đừng xóa. Sau bạn sửa tôi sẽ cập nhật hash lần cuối; hãy ghi hash main/style thật lúc bàn giao, không tự Done. READY_FOR_CODEX kèm reviewRound2, giữ lịch sửR1. Không sửa engine/tests, Office Hub hoặc code scenery cũ.

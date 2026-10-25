@@ -62,5 +62,28 @@ assert.deepEqual(missed, missedBefore);
 assert.deepEqual(missedDemandSummary({}), { items: [], totalMissed: 0 });
 assert.equal(missedDemandSummary({ missedOrders: [{ recipe: 'BANH_MI_CHA', reason: 'OUT_OF_STOCK' }] }).totalMissed, 1, 'shop summaries must remain independent');
 assert.equal(Object.hasOwn(result, 'revenue'), false);
+// Real engine actions: classifications match stock cleared by CLOSE, and summary
+// reconciles real missed tickets rather than fabricated report totals.
+let day = fresh(20261025);
+for (const [type, payload] of [['SET_SHOP_NAME', 'Quán đối chiếu'], ['NAVIGATE'], ['NAVIGATE'], ['BUNDLE_DAY1']]) {
+  const next = action(day, type, payload);
+  assert.equal(next.error, undefined);
+  day = next.state;
+}
+const purchasedPreview = marketFreshnessPreview(day);
+assert.equal(purchasedPreview.totalCost, 55000);
+for (const type of ['BUY', 'START_DAY', 'CLOSE']) {
+  const next = action(day, type);
+  assert.equal(next.error, undefined);
+  day = next.state;
+}
+for (const row of purchasedPreview.items) {
+  if (row.storage === 'same_day') assert.equal(day.stock[row.id], 0);
+  else assert.equal(day.stock[row.id], row.quantity);
+}
+const closedSummary = missedDemandSummary(day);
+assert.equal(closedSummary.totalMissed, day.missedOrders.length);
+assert.equal(closedSummary.totalMissed, day.dayCustomers.length);
+assert.equal(closedSummary.items.every(row => row.reasons.every(r => r.reason === 'MISSED_EARLY_CLOSING')), true);
 assert.deepEqual(before, fresh(20261025), 'original save retained');
 console.log('Planning insights: tier/price changes, negative and zero margins, locked recipes, fresh/overnight basket, missed demand grouping, no mutation PASS');

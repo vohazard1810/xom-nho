@@ -1,0 +1,300 @@
+RUN game/test-balance.mjs
+21-day economy probes: conservative, expansion, persistent high price, and recovery PASS
+RUN game/test-core-loop.mjs
+Core loop PASS: repeat purchase at current prices, rejection without mutation, mid-prep shop transfer, reload and exactly-once background sale
+RUN game/test-customer-population.mjs
+Customer population: seeded identities, returning visits, save migration and district uniqueness PASS
+RUN game/test-day1.mjs
+v0.7 Day 1: baseline ledger, serialized resume, pricing/menu, clock/news, opening/closing, extra chả and duplicate-service guards PASS
+RUN game/test-empire.mjs
+{
+  "status": "PASS",
+  "twoShopDay": {
+    "day": 8,
+    "openingCash": 900000,
+    "closingCash": 912000,
+    "cashMovement": 12000,
+    "reconciled": true,
+    "profit": 132000,
+    "shops": [
+      {
+        "id": "home",
+        "name": "Quán đầu hẻm",
+        "served": 11,
+        "missed": 7,
+        "revenue": 201000,
+        "cogs": 96500,
+        "gross": 104500,
+        "profit": 43500,
+        "spent": 142500,
+        "ops": 23000,
+        "investment": 120000,
+        "spoilage": 46000,
+        "fees": 0,
+        "tips": 8000,
+        "sideIncome": 0,
+        "rating": 4,
+        "reasons": {
+          "OUT_OF_STOCK": 1,
+          "PRICE_TOO_HIGH": 6
+        },
+        "advice": "Xem giá đối thủ và hạ giá món bị từ chối.",
+        "recommendations": [
+          {
+            "reason": "PRICE_TOO_HIGH",
+            "count": 6,
+            "area": "pricing",
+            "text": "Xem giá đối thủ và hạ giá món bị từ chối."
+          },
+          {
+            "reason": "OUT_OF_STOCK",
+            "count": 1,
+            "area": "stock",
+            "text": "Tăng lượng nhập hoặc sức chở; không phải lỗi nhân viên."
+          }
+        ],
+        "feedback": [
+          {
+            "personId": "driver_2",
+            "name": "Chú Bình",
+            "reason": "PRICE_TOO_HIGH",
+            "text": "Giá hôm nay cao quá, để bữa khác ghé."
+          },
+          {
+            "personId": "teen_4",
+            "name": "Bé Vy",
+            "reason": "PRICE_TOO_HIGH",
+            "text": "Giá hôm nay cao quá, để bữa khác ghé."
+          },
+          {
+            "personId": "teen_3",
+            "name": "Em Tuấn",
+            "reason": "PRICE_TOO_HIGH",
+            "text": "Giá hôm nay cao quá, để bữa khác ghé."
+          }
+        ],
+        "employees": [
+          {
+            "id": "employee_1",
+            "name": "Dì Hạnh",
+            "role": "manager",
+            "skill": 2,
+            "fatigue": 16,
+            "mood": 85,
+            "lastShift": {
+              "day": 8,
+              "served": 11,
+              "fatigueChange": 16,
+              "moodChange": 0,
+              "advice": "Có thể đào tạo để cải thiện tay nghề."
+            },
+            "advice": "Có thể đào tạo để cải thiện tay nghề."
+          }
+        ]
+      },
+      {
+        "id": "school",
+        "name": "Quán cổng trường",
+        "served": 10,
+        "missed": 3,
+        "revenue": 160000,
+        "cogs": 74500,
+        "gross": 85500,
+        "profit": 88500,
+        "spent": 74500,
+        "ops": 0,
+        "investment": 0,
+        "spoilage": 0,
+        "fees": 0,
+        "tips": 3000,
+        "sideIncome": 0,
+        "rating": 3,
+        "reasons": {
+          "OUT_OF_STOCK": 1,
+          "MENU_DISABLED": 2
+        },
+        "advice": "Bật món khách hỏi và chuẩn bị đủ nguyên liệu.",
+        "recommendations": [
+          {
+            "reason": "MENU_DISABLED",
+            "count": 2,
+            "area": "menu",
+            "text": "Bật món khách hỏi và chuẩn bị đủ nguyên liệu."
+          },
+          {
+            "reason": "OUT_OF_STOCK",
+            "count": 1,
+            "area": "stock",
+            "text": "Tăng lượng nhập hoặc sức chở; không phải lỗi nhân viên."
+          }
+        ],
+        "feedback": [
+          {
+            "personId": "school:school_teen_2",
+            "name": "Em Trâm",
+            "reason": "MENU_DISABLED",
+            "text": "Hôm nay không có món mình thích rồi."
+          },
+          {
+            "personId": "school:school_teen_10",
+            "name": "Em Linh Ngân",
+            "reason": "MENU_DISABLED",
+            "text": "Hôm nay không có món mình thích rồi."
+          },
+          {
+            "personId": "school:school_teen_12",
+            "name": "Em Linh Chi",
+            "reason": "OUT_OF_STOCK",
+            "text": "Tiếc quá, quán hết món rồi; mai mình ghé sớm nhé."
+          }
+        ],
+        "employees": []
+      }
+    ]
+  },
+  "roles": [
+    "helper",
+    "manager",
+    "cleaner",
+    "keeper",
+    "buyer",
+    "packer",
+    "driver"
+  ],
+  "singleCash": 127000,
+  "sharedClock": true,
+  "backgroundRealSales": true,
+  "reload": true,
+  "thirdLocation": true,
+  "plannedClosure": true,
+  "campaignDays": 15,
+  "portfolioDays": 8,
+  "allDailyCashReconciled": true
+}
+RUN game/test-endless.mjs
+PASS: seeded endless calendar, rival price response, achievement unlock and 100-day saved campaign ledger
+RUN game/test-multiday.mjs
+7 playable days + 21-day deterministic stress: name, upgrades, prices, roster, clock, emotions, ledger, spoilage, save/reload PASS
+RUN game/test-n1-n2-n3-features.mjs
+Testing N1: Dynamic Weather & Street Events...
+PASS: N1 weather definitions, dayConfig bindings, and demand biases verified.
+Testing N2: Shop Progression, Multi-slot Prep & Seating Decor...
+PASS: N2 upgrades catalog, dual pan cooking speed, led sign roster and seating tips verified.
+Testing N3: Advanced Multi-Shop Operations & Staff Skills...
+PASS: N3 staff specializations, requirement gates and employee speed perk verified.
+ALL N1, N2, N3 TESTS PASSED 100%!
+RUN game/test-office-hub.mjs
+Office selectors, manager guards, advice cap and deterministic shared fixture PASS
+RUN game/test-operational-e2e.mjs
+{
+  "status": "PASS",
+  "scope": "production-engine end-to-end; NOT browser/UI E2E",
+  "seed": 20261004,
+  "day1": {
+    "cash": 127000,
+    "gross": 67000,
+    "served": 6,
+    "simulatedSeconds": 27.6
+  },
+  "portfolio": {
+    "controlledStartingDay": 8,
+    "shops": [
+      {
+        "id": "home",
+        "served": 10,
+        "missed": 6,
+        "profit": 42500,
+        "recommendations": [
+          {
+            "reason": "PRICE_TOO_HIGH",
+            "count": 6,
+            "area": "pricing",
+            "text": "Xem giá đối thủ và hạ giá món bị từ chối."
+          }
+        ]
+      },
+      {
+        "id": "school",
+        "served": 10,
+        "missed": 3,
+        "profit": 105000,
+        "recommendations": [
+          {
+            "reason": "MENU_DISABLED",
+            "count": 2,
+            "area": "menu",
+            "text": "Bật món khách hỏi và chuẩn bị đủ nguyên liệu."
+          },
+          {
+            "reason": "PRICE_TOO_HIGH",
+            "count": 1,
+            "area": "pricing",
+            "text": "Xem giá đối thủ và hạ giá món bị từ chối."
+          }
+        ]
+      }
+    ],
+    "reconciled": true,
+    "simulatedSeconds": 58.8,
+    "ownerSpeed": 1.322,
+    "managerSpeed": 0.7817779200000001,
+    "transferredTicketExactlyOnce": true,
+    "nextDay": 9
+  },
+  "checks": {
+    "saveInPrep": true,
+    "pauseAllShops": true,
+    "doubleServeBlocked": true,
+    "wagesNotRepeated": true,
+    "bonusOnce": true,
+    "restAssigned": true,
+    "allCustomersAccounted": true,
+    "noNegativeStock": true
+  },
+  "pacing": {
+    "emptyMinutesPerSecond": 30,
+    "busyMinutesPerSecond": 2,
+    "quietGapReductionPercent": 40
+  },
+  "browser": {
+    "status": "BLOCKED",
+    "reason": "Cloud browser rejected localhost with ERR_BLOCKED_BY_CLIENT"
+  }
+}
+RUN game/test-planning-insights.mjs
+Planning insights: tier/price changes, negative and zero margins, locked recipes, fresh/overnight basket, missed demand grouping, no mutation PASS
+RUN game/test-planning-ui.mjs
+Planning UI: basket totals and no spending, tier updates, loss/zero warnings, real CLOSE route, zero and separate multi-shop demand PASS
+RUN game/test-progression.mjs
+Progression: calendar, auto close, recipe, canopy, staff, online inventory/fees, feedback and ledger PASS
+RUN game/test-shift.mjs
+{
+  "status": "PASS",
+  "mode": "manual-ingredients-cook-serve",
+  "day1": {
+    "cash": 127000,
+    "gross": 67000,
+    "served": 6
+  },
+  "campaignDays": 21,
+  "wrongTapSafe": true,
+  "duplicateServeGuard": true,
+  "savePhases": [
+    "SELECT",
+    "PREP",
+    "READY",
+    "REACTION"
+  ],
+  "staffAutomationOptional": true
+}
+RUN game/test-shop-insights.mjs
+Shop insights: independent shared-stock capacity, basket preview, recipe locks, FIFO sales totals, no mutation PASS
+RUN game/test-staff-performance.mjs
+PASS: bonus cash/expenses, duplicate guard, save, morale, workload fatigue, rest and staff report
+RUN game/test-ui-timers.mjs
+UI timers: remaining result countdown, detail pause, auto next-day and Replay cancellation PASS
+RUN game/test-ui.mjs
+UI smoke: onboarding name, day transition, market inflation, unaffordable upgrade and locked menu PASS
+Game insights UI: real empire report, consistent zero sales and fulfilled-order revenue/COGS/gross profit PASS
+UI fixture hook: shared deterministic PREP state and unknown-name atomicity PASS
+PASS 18/18 game test files

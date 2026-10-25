@@ -1,0 +1,13 @@
+{
+  "origin": "http://127.0.0.1:8993",
+  "mode": "Existing isolated test save, actual UI controls and engine time, not baseline Day1 playthrough",
+  "checks": [
+    "Added one bread: fresh cost4000, total4000, cash unchanged30000",
+    "Added one syrup: dry cost2000, fresh4000, total6000",
+    "BUY moved cash30000 to24000",
+    "Banh mi tier25000->22000 updated gross14000->11000",
+    "Opened day2 then closed early via confirmation:7 missed,2 stockouts and5 early-close, correct per-recipe breakdown",
+    "Result ledger opened and countdown paused"
+  ],
+  "status": "PASS; copy and peer evidence corrections pending"
+}

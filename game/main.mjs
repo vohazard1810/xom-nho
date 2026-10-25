@@ -1,4 +1,5 @@
-import { menuReadiness, recipeSalesSummary } from './shop-insights.mjs';
+import { menuReadiness, recipeSalesSummary, menuPricePreview, marketFreshnessPreview, missedDemandSummary } from './shop-insights.mjs?v=72c84e74f8eb';
+import { FRESH_INGREDIENTS } from './day-content.mjs';
 import {loadFixture as createFixture} from './fixtures.mjs';
 import { serviceVisual, cookingNeeds, cookingComplete } from './shift-engine.mjs';
 import { ensureEmpire, empireAction, advanceEmpire, LOCATIONS, STAFF_ROLES, openingEligibility, staffCondition, staffRoleAvailable, STAFF_MILESTONES } from './empire-engine.mjs';
@@ -428,6 +429,7 @@ function renderMarket() {
   const currentBasketUnits = totalBasketUnits(state.basket);
   const currentBasketCost = totalBasketCost(state.basket, state.marketPrices);
   const remainingCash = state.cash - currentBasketCost;
+  const freshness = marketFreshnessPreview(state);
 
   return `
     <header class="top-nav">
@@ -469,6 +471,11 @@ function renderMarket() {
               <div class="market-item-info">
                 <strong>${item.name}</strong>
                 <span>${money(state.marketPrices[id])} / ${item.unit}</span>
+                ${FRESH_INGREDIENTS.has(id) ? `
+                  <span class="storage-badge storage-same_day" title="Dùng trong ngày; dư cuối ca bị bỏ">🌱 Dùng trong ngày; dư cuối ca bị bỏ</span>
+                ` : `
+                  <span class="storage-badge storage-overnight" title="Hàng khô: Lưu kho qua đêm">📦 Giữ qua đêm</span>
+                `}
                 ${id === 'kumquat' && state.currentDay === 1 ? `<small class="market-warning">⚠️ Ngày mai có thể lên 3.000đ</small>` : ''}
               </div>
               <div class="stepper">
@@ -482,6 +489,19 @@ function renderMarket() {
       </div>
 
       <div class="market-checkout-dock">
+        <div class="market-freshness-dock">
+          <div class="freshness-row">
+            <span>🌱 Hàng tươi trong giỏ (dùng trong ngày):</span>
+            <strong class="${freshness.freshCost > 0 ? 'text-amber' : ''}">${money(freshness.freshCost)}</strong>
+          </div>
+          <div class="freshness-row">
+            <span>📦 Hàng khô trong giỏ (giữ qua đêm):</span>
+            <strong class="${freshness.carryoverCost > 0 ? 'text-cyan' : ''}">${money(freshness.carryoverCost)}</strong>
+          </div>
+          <div class="freshness-disclaimer-note">
+            • Hàng tươi dư sẽ bỏ cuối ca; hàng khô giữ lại. Giỏ chưa thanh toán.
+          </div>
+        </div>
         <div class="checkout-summary">
           <div>Tiền giỏ hàng: <strong>${money(currentBasketCost)}</strong></div>
           <div>Tiền còn lại: <strong style="color: ${remainingCash < 0 ? '#ef4444' : '#15803d'}">${money(remainingCash)}</strong></div>
@@ -496,6 +516,8 @@ function renderMarket() {
 }
 
 function renderMenuSetup() {
+  const pricePreviews = menuPricePreview(state);
+  const previewMap = new Map(pricePreviews.map(p => [p.recipeId, p]));
   return `
     <header class="top-nav">
       <div class="brand-title">${shopTitle()} <small>Lên Thực Đơn</small></div>
@@ -506,6 +528,9 @@ function renderMenuSetup() {
         <h3>📋 Bảng Thực Đơn Ngày ${state.currentDay} (${state.upgrades.counterSlots} chỗ trên quầy)</h3>
         <p>Chọn các món mở bán và mức giá niêm yết cho khách hàng.</p>
       </div>
+      <div class="menu-disclaimer-note">
+        ℹ️ <b>Ước tính giá & lãi gộp:</b> Ước tính theo giá chợ hôm nay, chưa trừ lương/phí. Giá cao có thể làm khách bỏ mua.
+      </div>
 
       ${renderReadinessHelper(state, { includeBasket: false, sourceLabel: 'Kho sẵn có' })}
 
@@ -515,6 +540,7 @@ function renderMenuSetup() {
           const cost = Object.entries(recipeData.needs).reduce((n, [id, qty]) => n + (state.marketPrices[id] || ingredients[id].price) * qty, 0);
           const margin = cfg.sellPrice - cost;
           const isLocked = recipeId === 'BANH_MI_TRUNG' && !state.knownRecipeIds.includes(recipeId);
+          const preview = previewMap.get(recipeId);
 
           return `
             <div class="menu-card ${cfg.enabled ? 'active' : 'disabled'} ${isLocked ? 'locked-dish' : ''}">
@@ -527,7 +553,33 @@ function renderMenuSetup() {
                       <strong>${escapeHtml(recipeData.name)}</strong>
                     </label>
                   </div>
-                  <span class="cost-estimate">Vốn ước tính: ~${money(cost)} / phần</span>
+                  ${preview ? `
+                    <div class="menu-price-preview-block">
+                      <div class="menu-cost-row">
+                        <span>Giá vốn hôm nay:</span>
+                        <strong>~${money(preview.estimatedUnitCost)} / phần</strong>
+                      </div>
+                      <div class="menu-cost-row">
+                        <span>Giá niêm yết:</span>
+                        <strong>${money(preview.sellPrice)}</strong>
+                      </div>
+                      ${preview.risk === 'loss' ? `
+                        <div class="menu-risk-badge risk-loss">
+                          ⚠️ Lỗ vốn: Bán ${money(preview.sellPrice)} < Vốn ${money(preview.estimatedUnitCost)} (Lãi gộp: ${money(preview.estimatedGrossProfit)})
+                        </div>
+                      ` : preview.risk === 'break_even' ? `
+                        <div class="menu-risk-badge risk-break_even">
+                          ⚠️ Hòa vốn: Giá bán bằng giá vốn (~${money(preview.estimatedUnitCost)})
+                        </div>
+                      ` : `
+                        <div class="menu-risk-badge risk-positive">
+                          ✓ Lãi gộp ước tính: <strong>+${money(preview.estimatedGrossProfit)} / phần</strong> ${preview.marginRate !== null ? `(${(preview.marginRate * 100).toFixed(0)}%)` : ''}
+                        </div>
+                      `}
+                    </div>
+                  ` : `
+                    <span class="cost-estimate">Vốn ước tính: ~${money(cost)} / phần</span>
+                  `}
                 </div>
               </div>
 
@@ -549,9 +601,11 @@ function renderMenuSetup() {
                 </div>
               </div>
 
-              <div class="menu-margin-preview">
-                Lãi gộp dự kiến: <strong>+${money(margin)} / phần</strong>
-              </div>
+              ${!preview ? `
+                <div class="menu-margin-preview">
+                  Lãi gộp dự kiến: <strong>+${money(margin)} / phần</strong>
+                </div>
+              ` : ''}
               ${state.dayEvent?.rival?.offer === recipeId && cfg.sellPrice > state.dayEvent.rival.suggestedPrice ? `
                 <div class="price-demand-hint rival-price-warning">⚠️ Đang cao hơn ${escapeHtml(state.dayEvent.rival.name)} (${money(state.dayEvent.rival.suggestedPrice)}): một số khách nhạy giá sẽ từ chối món này.</div>
               ` : cfg.sellPrice > recipeData.basePrice ? `
@@ -810,6 +864,51 @@ function renderRecipeSalesBreakdown(shopState, { shopName = '' } = {}) {
   `;
 }
 
+function renderMissedDemandBreakdown(shopState, { shopName = '' } = {}) {
+  if (!shopState) return '';
+  const summary = missedDemandSummary(shopState);
+  const reasonNames = {
+    OUT_OF_STOCK: 'Hết hàng',
+    WAIT_TOO_LONG: 'Đợi lâu',
+    PRICE_TOO_HIGH: 'Giá cao',
+    MENU_DISABLED: 'Món không bán',
+    MISSED_LATE_OPENING: 'Mở muộn',
+    MISSED_EARLY_CLOSING: 'Đóng cửa sớm'
+  };
+
+  return `
+    <div class="missed-demand-breakdown">
+      <h4>Báo cáo nhu cầu bị lỡ${shopName ? ` · ${escapeHtml(shopName)}` : ''}</h4>
+      ${summary.totalMissed === 0 ? `
+        <div class="missed-empty-banner">🎉 Tuyệt vời! Không có lượt khách nào bị lỡ trong ca này.</div>
+      ` : `
+        <div class="missed-summary-header">
+          Tổng cộng: <b>${summary.totalMissed} lượt khách lỡ</b> trên ${summary.items.length} món
+        </div>
+        <div class="missed-demand-list">
+          ${summary.items.map(item => `
+            <div class="missed-item-row">
+              <div class="missed-item-title">
+                <strong>${escapeHtml(item.name)}</strong>: <span class="missed-count-badge">${item.count} khách</span>
+              </div>
+              <div class="missed-reasons-chips">
+                ${item.reasons.map(r => `
+                  <span class="missed-reason-chip">
+                    ${escapeHtml(reasonNames[r.reason] || r.reason)}: <b>${r.count}</b>
+                  </span>
+                `).join('')}
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      `}
+      <div class="missed-disclaimer-note">
+        <small>• Thống kê từ các lượt khách bỏ đi hoặc không phục vụ được thực tế; không tính doanh thu giả định.</small>
+      </div>
+    </div>
+  `;
+}
+
 function renderDayResult() {
   if (state.empire?.report) return renderEmpireResult();
   const l=calculateLedger(state), report=state.lastDayReport;
@@ -822,6 +921,7 @@ function renderDayResult() {
     <details id="day-ledger-details" ${resultDetailsOpen?'open':''}><summary>Sổ tiền & phản hồi chi tiết</summary><div class="compact-ledger">
       ${[['Vốn đầu ngày',l.startingCash],['Mua nguyên liệu',-l.spentOnMorningStock],['Doanh thu',l.totalSalesRevenue],['Giá vốn đã bán',-l.cogsSoldItemsOnly],['Lãi gộp',l.grossOperatingProfit],['Tiền tip',l.tipsCollected],['Hàng hỏng',-l.spoilageLoss],['Chi vận hành',-l.operatingExpenses],['Nâng cấp',-l.upgradeOutlay],['Phí giao hàng',-l.onlineFees],['Việc phụ',l.sideJobIncome],['Tiền két cuối ca',l.finalCashInDrawer]].map(([label,n])=>`<div><span>${label}</span><b>${money(n)}</b></div>`).join('')}
       ${renderRecipeSalesBreakdown(state, { shopName: shopTitle() })}
+      ${renderMissedDemandBreakdown(state, { shopName: shopTitle() })}
       <h3>Lý do lỡ khách</h3>${Object.entries(l.missedByReason||{}).filter(([,a])=>a.length).map(([reason,a])=>`<p>${escapeHtml({WAIT_TOO_LONG:'Đợi quá lâu',OUT_OF_STOCK:'Hết hàng',MENU_DISABLED:'Món không bán',PRICE_TOO_HIGH:'Giá cao',MISSED_LATE_OPENING:'Mở muộn',MISSED_EARLY_CLOSING:'Quán đóng cửa'}[reason]||reason)}: ${a.length}</p>`).join('')||'<p>Không lỡ khách nào.</p>'}
       ${(report?.feedback||[]).map(f=>`<p><b>${escapeHtml(f.name)}:</b> ${escapeHtml(f.text)}</p>`).join('')}<h3>Ngày mai</h3><p>${escapeHtml(report?.forecastTomorrow||'')}</p>
     </div></details><button class="btn-tertiary" data-type="REPLAY">Chơi lại từ đầu</button></section>`;
@@ -907,7 +1007,8 @@ function renderEmpireResult(){
     const bSales = bState ? recipeSalesSummary(bState) : null;
     const bestRow = bSales?.bestSeller ? bSales.items.find(it => it.recipeId === bSales.bestSeller) : null;
     return bestRow ? `<div class="best-seller-ribbon">⭐ <b>Món bán chạy:</b> ${escapeHtml(bestRow.name)} (${bestRow.orders} đơn · ${money(bestRow.revenue)})</div>` : `<div class="best-seller-ribbon ribbon-empty">Chưa có món nào được phục vụ hôm nay.</div>`;
-  })()}<small>Thu ${money(x.revenue)} · vốn đã bán ${money(x.cogs)} · lương/việc ${money(x.ops)}</small><p class="missed-reasons-summary">${Object.entries(x.reasons).map(([k,n])=>`${reasonNames[k]||k}: ${n}`).join(' · ')||'Không lỡ khách'}</p><div class="branch-recommendations"><div class="recommendations-header">💡 Gợi ý vận hành:</div>${(x.recommendations||[{text:x.advice}]).slice(0,3).map(a=>`<div class="rec-item rec-area-${escapeHtml(a.area||'general')}"><span class="rec-bullet">•</span> <span>${escapeHtml(a.text)}</span></div>`).join('')}</div><h4>Khách nói gì?</h4>${x.feedback.slice(0,2).map(f=>`<p><b>${escapeHtml(f.name)}:</b> ${escapeHtml(f.text)}</p>`).join('')}${x.employees.length?`<details><summary>Nhân viên cuối ca (${x.employees.length} người)</summary>${x.employees.map(p=>`<p>${escapeHtml(p.name)} · ${STAFF_ROLES[p.role].name} · mệt ${p.fatigue}/100 · tinh thần ${p.mood}/100<br>${escapeHtml(p.advice||'')}</p>`).join('')}</details>`:''}</article>`).join('')}</div><button class="btn-primary" data-type="NEXT_DAY">Chuẩn bị ngày ${r.day+1} →</button><small class="result-countdown">Tự sang ngày sau <b id="next-day-countdown">${Math.ceil((state.resultRemainingMs??12000)/1000)}</b>s · mở sổ để dừng</small><details id="day-ledger-details" ${resultDetailsOpen?'open':''}><summary>Sổ tiền chung & đối soát</summary><div class="compact-ledger"><div><span>Vốn đầu ngày</span><b>${money(r.openingCash)}</b></div><div><span>Biến động tiền mặt</span><b>${money(r.cashMovement)}</b></div><div><span>Tiền cuối ngày</span><b>${money(r.closingCash)}</b></div><p>${r.reconciled?'Đối soát khớp các giao dịch từng quán.':'Có chênh lệch cần kiểm tra.'}</p>${r.shops.map(x=>`<p><b>${x.name}</b> · nhập ${money(x.spent)} · đầu tư ${money(x.investment)} · hàng hỏng ${money(x.spoilage)} · tip ${money(x.tips)} · phí giao ${money(x.fees)}</p>`).join('')}${r.shops.map(x => renderRecipeSalesBreakdown(state.empire?.shops?.[x.id]?.state, { shopName: x.name })).join('')}</div></details><button class="btn-tertiary" data-type="REPLAY">Chơi lại từ đầu</button></section>`;
+  })()}<small>Thu ${money(x.revenue)} · vốn đã bán ${money(x.cogs)} · lương/việc ${money(x.ops)}</small><p class="missed-reasons-summary">${Object.entries(x.reasons).map(([k,n])=>`${reasonNames[k]||k}: ${n}`).join(' · ')||'Không lỡ khách'}</p><div class="branch-recommendations"><div class="recommendations-header">💡 Gợi ý vận hành:</div>${(x.recommendations||[{text:x.advice}]).slice(0,3).map(a=>`<div class="rec-item rec-area-${escapeHtml(a.area||'general')}"><span class="rec-bullet">•</span> <span>${escapeHtml(a.text)}</span></div>`).join('')}</div><h4>Khách nói gì?</h4>${x.feedback.slice(0,2).map(f=>`<p><b>${escapeHtml(f.name)}:</b> ${escapeHtml(f.text)}</p>`).join('')}${x.employees.length?`<details><summary>Nhân viên cuối ca (${x.employees.length} người)</summary>${x.employees.map(p=>`<p>${escapeHtml(p.name)} · ${STAFF_ROLES[p.role].name} · mệt ${p.fatigue}/100 · tinh thần ${p.mood}/100<br>${escapeHtml(p.advice||'')}</p>`).join('')}</details>`:''}</article>`).join('')}</div><button class="btn-primary" data-type="NEXT_DAY">Chuẩn bị ngày ${r.day+1} →</button><small class="result-countdown">Tự sang ngày sau <b id="next-day-countdown">${Math.ceil((state.resultRemainingMs??12000)/1000)}</b>s · mở sổ để dừng</small><details id="day-ledger-details" ${resultDetailsOpen?'open':''}><summary>Sổ tiền chung & đối soát</summary><div class="compact-ledger"><div><span>Vốn đầu ngày</span><b>${money(r.openingCash)}</b></div><div><span>Biến động tiền mặt</span><b>${money(r.cashMovement)}</b></div><div><span>Tiền cuối ngày</span><b>${money(r.closingCash)}</b></div><p>${r.reconciled?'Đối soát khớp các giao dịch từng quán.':'Có chênh lệch cần kiểm tra.'}</p>${r.shops.map(x=>`<p><b>${x.name}</b> · nhập ${money(x.spent)} · đầu tư ${money(x.investment)} · hàng hỏng ${money(x.spoilage)} · tip ${money(x.tips)} · phí giao ${money(x.fees)}</p>`).join('')}${r.shops.map(x => renderRecipeSalesBreakdown(state.empire?.shops?.[x.id]?.state, { shopName: x.name })).join('')}
+      ${r.shops.map(x => renderMissedDemandBreakdown(state.empire?.shops?.[x.id]?.state, { shopName: x.name })).join('')}</div></details><button class="btn-tertiary" data-type="REPLAY">Chơi lại từ đầu</button></section>`;
 }
 
 let renderedScreen = null;
