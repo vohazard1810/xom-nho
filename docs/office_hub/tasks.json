@@ -3,7 +3,7 @@
   "project": "Xóm Nhỏ — Office Control Center",
   "branch": "codex/core-loop-completion",
   "repository": "https://github.com/vohazard1810/xom-nho",
-  "updatedAt": "2026-10-24T05:18:50.400Z",
+  "updatedAt": "2026-10-25T03:02:46.702613+00:00",
   "updatedBy": "Codex",
   "statuses": [
     "Todo",
@@ -16,13 +16,11 @@
     "Codex": "Engine / Logic / Transactions / Automated tests"
   },
   "currentHandoff": {
-    "id": "HO-2026-10-24-local-orchestrator",
-    "title": "Local orchestrator dry-run; Antigravity manual",
+    "id": "GAME-THREE-20261025",
+    "title": "Ba cải tiến quản lý quán trong game",
     "from": "Codex",
     "to": "Antigravity",
-    "baseCommit": "f5e4266",
-    "resultCommit": "7a34dc939bcfeaf078aa16c89e937ce3c61ce06e",
-    "source": "docs/office_hub/reports/CODEX_BACKEND_REPORT.md"
+    "source": "docs/office_hub/reports/GAME_THREE_SCOPE.md"
   },
   "tasks": [
     {
@@ -267,6 +265,39 @@
       "updatedAt": "2026-10-25T02:29:10.727091+00:00",
       "updatedBy": "Codex",
       "notes": "GAME_ACCEPTANCE.json: Codex duyệt theo ủy quyền; 16/16 PASS; ảnh360/390 đạt."
+    },
+    {
+      "id": "A-G3",
+      "title": "Xem lãi gộp ước tính và cảnh báo giá bán dưới vốn",
+      "owner": "Antigravity",
+      "area": "Game",
+      "status": "Todo",
+      "report": "docs/office_hub/reports/GAME_THREE_SCOPE.md",
+      "updatedAt": "2026-10-25T03:02:46.702613+00:00",
+      "updatedBy": "Codex",
+      "notes": "Chủ dự án giao25/10; Codex logic, Anti UI; chưa có ACK nhận việc."
+    },
+    {
+      "id": "A-G4",
+      "title": "Phân biệt hàng tươi và tiền hàng dùng trong ngày ở chợ",
+      "owner": "Antigravity",
+      "area": "Game",
+      "status": "Todo",
+      "report": "docs/office_hub/reports/GAME_THREE_SCOPE.md",
+      "updatedAt": "2026-10-25T03:02:46.702613+00:00",
+      "updatedBy": "Codex",
+      "notes": "Chủ dự án giao25/10; Codex logic, Anti UI; chưa có ACK nhận việc."
+    },
+    {
+      "id": "A-G5",
+      "title": "Tổng kết nhu cầu bị lỡ theo món và nguyên nhân",
+      "owner": "Antigravity",
+      "area": "Game",
+      "status": "Todo",
+      "report": "docs/office_hub/reports/GAME_THREE_SCOPE.md",
+      "updatedAt": "2026-10-25T03:02:46.702613+00:00",
+      "updatedBy": "Codex",
+      "notes": "Chủ dự án giao25/10; Codex logic, Anti UI; chưa có ACK nhận việc."
     }
   ]
 }
