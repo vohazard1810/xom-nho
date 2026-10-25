@@ -1,0 +1,25 @@
+{
+  "nonce": "OFFICE-COMPACT-20261025",
+  "reviewRound": 2,
+  "actor": "Codex under delegated director authority",
+  "verdict": "PASS",
+  "time": "2026-10-25T02:58:18.180620+00:00",
+  "desktop": {
+    "height": 520,
+    "width": 926,
+    "scrollWidth": 926,
+    "allFourCharactersVisible": true
+  },
+  "controlledDemo": "Working and Blocked maintained 520px; returned Live API; not worker execution",
+  "checks": {
+    "assetVersionTests": "2/2 PASS",
+    "dashboard": "1/1 PASS"
+  },
+  "sourceHashes": {
+    "app.js": "1dd426ef95dedd18538e0384143f59bc2a4e0177103d2126be577900737df531",
+    "style.css": "c8b49f76e441565fd0b13be42934df4226dd3bffc6a52a375ff81bd521431210",
+    "index.html": "5d2e9e459743af229dff822abefab12e8d115d60ac81f260c0f5e08ddf5348ad",
+    "build_bundle.py": "8d5fd36f22b6a200066cd777ce475c9f3493c03e088553ab18540347ce8a4395"
+  },
+  "scope": "Compact Office layout only; historical blocked package not approved"
+}

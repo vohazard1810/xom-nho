@@ -139,6 +139,15 @@ Bằng chứng browser mới nhất còn chờ Antigravity; không tuyên bố h
 | Báo cáo | [Nghiệm thu game](GAME_FOUR_FINAL_REPORT.md) |
 | Phân biệt phạm vi | Office Hub cũ chưa được duyệt bởi gói game |
 
+## Office compact — 25/10/2026
+
+| Mục | Kết quả |
+|---|---|
+| Nghiệm thu riêng | PASS; xem OFFICE_COMPACT_FINAL_REPORT.md |
+| Desktop thực đo | 520px cao; 926px rộng; không tràn ngang |
+| Cache | CSS/JS dùng hash nội dung; không nối dài tham số |
+| Phạm vi cũ | Compare và gói Blocked trước vẫn giữ nguyên |
+
 ## Action Items for Antigravity (UI/Art)
 
 | # | Ưu tiên | Đầu việc | Vị trí liên quan | Ghi chú |

@@ -5819,3 +5819,196 @@ html, body {
 .ws-director .desk-director {
   width: 118px !important;
 }
+
+/* =========================================================================
+   COMPACT ROOMS & STAGE LAYOUT (NONCE: OFFICE-COMPACT-20261025)
+   - Scope: Prevents cards/long text from expanding stage height or widening tracks.
+   - Stage aligned at top with minmax(0,1fr) 5-track grid (rooms + 12px dividers).
+   - Preserves room-interior 265px; all 4 character faces visible inside stage.
+   - Bounded 2-line comic speech & short status description with overflow wrapping.
+   - Component links nowrap intrinsic width constrained by min-width:0 + text-overflow.
+   - stage.scrollWidth <= stage.clientWidth strictly guaranteed.
+   - Mobile existing tabs remain 100% workable (< 960px).
+   ========================================================================= */
+
+/* 1. Stage Container: Desktop 5-track grid (Room 1 | Div 1 | Room 2 | Div 2 | Room 3) */
+@media (min-width: 961px) {
+  #dept-stage,
+  .dept-stage {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) 12px minmax(0, 1fr) 12px minmax(0, 1fr) !important;
+    align-items: start !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
+    min-height: 520px !important;
+    max-height: 600px !important;
+  }
+
+  .room-dividing-wall {
+    width: 12px !important;
+    align-self: stretch !important;
+    height: 100% !important;
+    min-height: 500px !important;
+    box-sizing: border-box !important;
+  }
+}
+
+/* 2. Room Columns: Top-aligned, min-width:0 prevents wide content track expansion */
+.dept-room {
+  min-width: 0 !important;
+  max-width: 100% !important;
+  overflow: hidden !important;
+  box-sizing: border-box !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: flex-start !important;
+  gap: 6px !important;
+  padding: 12px 14px 12px !important;
+  min-height: 500px !important;
+  max-height: 590px !important;
+}
+
+/* 3. Room Header: Compact, fixed row */
+.dept-room .room-header-clean {
+  flex: none !important;
+  margin-bottom: 4px !important;
+  align-self: flex-start !important;
+}
+
+/* 4. Comic Speech Bubble: Bounded 2-line speech with ellipsis */
+.dept-room .comic-bubble {
+  flex: none !important;
+  min-width: 0 !important;
+  max-width: 290px !important;
+  width: 100% !important;
+  margin: 0 auto 6px !important;
+  min-height: 44px !important;
+  max-height: 56px !important;
+  padding: 6px 10px !important;
+  box-sizing: border-box !important;
+}
+
+.dept-room .comic-bubble .bubble-text {
+  display: -webkit-box !important;
+  -webkit-line-clamp: 2 !important;
+  -webkit-box-orient: vertical !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  line-height: 1.35 !important;
+  font-size: 11.5px !important;
+  word-break: break-word !important;
+  overflow-wrap: anywhere !important;
+}
+
+/* 5. Room Interior: Strictly preserved at 265px across all rooms */
+.dept-room .room-interior {
+  position: relative !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  height: 265px !important;
+  min-height: 265px !important;
+  max-height: 265px !important;
+  flex: none !important;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: flex-end !important;
+  margin-top: 0 !important;
+  margin-bottom: 4px !important;
+  box-sizing: border-box !important;
+}
+
+/* 6. Ground Shadow: Compact ground anchor */
+.dept-room .char-ground-shadow {
+  flex: none !important;
+  height: 6px !important;
+  margin-bottom: 4px !important;
+}
+
+/* 7. Room Unified Status Card: Compact, bounded, same readable row layout */
+.dept-room .room-unified-card {
+  min-width: 0 !important;
+  max-width: 100% !important;
+  flex: none !important;
+  margin-top: 2px !important;
+  padding: 8px 10px !important;
+  background: rgba(15, 23, 42, 0.85) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-radius: 8px !important;
+  max-height: 120px !important;
+  overflow: hidden !important;
+  box-sizing: border-box !important;
+}
+
+.dept-room .room-unified-card .card-line {
+  min-width: 0 !important;
+  max-width: 100% !important;
+  overflow: hidden !important;
+  display: flex !important;
+  align-items: baseline !important;
+  gap: 6px !important;
+  margin-bottom: 4px !important;
+  font-size: 11px !important;
+  line-height: 1.35 !important;
+}
+
+.dept-room .room-unified-card .card-line:last-child {
+  margin-bottom: 0 !important;
+}
+
+.dept-room .room-unified-card .line-label {
+  flex-shrink: 0 !important;
+  white-space: nowrap !important;
+  font-weight: 700 !important;
+  color: #94a3b8 !important;
+  font-size: 10.5px !important;
+}
+
+/* Bounded status description: min-width:0 prevents wide text from widening tracks */
+.dept-room .room-unified-card .line-value {
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  display: -webkit-box !important;
+  -webkit-line-clamp: 2 !important;
+  -webkit-box-orient: vertical !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  word-break: break-word !important;
+  overflow-wrap: anywhere !important;
+  color: #e2e8f0 !important;
+}
+
+/* Action links inside card: block + min-width:0 prevents nowrap intrinsic width from widening room track */
+.dept-room .room-unified-card .card-action-link {
+  display: block !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  box-sizing: border-box !important;
+}
+
+/* 8. Mobile Responsiveness (< 960px): Preserve tabbed navigation and full width */
+@media (max-width: 960px) {
+  #dept-stage,
+  .dept-stage {
+    display: flex !important;
+    min-height: auto !important;
+    max-height: none !important;
+  }
+  .dept-room {
+    display: none !important;
+    width: 100% !important;
+    min-height: 500px !important;
+    max-height: none !important;
+  }
+  .dept-room.is-seg-active {
+    display: flex !important;
+  }
+  .room-dividing-wall {
+    display: none !important;
+  }
+}

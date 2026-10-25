@@ -10,6 +10,7 @@ files first; data.bundle.js is only a fallback for opening index.html directly
 from disk, where browsers block fetch() for local files.
 """
 import json
+import hashlib
 import re
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
@@ -50,6 +51,20 @@ def describe(path: Path, rel: str) -> dict:
     }
 
 
+def refresh_asset_versions(hub: Path) -> None:
+    index = hub / 'index.html'
+    original = index.read_text(encoding='utf-8')
+    updated = original
+    for asset in ['style.css', 'app.js']:
+        version = hashlib.sha256((hub / asset).read_bytes()).hexdigest()[:12]
+        pattern = re.compile(r'((?:href|src)=)(["\'])' + re.escape(asset) + r'(?:\?[^"\']*)?\2')
+        updated, count = pattern.subn(lambda m: f'{m[1]}{m[2]}{asset}?v={version}{m[2]}', updated)
+        if count != 1:
+            raise ValueError(f'Expected exactly one index reference to {asset}; found {count}')
+    if updated != original:
+        index.write_text(updated, encoding='utf-8')
+
+
 def main() -> None:
     evidence = []
     for folder in EVIDENCE_DIRS:
@@ -80,6 +95,7 @@ def main() -> None:
         f"window.OFFICE_HUB_BUNDLE = {payload};\n",
         encoding="utf-8",
     )
+    refresh_asset_versions(HUB)
     print(f"evidence: {len(evidence)} images, bundle written at {bundle['generatedAt']}")
 
 

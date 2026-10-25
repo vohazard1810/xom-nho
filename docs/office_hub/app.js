@@ -818,6 +818,22 @@ Yêu cầu tiếp theo cho Codex:
     }
   }
 
+  function compactAgentDetail(agent) {
+    const messages = {
+      blocked: 'Có kết quả cần sửa. Xem lý do trong báo cáo.',
+      unknown: 'Chưa có bằng chứng hoạt động mới.',
+      idle: 'Đã kết thúc lượt xử lý; chờ việc tiếp theo.',
+      working: 'Đang thực hiện công việc được giao.',
+      in_progress: 'Đang thực hiện công việc được giao.',
+      verifying: 'Đang kiểm thử bản vừa nộp.',
+      reviewing: 'Đang đối soát kết quả và bằng chứng.',
+      awaiting_review: 'Đã nộp kết quả; chờ kiểm chứng.',
+      awaiting_director: 'Chờ trợ lý giám đốc nghiệm thu.',
+    };
+    const text = messages[agent.status] || String(agent.detail || '').replace(/\s+/g, ' ').trim();
+    return text.length > 110 ? text.slice(0, 107) + '…' : text;
+  }
+
   function renderOfficeApiState(data, mode, extraMsg = '') {
     if (state.demoMode && state.demoMode !== 'real') {
       return; // Khng ghi d tr?ng thi demo khi dang th? nghi?m ho?t ?nh!
@@ -1046,9 +1062,12 @@ Yêu cầu tiếp theo cho Codex:
     const sidebarAg = $('#sidebar-ag-status');
     if (ag) {
       const agStatusVn = translateStatus(ag.status);
-      const agDetail = ag.detail || '';
+      const agDetail = compactAgentDetail(ag);
       const agLast = ag.lastEvent ? formatVnTime(ag.lastEvent) : 'Chưa có';
-      if (agDoing) agDoing.textContent = `${agStatusVn}${agDetail ? ' · ' + agDetail : ''}`;
+      if (agDoing) {
+        agDoing.textContent = `${agStatusVn}${agDetail ? ' · ' + agDetail : ''}`;
+        agDoing.title = String(ag.detail || '');
+      }
       if (agWaiting) agWaiting.textContent = `Sự kiện: ${agLast}`;
       if (agLastEl) agLastEl.textContent = agLast;
       if (sidebarAg) sidebarAg.textContent = `Ca: ${agStatusVn} · Lịch sử: 5/5 UI`;
@@ -1066,8 +1085,10 @@ Yêu cầu tiếp theo cho Codex:
           agBubbleText.innerHTML = '<b>🎨 Antigravity:</b> "Đang triển khai giao diện và chuẩn bị bằng chứng... Chưa xong."';
         } else if (ag.status === 'awaiting_review') {
           agBubbleText.innerHTML = '<b>🎨 Antigravity:</b> "Đã nộp kết quả giao diện UI. Đang chờ thẩm định."';
+        } else if (ag.status === 'blocked') {
+          agBubbleText.innerHTML = '<b>🎨 Antigravity:</b> "Có kết quả cần sửa. Xem lý do trong báo cáo."';
         } else {
-          agBubbleText.innerHTML = '<b>🎨 Antigravity:</b> "Đã nghiệm thu toàn bộ 5 task UI và xuất 22 ảnh bằng chứng."';
+          agBubbleText.innerHTML = '<b>🎨 Antigravity:</b> "Chờ công việc hoặc bằng chứng mới."';
         }
       }
     }
@@ -1080,9 +1101,12 @@ Yêu cầu tiếp theo cho Codex:
     const zzzEl = $('#codex-zzz-badge');
     if (cx) {
       const cxStatusVn = translateStatus(cx.status);
-      const cxDetail = cx.detail || '';
+      const cxDetail = compactAgentDetail(cx);
       const cxLast = cx.lastEvent ? formatVnTime(cx.lastEvent) : 'Chưa có';
-      if (cxDoing) cxDoing.textContent = `${cxStatusVn}${cxDetail ? ' · ' + cxDetail : ''}`;
+      if (cxDoing) {
+        cxDoing.textContent = `${cxStatusVn}${cxDetail ? ' · ' + cxDetail : ''}`;
+        cxDoing.title = String(cx.detail || '');
+      }
       if (cxWaiting) cxWaiting.textContent = `Sự kiện: ${cxLast}`;
       if (cxLastEl) cxLastEl.textContent = cxLast;
       if (sidebarCx) sidebarCx.textContent = `Ca: ${cxStatusVn} · Lịch sử: 15/15 Tests`;
@@ -1113,9 +1137,9 @@ Yêu cầu tiếp theo cho Codex:
       const cxBubbleText = $('#bubble-cx .bubble-text');
       if (cxBubbleText) {
         if (cx.status === 'working' || cx.status === 'in_progress') {
-          cxBubbleText.innerHTML = '<b>⚙️ Codex:</b> "Đang chạy kiểm thử 15 bài test engine... Chưa hoàn tất."';
+          cxBubbleText.innerHTML = '<b>⚙️ Codex:</b> "Đang kiểm thử và đối soát kết quả… Chưa hoàn tất."';
         } else {
-          cxBubbleText.innerHTML = '<b>⚙️ Codex:</b> "15/15 test tự động đạt. Baseline Day 1 khớp tuyệt đối 127k/67k."';
+          cxBubbleText.innerHTML = '<b>⚙️ Codex:</b> "Kết quả từng lượt được lưu trong báo cáo kiểm chứng."';
         }
       }
     }
